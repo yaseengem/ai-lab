@@ -153,7 +153,7 @@ ai-agents/
 │
 ├── wireframes/                  # Design source of truth (read-only reference)
 └── scripts/
-    ├── start.sh                 # reads config.yaml; scans agents/; calls each main.py
+    ├── run.sh                   # reads config.yaml; scans agents/; calls each main.py
     ├── stop.sh
     ├── check.sh
     └── restart.sh
@@ -289,14 +289,14 @@ Extension pattern: new feature = `routers/{domain}.py` + `services/{domain}_serv
 - [x] A4: Rewrite .env.example (secrets only)
 - [x] A5: Create metadata.yaml + main.py for demo1, demo2, demo3
 - [x] A6: Create app/ platform backend (main.py, config.py, schemas/, routers/, services/)
-- [x] A6a: Port conflict validation in agent_scanner.py + start.sh
+- [x] A6a: Port conflict validation in agent_scanner.py + run.sh
 - [x] A6b: CORS — agent APIs allow origins from :5000 and their own frontend port
 - [x] A7: Move agents/demo1/dummy_data/ → agents/demo1/data/dummy/
 - [x] A8: Update utils.logger → commons.logger in 7 files in agents/demo1/
 - [x] A9: Replace STORAGE_PATH env paths with agent-relative _CASES_DIR in 4 files
 - [x] A10: Update dummy_data → data/dummy path references in 3 files
 - [x] A11: Create agents/demox/ template folder with GUIDELINES.md + annotated starters
-- [x] A12: Rewrite scripts/start.sh / stop.sh / check.sh — dynamic discovery from config.yaml
+- [x] A12: Rewrite scripts/run.sh / stop.sh / check.sh — dynamic discovery from config.yaml
 - [x] A13: Update .gitignore
 - [x] A14: Delete utils/, storage/, root logs/, root test/
 
@@ -311,13 +311,13 @@ Extension pattern: new feature = `routers/{domain}.py` + `services/{domain}_serv
 
 ## Verification
 
-1. `./scripts/start.sh` — reads config.yaml, validates no port conflicts, starts platform (:5000/:5001) + all non-template agents
+1. `./scripts/run.sh` — reads config.yaml, validates no port conflicts, starts platform (:5000/:5001) + all non-template agents
 2. `GET localhost:5001/api/agents` → Calvin, Arvo, Lance with live_status
 3. `GET localhost:5001/api/health` → `{status: ok, agents_found: 3}`
 4. `localhost:5000` — light theme, BrowseAgentsPage shows live agent cards
 5. `localhost:8001` — Calvin frontend, VITE_API_URL = :3001 (injected by main.py)
 6. All 7 demo1 pages render matching wireframes
 7. Submit test claim → case at agents/demo1/data/cases/{id}/; no CORS errors
-8. Duplicate port in metadata.yaml → start.sh logs conflict warning
+8. Duplicate port in metadata.yaml → run.sh logs conflict warning
 9. `pytest agents/demo1/tests/` passes
 10. Root utils/, storage/, logs/, test/ no longer exist

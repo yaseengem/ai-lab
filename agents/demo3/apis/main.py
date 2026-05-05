@@ -3,7 +3,7 @@ Loan Processing FastAPI stub — placeholder until EP-5 is implemented.
 
 Responds to all Neural API endpoints with 501 Not Implemented,
 except GET /ping which returns a health-check so the frontend and
-start.sh can confirm the process is up.
+run.sh can confirm the process is up.
 
 Run from the agents/loan/apis/ directory:
   uvicorn main:app --host 0.0.0.0 --port 8003

@@ -8,4 +8,4 @@ echo "=== Neural — Restarting services ==="
 echo ""
 
 bash "$SCRIPTS_DIR/stop.sh"
-bash "$SCRIPTS_DIR/start.sh"
+bash "$SCRIPTS_DIR/run.sh"

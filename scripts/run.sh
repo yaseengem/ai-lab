@@ -1,12 +1,27 @@
 #!/usr/bin/env bash
-# start.sh — Start the Neural platform backend, platform frontend, and all active agents.
-# Reads ports from config.yaml and scans agents/*/metadata.yaml dynamically.
+# run.sh — Start the Neural platform and all active agents.
+# All service output streams to this terminal. Press Ctrl+C to stop everything.
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPO_ROOT_PY="$(cygpath -w "$REPO_ROOT" 2>/dev/null || echo "$REPO_ROOT")"
 PID_DIR="$REPO_ROOT/scripts/pids"
 
 mkdir -p "$PID_DIR"
+
+CHILD_PIDS=()
+
+cleanup() {
+  echo ""
+  echo "=== Neural — Shutting down ==="
+  for pid in "${CHILD_PIDS[@]}"; do
+    kill "$pid" 2>/dev/null || true
+    taskkill //PID "$pid" //F 2>/dev/null || true
+  done
+  wait 2>/dev/null || true
+  bash "$REPO_ROOT/scripts/stop.sh"
+}
+trap cleanup EXIT INT TERM
 
 # ── Load .env (secrets only) ─────────────────────────────────────────────────
 if [[ -f "$REPO_ROOT/.env" ]]; then
@@ -29,11 +44,13 @@ for activate in \
   fi
 done
 
+cd "$REPO_ROOT"
+
 # ── Read config.yaml via Python ───────────────────────────────────────────────
 read_config() {
   python -c "
 import yaml, sys
-c = yaml.safe_load(open('$REPO_ROOT/config.yaml'))
+c = yaml.safe_load(open(r'$REPO_ROOT_PY/config.yaml'))
 print(c$1)
 "
 }
@@ -46,7 +63,7 @@ python -c "
 import sys, yaml
 from pathlib import Path
 
-agents_dir = Path('$REPO_ROOT/agents')
+agents_dir = Path(r'$REPO_ROOT_PY/agents')
 seen = {}
 conflicts = []
 
@@ -68,22 +85,25 @@ if conflicts:
     sys.exit(1)
 "
 
-# ── Helper: start a background service ───────────────────────────────────────
+# ── Helper: start a service, write real PID, stream output to terminal ────────
 start_service() {
   local name="$1"
-  local log_file="$2"
-  shift 2
+  shift
   local pid_file="$PID_DIR/${name}.pid"
 
-  if [[ -f "$pid_file" ]] && kill -0 "$(cat "$pid_file")" 2>/dev/null; then
-    echo "  [skip] $name already running (PID $(cat "$pid_file"))"
-    return
-  fi
+  (
+    echo $BASHPID > "$pid_file"
+    exec "$@"
+  ) 2>&1 | sed -u "s/^/[$name] /" &
 
-  mkdir -p "$(dirname "$log_file")"
-  "$@" >> "$log_file" 2>&1 &
-  echo $! > "$pid_file"
-  echo "  started $name (PID $!  log: $log_file)"
+  # Wait up to 2s for the subshell to write its PID before exec
+  local i=0
+  while [[ ! -s "$pid_file" ]] && (( i++ < 20 )); do sleep 0.1; done
+
+  local actual_pid
+  actual_pid=$(cat "$pid_file" 2>/dev/null || echo "")
+  [[ -n "$actual_pid" ]] && CHILD_PIDS+=("$actual_pid")
+  echo "  started $name (PID ${actual_pid:-unknown})"
 }
 
 echo ""
@@ -91,16 +111,16 @@ echo "=== Neural — Starting platform ==="
 echo ""
 
 # ── Platform backend (:5001) ─────────────────────────────────────────────────
-start_service "platform-api" "$REPO_ROOT/app/logs/platform-api.log" \
+start_service "platform-api" \
   python -m uvicorn app.main:app --host 0.0.0.0 --port "$PLATFORM_BACKEND_PORT"
 
 # ── Platform frontend (:5000) ────────────────────────────────────────────────
 if [[ -f "$REPO_ROOT/frontend/package.json" ]]; then
   if [[ ! -d "$REPO_ROOT/frontend/node_modules" ]]; then
     echo "  Installing platform frontend dependencies ..."
-    (cd "$REPO_ROOT/frontend" && npm install >> "$REPO_ROOT/frontend/install.log" 2>&1)
+    (cd "$REPO_ROOT/frontend" && npm install)
   fi
-  start_service "platform-frontend" "$REPO_ROOT/frontend/frontend.log" \
+  start_service "platform-frontend" \
     sh -c "cd '$REPO_ROOT/frontend' && npm run dev -- --port $PLATFORM_FRONTEND_PORT"
 fi
 
@@ -108,29 +128,31 @@ echo ""
 echo "=== Starting agents ==="
 echo ""
 
-# ── Scan and start each active agent ─────────────────────────────────────────
-python -c "
+# ── Scan agents — here-string avoids a subshell so CHILD_PIDS stays in scope ──
+AGENT_LIST=$(python -c "
 import yaml
 from pathlib import Path
 
-agents_dir = Path('$REPO_ROOT/agents')
+agents_dir = Path(r'$REPO_ROOT_PY/agents')
 for d in sorted(agents_dir.iterdir()):
     meta_file = d / 'metadata.yaml'
     if not meta_file.exists(): continue
     meta = yaml.safe_load(meta_file.read_text())
     if meta.get('status') in ('template', 'stub'): continue
     print(f\"{d.name}|{meta['name']}|{meta['api_port']}|{meta['frontend_port']}\")
-" | while IFS='|' read -r agent_dir name api_port frontend_port; do
-  log_file="$REPO_ROOT/agents/$agent_dir/logs/${agent_dir}.log"
-  mkdir -p "$REPO_ROOT/agents/$agent_dir/logs"
-  start_service "agent-$agent_dir" "$log_file" \
-    python "agents/$agent_dir/main.py"
+")
+
+while IFS='|' read -r agent_dir name api_port frontend_port; do
+  [[ -z "$agent_dir" ]] && continue
+  start_service "agent-$agent_dir" python "agents/$agent_dir/main.py"
   echo "    $name  API: http://localhost:$api_port  Frontend: http://localhost:$frontend_port"
-done
+done <<< "$AGENT_LIST"
 
 echo ""
 echo "  Platform:  http://localhost:$PLATFORM_FRONTEND_PORT"
 echo "  Platform API:  http://localhost:$PLATFORM_BACKEND_PORT/api/health"
 echo ""
-echo "=== All services started. Run ./scripts/stop.sh to stop. ==="
+echo "=== All services running — press Ctrl+C to stop ==="
 echo ""
+
+wait

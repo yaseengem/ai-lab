@@ -83,6 +83,6 @@ Adding a new platform feature:
 
 ## scripts/
 
-- `start.sh` reads `config.yaml` for port ranges, scans `agents/*/metadata.yaml`, skips `status: template`, calls each agent's `main.py`.
-- `start.sh` validates for port conflicts before launching anything.
+- `run.sh` reads `config.yaml` for port ranges, scans `agents/*/metadata.yaml`, skips `status: template`, calls each agent's `main.py`.
+- `run.sh` validates for port conflicts before launching anything.
 - Log files go to `agents/{name}/logs/` — never to a root `logs/` folder.

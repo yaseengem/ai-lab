@@ -71,6 +71,6 @@ echo "==========================================================================
 if [[ "$ALL_OK" == true ]]; then
   echo -e "  ${GRN}${BOLD}All services healthy.${NC}"
 else
-  echo -e "  ${RED}${BOLD}One or more services are down.${NC}  Run ./scripts/start.sh to start."
+  echo -e "  ${RED}${BOLD}One or more services are down.${NC}  Run ./scripts/run.sh to start."
 fi
 echo ""
