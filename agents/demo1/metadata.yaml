@@ -1,0 +1,12 @@
+name: Calvin
+description: >
+  Multi-agent claims processing with human-in-the-loop approval,
+  fraud detection, and medical review workflows.
+use_case: claims_processing
+domain: insurance
+api_port: 3001
+frontend_port: 8001
+entry_point: "agents.demo1.apis.main:app"
+api_version: "2.0.0"
+status: active
+version: "1.0.0"

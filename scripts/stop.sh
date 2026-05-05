@@ -1,36 +1,19 @@
 #!/usr/bin/env bash
-# stop.sh — Stop all Neural services
+# stop.sh — Stop all Neural services (platform + all agents).
+# Reads which agents are running from scripts/pids/ and metadata.yaml.
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PID_DIR="$REPO_ROOT/scripts/pids"
 
-# ── Helper: kill any process matching a command-line pattern ─────────────────
-kill_by_name() {
-  local pattern="$1"
-  local pids
-  pids=$(pgrep -f "$pattern" 2>/dev/null || true)
-  if [[ -z "$pids" ]]; then
-    pids=$(wmic process where "commandline like '%${pattern}%'" get ProcessId /format:value 2>/dev/null \
-           | grep -oP '(?<=ProcessId=)\d+' | grep -v '^0$' || true)
-  fi
-  for p in $pids; do
-    [[ -z "$p" || "$p" == "0" ]] && continue
-    taskkill //PID "$p" //F 2>/dev/null && echo "  ✓  killed PID $p matching '$pattern'" || true
-  done
-}
-
-# ── Helper: kill any process listening on a given port ───────────────────────
+# ── Helper: kill by port (fallback when no PID file) ─────────────────────────
 kill_by_port() {
   local port="$1"
   local pids
   pids=$(netstat -ano 2>/dev/null | grep ":${port}[[:space:]]" | grep LISTENING | awk '{print $NF}' | sort -u || true)
-  if [[ -z "$pids" ]]; then
-    pids=$(ss -tlnp 2>/dev/null | grep ":${port}[[:space:]]" | grep -oP 'pid=\K[0-9]+' || true)
-  fi
   for p in $pids; do
     [[ -z "$p" || "$p" == "0" ]] && continue
-    taskkill //PID "$p" //F 2>/dev/null && echo "  ✓  killed PID $p on port $port" || true
+    taskkill //PID "$p" //F 2>/dev/null && echo "  killed PID $p on port $port" || true
   done
 }
 
@@ -38,23 +21,14 @@ kill_by_port() {
 stop_service() {
   local name="$1"
   local port="${2:-}"
-  local proc_pattern="${3:-}"
   local pid_file="$PID_DIR/${name}.pid"
 
   if [[ ! -f "$pid_file" ]]; then
-    local found=false
     if [[ -n "$port" ]]; then
-      echo "  [fallback] $name — no PID file, checking port $port …"
+      echo "  [fallback] $name — no PID file, killing port $port"
       kill_by_port "$port"
-      found=true
-    fi
-    if [[ -n "$proc_pattern" ]]; then
-      echo "  [fallback] $name — checking process name '$proc_pattern' …"
-      kill_by_name "$proc_pattern"
-      found=true
-    fi
-    if [[ "$found" == false ]]; then
-      echo "  [skip] $name — no PID file found"
+    else
+      echo "  [skip] $name — no PID file"
     fi
     return
   fi
@@ -63,39 +37,50 @@ stop_service() {
   pid=$(cat "$pid_file")
 
   if ! kill -0 "$pid" 2>/dev/null; then
-    echo "  [skip] $name — process $pid not running"
+    echo "  [skip] $name — PID $pid not running"
     rm -f "$pid_file"
     return
   fi
 
-  echo "  Stopping $name (PID $pid) …"
   kill -TERM "$pid" 2>/dev/null || true
-
-  # Wait up to 5 s for graceful shutdown
   local waited=0
   while kill -0 "$pid" 2>/dev/null && [[ $waited -lt 5 ]]; do
-    sleep 1
-    (( waited++ )) || true
+    sleep 1; (( waited++ )) || true
   done
-
-  # Force-kill if still running
   if kill -0 "$pid" 2>/dev/null; then
-    echo "  ⚠  $name did not stop gracefully — force killing …"
     kill -KILL "$pid" 2>/dev/null || true
   fi
 
   rm -f "$pid_file"
-  echo "  ✓  $name stopped"
+  echo "  stopped $name (PID $pid)"
 }
 
 echo ""
 echo "=== Neural — Stopping services ==="
 echo ""
 
-stop_service "claims-api"       8001 "agents.claims.apis.main"
-stop_service "underwriting-api" 8002 "agents.underwriting.apis.main"
-stop_service "loan-api"         8003 "agents.loan.apis.main"
-stop_service "frontend"         5173 "vite"
+# ── Platform ──────────────────────────────────────────────────────────────────
+read_port() {
+  python -c "import yaml; c=yaml.safe_load(open('$REPO_ROOT/config.yaml')); print(c$1)" 2>/dev/null || echo ""
+}
+
+stop_service "platform-api"      "$(read_port "['ports']['platform_backend']")"
+stop_service "platform-frontend" "$(read_port "['ports']['platform_frontend']")"
+
+# ── Agents (by PID files that start with "agent-") ───────────────────────────
+if [[ -d "$PID_DIR" ]]; then
+  for pid_file in "$PID_DIR"/agent-*.pid; do
+    [[ -f "$pid_file" ]] || continue
+    name="$(basename "$pid_file" .pid)"
+    agent_dir="${name#agent-}"
+    meta_file="$REPO_ROOT/agents/$agent_dir/metadata.yaml"
+    port=""
+    if [[ -f "$meta_file" ]]; then
+      port=$(python -c "import yaml; m=yaml.safe_load(open('$meta_file')); print(m['api_port'])" 2>/dev/null || true)
+    fi
+    stop_service "$name" "$port"
+  done
+fi
 
 echo ""
 echo "=== All services stopped. ==="

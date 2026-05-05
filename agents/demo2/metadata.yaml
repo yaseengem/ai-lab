@@ -1,0 +1,12 @@
+name: Arvo
+description: >
+  Automated underwriting risk assessment with document ingestion,
+  rule evaluation, and escalation workflows.
+use_case: underwriting
+domain: insurance
+api_port: 3002
+frontend_port: 8002
+entry_point: "agents.demo2.apis.main:app"
+api_version: "1.0.0"
+status: stub
+version: "0.1.0"

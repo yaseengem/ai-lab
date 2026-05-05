@@ -1,4 +1,0 @@
-
-[2026-04-13 18:37:52] [INTAKE_AGENT]
-  Decision : New auto claim created
-  Reasoning: Claimant John Doe, policy POL-1001 verified active. Claim type auto based on hail damage to car. Assigned medium priority.

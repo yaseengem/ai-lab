@@ -1,88 +1,136 @@
 #!/usr/bin/env bash
-# start.sh — Start all Neural services (3 FastAPI agents + Vite frontend)
+# start.sh — Start the Neural platform backend, platform frontend, and all active agents.
+# Reads ports from config.yaml and scans agents/*/metadata.yaml dynamically.
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PID_DIR="$REPO_ROOT/scripts/pids"
-LOG_DIR="$REPO_ROOT/logs"
 
-mkdir -p "$PID_DIR" "$LOG_DIR"
+mkdir -p "$PID_DIR"
 
-# ── Load environment ──────────────────────────────────────────────────────────
+# ── Load .env (secrets only) ─────────────────────────────────────────────────
 if [[ -f "$REPO_ROOT/.env" ]]; then
   set -o allexport
   source "$REPO_ROOT/.env"
   set +o allexport
 else
-  echo "⚠  No .env file found at $REPO_ROOT/.env — using defaults"
+  echo "  [warn] No .env file — using defaults from config.yaml"
 fi
-
-CLAIMS_API_PORT="${CLAIMS_API_PORT:-8001}"
-UNDERWRITING_API_PORT="${UNDERWRITING_API_PORT:-8002}"
-LOAN_API_PORT="${LOAN_API_PORT:-8003}"
 
 # ── Activate virtualenv if present ───────────────────────────────────────────
-if [[ -f "$REPO_ROOT/.venv/Scripts/activate" ]]; then
-  source "$REPO_ROOT/.venv/Scripts/activate"
-elif [[ -f "$REPO_ROOT/.venv/bin/activate" ]]; then
-  source "$REPO_ROOT/.venv/bin/activate"
-elif [[ -f "$REPO_ROOT/venv/Scripts/activate" ]]; then
-  source "$REPO_ROOT/venv/Scripts/activate"
-elif [[ -f "$REPO_ROOT/venv/bin/activate" ]]; then
-  source "$REPO_ROOT/venv/bin/activate"
-fi
+for activate in \
+  "$REPO_ROOT/.venv/Scripts/activate" \
+  "$REPO_ROOT/.venv/bin/activate" \
+  "$REPO_ROOT/venv/Scripts/activate" \
+  "$REPO_ROOT/venv/bin/activate"; do
+  if [[ -f "$activate" ]]; then
+    source "$activate"
+    break
+  fi
+done
 
-# ── Helper: start one FastAPI service ────────────────────────────────────────
-start_api() {
-  local name="$1"        # e.g. "claims"
-  local port="$2"        # e.g. 8001
-  local pid_file="$PID_DIR/${name}-api.pid"
-  local log_file="$LOG_DIR/${name}-api.log"
+# ── Read config.yaml via Python ───────────────────────────────────────────────
+read_config() {
+  python -c "
+import yaml, sys
+c = yaml.safe_load(open('$REPO_ROOT/config.yaml'))
+print(c$1)
+"
+}
+
+PLATFORM_BACKEND_PORT=$(read_config "['ports']['platform_backend']")
+PLATFORM_FRONTEND_PORT=$(read_config "['ports']['platform_frontend']")
+
+# ── Port conflict check ───────────────────────────────────────────────────────
+python -c "
+import sys, yaml
+from pathlib import Path
+
+agents_dir = Path('$REPO_ROOT/agents')
+seen = {}
+conflicts = []
+
+for d in sorted(agents_dir.iterdir()):
+    meta_file = d / 'metadata.yaml'
+    if not meta_file.exists(): continue
+    meta = yaml.safe_load(meta_file.read_text())
+    if meta.get('status') == 'template': continue
+    for label, port in [('api_port', meta['api_port']), ('frontend_port', meta['frontend_port'])]:
+        key = str(port)
+        if key in seen:
+            conflicts.append(f'Port {port}: {d.name} ({label}) conflicts with {seen[key]}')
+        else:
+            seen[key] = f'{d.name} ({label})'
+
+if conflicts:
+    print('PORT CONFLICTS DETECTED — fix metadata.yaml before starting:')
+    for c in conflicts: print(' ', c)
+    sys.exit(1)
+"
+
+# ── Helper: start a background service ───────────────────────────────────────
+start_service() {
+  local name="$1"
+  local log_file="$2"
+  shift 2
+  local pid_file="$PID_DIR/${name}.pid"
 
   if [[ -f "$pid_file" ]] && kill -0 "$(cat "$pid_file")" 2>/dev/null; then
-    echo "  [skip] $name API already running (PID $(cat "$pid_file"))"
+    echo "  [skip] $name already running (PID $(cat "$pid_file"))"
     return
   fi
 
-  echo "  Starting $name API on :$port …"
-  (
-    cd "$REPO_ROOT"
-    uvicorn "agents.${name}.apis.main:app" --host 0.0.0.0 --port "$port" 2>&1 | tee "$log_file"
-  ) &
+  mkdir -p "$(dirname "$log_file")"
+  "$@" >> "$log_file" 2>&1 &
   echo $! > "$pid_file"
-  echo "  ✓  $name API  →  http://localhost:$port  (log: logs/${name}-api.log)"
+  echo "  started $name (PID $!  log: $log_file)"
 }
 
-# ── Start backend services ────────────────────────────────────────────────────
 echo ""
-echo "=== Neural — Starting services ==="
+echo "=== Neural — Starting platform ==="
 echo ""
-start_api "claims"       "$CLAIMS_API_PORT"
-start_api "underwriting" "$UNDERWRITING_API_PORT"
-start_api "loan"         "$LOAN_API_PORT"
 
-# ── Start Vite frontend ───────────────────────────────────────────────────────
-FRONTEND_DIR="$REPO_ROOT/frontend"
-FRONTEND_PID="$PID_DIR/frontend.pid"
-FRONTEND_LOG="$LOG_DIR/frontend.log"
+# ── Platform backend (:5001) ─────────────────────────────────────────────────
+start_service "platform-api" "$REPO_ROOT/app/logs/platform-api.log" \
+  python -m uvicorn app.main:app --host 0.0.0.0 --port "$PLATFORM_BACKEND_PORT"
 
-if [[ -f "$FRONTEND_PID" ]] && kill -0 "$(cat "$FRONTEND_PID")" 2>/dev/null; then
-  echo "  [skip] Frontend already running (PID $(cat "$FRONTEND_PID"))"
-else
-  if [[ ! -d "$FRONTEND_DIR/node_modules" ]]; then
-    echo "  Installing frontend dependencies …"
-    (cd "$FRONTEND_DIR" && npm install >> "$FRONTEND_LOG" 2>&1)
+# ── Platform frontend (:5000) ────────────────────────────────────────────────
+if [[ -f "$REPO_ROOT/frontend/package.json" ]]; then
+  if [[ ! -d "$REPO_ROOT/frontend/node_modules" ]]; then
+    echo "  Installing platform frontend dependencies ..."
+    (cd "$REPO_ROOT/frontend" && npm install >> "$REPO_ROOT/frontend/install.log" 2>&1)
   fi
-  echo "  Starting Vite frontend …"
-  (cd "$FRONTEND_DIR" && npm run dev 2>&1 | tee "$FRONTEND_LOG") &
-  echo $! > "$FRONTEND_PID"
-  echo "  ✓  Frontend  →  http://localhost:5173  (log: logs/frontend.log)"
+  start_service "platform-frontend" "$REPO_ROOT/frontend/frontend.log" \
+    sh -c "cd '$REPO_ROOT/frontend' && npm run dev -- --port $PLATFORM_FRONTEND_PORT"
 fi
 
 echo ""
-echo "=== All services started. Streaming logs below (Ctrl+C exits logs; services keep running). ==="
-echo "=== Run ./scripts/stop.sh to stop all services. ==="
+echo "=== Starting agents ==="
 echo ""
 
-# Stream all logs to the console
-wait
+# ── Scan and start each active agent ─────────────────────────────────────────
+python -c "
+import yaml
+from pathlib import Path
+
+agents_dir = Path('$REPO_ROOT/agents')
+for d in sorted(agents_dir.iterdir()):
+    meta_file = d / 'metadata.yaml'
+    if not meta_file.exists(): continue
+    meta = yaml.safe_load(meta_file.read_text())
+    if meta.get('status') in ('template', 'stub'): continue
+    print(f\"{d.name}|{meta['name']}|{meta['api_port']}|{meta['frontend_port']}\")
+" | while IFS='|' read -r agent_dir name api_port frontend_port; do
+  log_file="$REPO_ROOT/agents/$agent_dir/logs/${agent_dir}.log"
+  mkdir -p "$REPO_ROOT/agents/$agent_dir/logs"
+  start_service "agent-$agent_dir" "$log_file" \
+    python "agents/$agent_dir/main.py"
+  echo "    $name  API: http://localhost:$api_port  Frontend: http://localhost:$frontend_port"
+done
+
+echo ""
+echo "  Platform:  http://localhost:$PLATFORM_FRONTEND_PORT"
+echo "  Platform API:  http://localhost:$PLATFORM_BACKEND_PORT/api/health"
+echo ""
+echo "=== All services started. Run ./scripts/stop.sh to stop. ==="
+echo ""

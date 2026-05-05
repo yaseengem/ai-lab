@@ -1,0 +1,12 @@
+name: Lance
+description: >
+  Loan application processing with credit scoring, risk analysis,
+  and approval/rejection decision workflows.
+use_case: loan_processing
+domain: banking
+api_port: 3003
+frontend_port: 8003
+entry_point: "agents.demo3.apis.main:app"
+api_version: "1.0.0"
+status: stub
+version: "0.1.0"

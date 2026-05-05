@@ -1,0 +1,12 @@
+name: DemoX
+description: >
+  Template agent — copy this folder to demoN to create a new agent.
+  Never modify this folder directly.
+use_case: template
+domain: template
+api_port: 3099
+frontend_port: 8099
+entry_point: "agents.demox.apis.main:app"
+api_version: "1.0.0"
+status: template
+version: "0.1.0"

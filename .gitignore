@@ -17,23 +17,30 @@ build/
 .venv/
 venv/
 env/
+
+# Secrets — never commit the live .env
 .env
+.env.local
+.env.*.local
 
-# Runtime storage (gitignored; only directory stubs tracked via .gitkeep)
-storage/
-!storage/**/.gitkeep
-
-# Session data
+# Per-agent runtime data (cases, sessions, memory are created at runtime)
+agents/**/data/cases/
 agents/**/data/sessions/
+agents/**/data/memory/
+agents/**/logs/
+agents/**/frontend/.env
+
+# Platform logs
+app/logs/
+
+# Root-level legacy folders (deleted in A14 — kept here in case of accidental recreation)
+logs/
+storage/
 
 # Frontend build output
 frontend/dist/
 frontend/.env
-
-# Environment secrets
-.env
-.env.local
-.env.*.local
+frontend/install.log
 
 # IDE / OS
 .DS_Store

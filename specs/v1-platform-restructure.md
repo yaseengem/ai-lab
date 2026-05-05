@@ -1,5 +1,5 @@
 # Spec: Platform Restructure + UI Overhaul
-**Status:** in-progress
+**Status:** done
 **Version:** v1
 **Date:** 2026-05-05
 **Owner:** Yaseen Mohammed
@@ -283,29 +283,29 @@ Extension pattern: new feature = `routers/{domain}.py` + `services/{domain}_serv
 
 ### Phase A — Restructuring
 - [x] A0: Create CLAUDE.md, specs/, specs/README.md, specs/_template.md, commit this spec
-- [ ] A1: Create commons/__init__.py + commons/logger.py; move memory_backend.py to agents/demo1/agentic/
-- [ ] A2: Rename agents/claims→demo1, underwriting→demo2, loan→demo3; move test/→agents/*/tests/
-- [ ] A3: Create config.yaml at repo root
-- [ ] A4: Rewrite .env.example (secrets only)
-- [ ] A5: Create metadata.yaml + main.py for demo1, demo2, demo3
-- [ ] A6: Create app/ platform backend (main.py, config.py, schemas/, routers/, services/)
-- [ ] A6a: Port conflict validation in agent_scanner.py + start.sh
-- [ ] A6b: CORS — agent APIs allow origins from :5000 and their own frontend port
-- [ ] A7: Move agents/demo1/dummy_data/ → agents/demo1/data/dummy/
-- [ ] A8: Update utils.logger → commons.logger in 7 files in agents/demo1/
-- [ ] A9: Replace STORAGE_PATH env paths with agent-relative _CASES_DIR in 4 files
-- [ ] A10: Update dummy_data → data/dummy path references in 3 files
-- [ ] A11: Create agents/demox/ template folder with GUIDELINES.md + annotated starters
-- [ ] A12: Rewrite scripts/start.sh / stop.sh / check.sh — dynamic discovery from config.yaml
-- [ ] A13: Update .gitignore
-- [ ] A14: Delete utils/, storage/, root logs/, root test/
+- [x] A1: Create commons/__init__.py + commons/logger.py; move memory_backend.py to agents/demo1/agentic/
+- [x] A2: Rename agents/claims→demo1, underwriting→demo2, loan→demo3; move test/→agents/*/tests/
+- [x] A3: Create config.yaml at repo root
+- [x] A4: Rewrite .env.example (secrets only)
+- [x] A5: Create metadata.yaml + main.py for demo1, demo2, demo3
+- [x] A6: Create app/ platform backend (main.py, config.py, schemas/, routers/, services/)
+- [x] A6a: Port conflict validation in agent_scanner.py + start.sh
+- [x] A6b: CORS — agent APIs allow origins from :5000 and their own frontend port
+- [x] A7: Move agents/demo1/dummy_data/ → agents/demo1/data/dummy/
+- [x] A8: Update utils.logger → commons.logger in 7 files in agents/demo1/
+- [x] A9: Replace STORAGE_PATH env paths with agent-relative _CASES_DIR in 4 files
+- [x] A10: Update dummy_data → data/dummy path references in 3 files
+- [x] A11: Create agents/demox/ template folder with GUIDELINES.md + annotated starters
+- [x] A12: Rewrite scripts/start.sh / stop.sh / check.sh — dynamic discovery from config.yaml
+- [x] A13: Update .gitignore
+- [x] A14: Delete utils/, storage/, root logs/, root test/
 
 ### Phase B — Frontend
-- [ ] B1: Apply light theme to frontend/src/index.css
-- [ ] B2: Set up agents/demo1/frontend/ as standalone Vite project with @shared alias
-- [ ] B3: Implement 5 shared marketplace pages (wireframes 01–05) in frontend/src/pages/
-- [ ] B4: Implement 7 demo1-specific pages (wireframes 06–12) in agents/demo1/frontend/src/pages/
-- [ ] B5: Wire routing in frontend/src/App.tsx and agents/demo1/frontend/src/App.tsx
+- [x] B1: Apply light theme to frontend/src/index.css
+- [x] B2: Set up agents/demo1/frontend/ as standalone Vite project with @shared alias
+- [x] B3: Implement 5 shared marketplace pages (wireframes 01–05) in frontend/src/pages/
+- [x] B4: Implement 7 demo1-specific pages (wireframes 06–12) in agents/demo1/frontend/src/pages/
+- [x] B5: Wire routing in frontend/src/App.tsx and agents/demo1/frontend/src/App.tsx
 
 ---
 

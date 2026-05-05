@@ -1,0 +1,19 @@
+app:
+  name: "Neural AI Agents"
+  description: "AI agent marketplace platform"
+
+ports:
+  platform_frontend: 5000
+  platform_backend: 5001
+  agent_frontend:
+    start: 8001
+    end: 8099
+  agent_backend:
+    start: 3001
+    end: 3099
+
+defaults:
+  memory_backend: local
+  approval_timeout_seconds: 86400
+  bedrock_model_id: "us.anthropic.claude-sonnet-4-20250514-v1:0"
+  aws_region: us-east-1

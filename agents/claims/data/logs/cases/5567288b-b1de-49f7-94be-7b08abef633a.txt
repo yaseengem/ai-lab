@@ -1,4 +1,0 @@
-
-[2026-04-13 18:39:15] [EXTRACTION_AGENT]
-  Decision : Document extracted and classified as medical bill
-  Reasoning: Extracted text contains itemized medical charges, CPT codes, total amount due, and billing provider information.
