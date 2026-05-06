@@ -112,9 +112,10 @@ RISK CLASSIFICATION RULES (apply deterministic thresholds first):
 
 ESCALATION OVERRIDE RULES (take precedence over threshold classification):
 - If counterparty has failed settlement in last 5 business days → minimum HIGH
-- If CIS integration_status = DEGRADED for counterparty → minimum HIGH
 - If securities_lending_balance < 80% of required → minimum HIGH
 - If counterparty is on JSE watchlist → minimum CRITICAL
+NOTE: CIS integration_status = DEGRADED qualifies a counterparty for MEDIUM classification
+but does NOT by itself escalate to HIGH. Only the rules above trigger escalation.
 
 INSTRUCTIONS:
 1. Call get_market_volatility_context() first to enrich market context for reasoning

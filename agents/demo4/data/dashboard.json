@@ -1,9 +1,10 @@
 {
   "operations_summary": {
-    "run_id": "JSE-SFPP-20260506-1634",
+    "run_id": "JSE-SFPP-20260506-1646",
+    "run_timestamp": "2026-05-06T16:43:37.499361+00:00",
     "total_trades_monitored": 8,
-    "t1_trades": 4,
-    "t2_trades": 4,
+    "t1_trade_count": 4,
+    "t2_trade_count": 4,
     "risk_distribution": {
       "CRITICAL": 3,
       "HIGH": 3,
@@ -11,38 +12,36 @@
       "LOW": 2
     },
     "interventions_executed": {
-      "LOLR": {
-        "count": 0,
-        "success_rate": "N/A"
-      },
-      "SETTLEMENT_ROLL": {
-        "count": 0,
-        "success_rate": "N/A"
-      },
-      "HUMAN_ESCALATION": {
-        "count": 3,
-        "success_rate": "100%"
-      }
+      "LOLR_PLANNED": 1,
+      "ROLL_PLANNED": 0,
+      "HUMAN_ESCALATIONS": 2
     },
+    "intervention_success_rate": "100%",
     "human_escalations_required": {
-      "count": 3,
+      "count": 2,
       "trade_ids": [
-        "TRD-2001",
         "TRD-2007",
         "TRD-2005"
       ]
     },
-    "estimated_settlement_value_protected_zar": 0,
+    "estimated_settlement_value_protected_zar": 210000000,
+    "total_exposure_monitored_zar": 319500000,
     "system_health": {
-      "all_agents_executed": false,
+      "all_agents_executed": true,
       "data_gaps": [
         "CIS_UNAVAILABLE for CP-007",
         "CIS_DEGRADED for CP-003"
       ],
-      "execution_status": "PARTIAL"
+      "integration_status": "PARTIALLY_DEGRADED"
     },
-    "systemic_stress_indicator": false,
-    "trend_direction": "STABLE"
+    "data_quality_flags": [
+      "LARGE_EXPOSURE",
+      "CIS_UNAVAILABLE",
+      "CIS_DEGRADED",
+      "RECENT_FAILURE",
+      "WATCHLIST"
+    ],
+    "next_monitoring_cycle": "2026-05-07T16:45:00+00:00"
   },
-  "last_updated": "2026-05-06T16:37:34.817683+00:00"
+  "last_updated": "2026-05-06T16:46:23.558797+00:00"
 }

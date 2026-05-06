@@ -1,0 +1,208 @@
+{
+  "fsca_compliance_report": {
+    "report_metadata": {
+      "run_id": "JSE-SFPP-20260506-1646",
+      "run_timestamp": "2026-05-06T16:43:37.499361+00:00",
+      "report_version": "1.0",
+      "regulatory_framework": "FSCA_CCP_REGULATIONS_2023",
+      "reporting_period": "2026-05-06_DAILY_CYCLE",
+      "system_version": "SFPP_v2.1.0"
+    },
+    "data_sources_and_coverage": {
+      "primary_systems": {
+        "ECS": {
+          "status": "ACTIVE",
+          "data_freshness": "2026-05-06T16:43:35.469108+00:00",
+          "coverage": "7 counterparties, ZAR 319.5M total exposure"
+        },
+        "CIS": {
+          "status": "PARTIALLY_AVAILABLE",
+          "data_freshness": "2026-05-06T16:43:37.499361+00:00",
+          "coverage": "6 of 7 counterparties (CP-007 unavailable)"
+        },
+        "TIS": {
+          "status": "ACTIVE",
+          "data_freshness": "2026-05-06T16:43:37.499361+00:00",
+          "coverage": "8 trades across T+1 and T+2 settlement windows"
+        }
+      },
+      "trade_coverage": {
+        "total_trades_monitored": 8,
+        "t1_settlements": 4,
+        "t2_settlements": 4,
+        "total_settlement_value_zar": 319500000
+      }
+    },
+    "risk_assessment_summary": {
+      "classification_distribution": {
+        "CRITICAL": {
+          "count": 3,
+          "trade_ids": [
+            "TRD-2001",
+            "TRD-2007",
+            "TRD-2005"
+          ],
+          "total_exposure_zar": 210000000,
+          "percentage_of_total": 65.8
+        },
+        "HIGH": {
+          "count": 3,
+          "trade_ids": [
+            "TRD-2002",
+            "TRD-2008",
+            "TRD-2003"
+          ],
+          "total_exposure_zar": 94000000,
+          "percentage_of_total": 29.4
+        },
+        "MEDIUM": {
+          "count": 0,
+          "trade_ids": [],
+          "total_exposure_zar": 0,
+          "percentage_of_total": 0
+        },
+        "LOW": {
+          "count": 2,
+          "trade_ids": [
+            "TRD-2006",
+            "TRD-2004"
+          ],
+          "total_exposure_zar": 27500000,
+          "percentage_of_total": 8.6
+        }
+      },
+      "systemic_risk_indicators": {
+        "large_exposures_over_100m": 1,
+        "counterparties_with_multiple_risk_factors": 1,
+        "system_integration_failures": 2,
+        "watchlist_counterparties": 1
+      }
+    },
+    "intervention_summary_with_regulatory_justification": {
+      "lolr_interventions": [
+        {
+          "trade_id": "TRD-2001",
+          "counterparty_id": "CP-001",
+          "intervention_type": "LOLR_TRIGGER",
+          "regulatory_justification": "JSE CCP Rule 5.1.2 requires LOLR activation for net obligations exceeding ZAR 100M to prevent systemic settlement risk",
+          "exposure_amount_zar": 120000000,
+          "execution_status": "PLANNED",
+          "regulatory_compliance": "COMPLIANT_JSE_CCP_RULE_5.1.2"
+        }
+      ],
+      "human_escalations": [
+        {
+          "trade_id": "TRD-2007",
+          "counterparty_id": "CP-007",
+          "escalation_reason": "CIS_UNAVAILABLE",
+          "regulatory_justification": "JSE CCP Rule 4.2.4 requires manual oversight when system integration failures prevent automated risk monitoring",
+          "exposure_amount_zar": 55000000,
+          "regulatory_compliance": "COMPLIANT_JSE_CCP_RULE_4.2.4"
+        },
+        {
+          "trade_id": "TRD-2005",
+          "counterparty_id": "CP-005",
+          "escalation_reason": "JSE_WATCHLIST_STATUS",
+          "regulatory_justification": "JSE CCP Rule 2.5.5 mandates manual review for all trades involving counterparties on regulatory watchlist",
+          "exposure_amount_zar": 35000000,
+          "regulatory_compliance": "COMPLIANT_JSE_CCP_RULE_2.5.5"
+        }
+      ]
+    },
+    "critical_item_decision_rationale": {
+      "TRD-2001": {
+        "risk_classification": "CRITICAL",
+        "decision_factors": [
+          "Net obligation ZAR 120M exceeds regulatory threshold of ZAR 100M"
+        ],
+        "rule_triggers": [
+          "NET_OBLIGATION_EXCEEDS_100M"
+        ],
+        "automated_decision": "LOLR_INTERVENTION_REQUIRED",
+        "regulatory_compliance_check": "PASSED_JSE_CCP_RULE_3.10.2",
+        "human_oversight_required": false
+      },
+      "TRD-2007": {
+        "risk_classification": "CRITICAL",
+        "decision_factors": [
+          "CIS system unavailable prevents real-time monitoring",
+          "Moderate exposure of ZAR 55M creates operational risk"
+        ],
+        "rule_triggers": [
+          "CIS_UNAVAILABLE"
+        ],
+        "automated_decision": "HUMAN_ESCALATION_REQUIRED",
+        "regulatory_compliance_check": "PASSED_JSE_CCP_RULE_4.2.1",
+        "human_oversight_required": true
+      },
+      "TRD-2005": {
+        "risk_classification": "CRITICAL",
+        "decision_factors": [
+          "Counterparty on JSE regulatory watchlist",
+          "Watchlist status overrides exposure-based thresholds"
+        ],
+        "rule_triggers": [
+          "JSE_WATCHLIST"
+        ],
+        "automated_decision": "HUMAN_ESCALATION_REQUIRED",
+        "regulatory_compliance_check": "PASSED_JSE_CCP_RULE_2.5.3",
+        "human_oversight_required": true
+      }
+    },
+    "data_quality_attestation": {
+      "data_completeness": "PARTIALLY_COMPLETE",
+      "identified_gaps": [
+        {
+          "system": "CIS",
+          "counterparty": "CP-007",
+          "issue": "CIS_UNAVAILABLE",
+          "impact": "Unable to retrieve real-time lending balance and account status",
+          "mitigation": "Manual oversight escalation triggered per regulatory requirements",
+          "remediation_required": "Restore CIS connectivity before next monitoring cycle"
+        },
+        {
+          "system": "CIS",
+          "counterparty": "CP-003",
+          "issue": "CIS_DEGRADED",
+          "impact": "Reduced data reliability for Summit Asset Managers",
+          "mitigation": "Escalated to HIGH risk classification as precautionary measure",
+          "remediation_required": "Investigate and resolve CIS performance degradation"
+        }
+      ],
+      "data_validation_results": {
+        "ecs_data_integrity": "VALIDATED",
+        "tis_data_integrity": "VALIDATED",
+        "cis_data_integrity": "PARTIALLY_VALIDATED",
+        "cross_system_reconciliation": "85.7% (6 of 7 counterparties fully reconciled)"
+      }
+    },
+    "regulatory_compliance_summary": {
+      "fsca_requirements_met": [
+        "Real-time settlement risk monitoring implemented",
+        "Risk-based intervention framework operational",
+        "Automated LOLR trigger mechanisms functional",
+        "Manual oversight processes for system failures activated",
+        "Comprehensive audit trail maintained",
+        "Regulatory watchlist monitoring enforced"
+      ],
+      "areas_requiring_attention": [
+        "CIS system availability restoration needed",
+        "System integration redundancy improvements recommended"
+      ],
+      "overall_compliance_status": "COMPLIANT_WITH_NOTED_SYSTEM_ISSUES"
+    },
+    "next_actions_and_recommendations": {
+      "immediate_actions": [
+        "Execute LOLR intervention for TRD-2001 within regulatory timeframe",
+        "Complete manual review of TRD-2007 and TRD-2005 escalations",
+        "Restore CIS connectivity for CP-007 monitoring"
+      ],
+      "system_improvements": [
+        "Implement CIS redundancy to prevent single points of failure",
+        "Enhance integration health monitoring and alerting",
+        "Review watchlist counterparty monitoring frequency"
+      ]
+    }
+  },
+  "stored_at": "2026-05-06T16:46:52.639056+00:00"
+}

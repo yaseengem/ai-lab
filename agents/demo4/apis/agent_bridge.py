@@ -311,8 +311,57 @@ async def run_pipeline(session_id: str, trigger_input: dict, service: PipelineSe
                 )
                 ctx["step3_raw"] = str(raw3)
                 parsed3 = _safe_json(str(raw3), "counterparty_risk_assessment")
-                risk_assessment = parsed3.get("counterparty_risk_assessment", [])
+                raw_assessment = parsed3.get("counterparty_risk_assessment", [])
+                risk_assessment = [i for i in raw_assessment if isinstance(i, dict)] if isinstance(raw_assessment, list) else []
                 systemic_flag = parsed3.get("systemic_risk_flag", False)
+
+                # Deterministic fallback: if LLM returned no assessments, build from watchlist
+                if not risk_assessment:
+                    logger.warning("[BRIDGE] step3_empty_assessment  session_id=%s — applying deterministic fallback", session_id)
+                    seen = set()
+                    for wl in [i for i in watchlist_data if i.get("risk_classification") in ("CRITICAL", "HIGH")]:
+                        cp_id = wl.get("counterparty_id", "")
+                        if cp_id in seen:
+                            continue
+                        seen.add(cp_id)
+                        triggers = wl.get("rule_triggers", [])
+                        classification = wl.get("risk_classification", "HIGH")
+                        if any("WATCHLIST" in t or "REGULATORY" in t for t in triggers):
+                            root_cause = "REGULATORY_FLAG"
+                        elif any("CIS_UNAVAILABLE" in t for t in triggers):
+                            root_cause = "CIS_CONNECTIVITY"
+                        elif any("CIS_DEGRADED" in t or "DEGRADED" in t for t in triggers):
+                            root_cause = "CIS_CONNECTIVITY"
+                        elif any("LENDING" in t or "SECURITIES" in t for t in triggers):
+                            root_cause = "SECURITIES_SHORTFALL"
+                        elif any("FAILURE" in t for t in triggers):
+                            root_cause = "LIQUIDITY"
+                        else:
+                            root_cause = "LIQUIDITY"
+                        urgency = "IMMEDIATE" if classification == "CRITICAL" else "STANDARD"
+                        if root_cause == "REGULATORY_FLAG":
+                            recommended = "HUMAN_ESCALATION"
+                        elif root_cause == "CIS_CONNECTIVITY" and classification == "CRITICAL":
+                            recommended = "HUMAN_ESCALATION"
+                        elif classification == "CRITICAL":
+                            recommended = "LOLR_TRIGGER"
+                        else:
+                            recommended = "SETTLEMENT_ROLL"
+                        risk_assessment.append({
+                            "counterparty_id": cp_id,
+                            "counterparty_name": wl.get("counterparty_name", cp_id),
+                            "root_cause_category": root_cause,
+                            "severity_assessment": (
+                                f"{classification} risk: triggers={triggers}. "
+                                f"Urgency={urgency}. Auto-assessed from watchlist."
+                            ),
+                            "securities_at_risk": [],
+                            "intervention_urgency": urgency,
+                            "recommended_intervention_type": recommended,
+                        })
+                    await emit({"type": "agent-observation", "step": 3,
+                                "text": f"LLM returned empty assessment — deterministic fallback built {len(risk_assessment)} counterparty briefs from watchlist data."})
+
                 ctx["risk_assessment"] = risk_assessment
                 ctx["systemic_risk_flag"] = systemic_flag
 
@@ -358,8 +407,64 @@ async def run_pipeline(session_id: str, trigger_input: dict, service: PipelineSe
                 ctx["step4_raw"] = str(raw4)
                 parsed4 = _safe_json(str(raw4), "intervention_plan")
                 intervention_plan = parsed4.get("intervention_plan", parsed4)
-                plan_items = intervention_plan.get("items", []) if isinstance(intervention_plan, dict) else []
+                raw_items = intervention_plan.get("items", []) if isinstance(intervention_plan, dict) else []
+                plan_items = [i for i in raw_items if isinstance(i, dict)] if isinstance(raw_items, list) else []
                 plan_summary = intervention_plan.get("plan_summary", {}) if isinstance(intervention_plan, dict) else {}
+
+                # Deterministic fallback: if LLM returned no items, apply decision rules directly
+                if not plan_items and not systemic_flag:
+                    logger.warning("[BRIDGE] step4_empty_plan  session_id=%s — applying deterministic fallback", session_id)
+                    assessment_map = {a.get("counterparty_id"): a for a in risk_assessment if isinstance(a, dict)}
+                    priority = 1
+                    for wl in [i for i in watchlist_data if i.get("risk_classification") in ("CRITICAL", "HIGH")]:
+                        cp_id = wl.get("counterparty_id", "")
+                        assessment = assessment_map.get(cp_id, {})
+                        root_cause = assessment.get("root_cause_category", "LIQUIDITY")
+                        urgency = assessment.get("intervention_urgency", "STANDARD")
+                        classification = wl.get("risk_classification", "HIGH")
+                        # Apply decision rules
+                        if systemic_flag:
+                            intervention_type = "HUMAN_ESCALATION"
+                            requires_approval = True
+                        elif classification == "CRITICAL" and root_cause == "REGULATORY_FLAG":
+                            intervention_type = "HUMAN_ESCALATION"
+                            requires_approval = True
+                        elif classification == "CRITICAL" and root_cause == "CIS_CONNECTIVITY":
+                            intervention_type = "HUMAN_ESCALATION"
+                            requires_approval = True
+                        elif classification == "CRITICAL" and urgency == "IMMEDIATE":
+                            intervention_type = "LOLR_TRIGGER"
+                            requires_approval = False
+                        elif classification == "CRITICAL":
+                            intervention_type = "LOLR_TRIGGER"
+                            requires_approval = False
+                        elif classification == "HIGH" and root_cause == "CIS_CONNECTIVITY":
+                            intervention_type = "ALERT_OPERATIONS"
+                            requires_approval = False
+                        else:
+                            intervention_type = "SETTLEMENT_ROLL"
+                            requires_approval = False
+                        plan_items.append({
+                            "trade_id": wl.get("trade_id", ""),
+                            "counterparty_id": cp_id,
+                            "counterparty_name": wl.get("counterparty_name", cp_id),
+                            "intervention_type": intervention_type,
+                            "intervention_rationale": (
+                                f"{classification} {root_cause} → {intervention_type} "
+                                f"(deterministic rule: urgency={urgency})"
+                            ),
+                            "estimated_cost_zar": wl.get("net_obligation_zar", 0),
+                            "execution_priority": priority,
+                            "requires_human_approval": requires_approval,
+                            "isin": wl.get("isin", ""),
+                            "quantity": 0,
+                            "settlement_date": wl.get("settlement_date", ""),
+                        })
+                        priority += 1
+                    await emit({"type": "agent-observation", "step": 4,
+                                "text": f"LLM returned empty plan — deterministic fallback assigned {len(plan_items)} interventions using JSE decision rules."})
+                    intervention_plan = {"items": plan_items, "plan_summary": {}}
+
                 ctx["intervention_plan"] = intervention_plan
                 service.set_pipeline_field(session_id, intervention_plan=intervention_plan)
 
@@ -380,7 +485,7 @@ async def run_pipeline(session_id: str, trigger_input: dict, service: PipelineSe
                     await emit(ev)
                 by_type: dict[str, int] = {}
                 for item in plan_items:
-                    t = item.get("intervention_type", "UNKNOWN")
+                    t = item.get("intervention_type", "UNKNOWN") if isinstance(item, dict) else "UNKNOWN"
                     by_type[t] = by_type.get(t, 0) + 1
                 summary4 = " | ".join(f"{v}× {k}" for k, v in by_type.items())
                 await step_complete(4, summary4 or "No interventions", parsed4)
@@ -471,7 +576,8 @@ async def run_pipeline(session_id: str, trigger_input: dict, service: PipelineSe
                             raw5 = await asyncio.to_thread(_in_thread, session_id, lolr_execution_agent, json.dumps(capped_items))
                             ctx["step5_raw"] = str(raw5)
                             parsed5 = _safe_json(str(raw5), "lolr_execution_report")
-                            lolr_exec_result = parsed5.get("lolr_execution_report", parsed5)
+                            raw_lolr = parsed5.get("lolr_execution_report", parsed5)
+                            lolr_exec_result = raw_lolr if isinstance(raw_lolr, dict) else {}
                             ctx["lolr_report"] = lolr_exec_result
                             for ev in _reasoning_entries(parsed5, 5):
                                 await emit(ev)
@@ -499,7 +605,8 @@ async def run_pipeline(session_id: str, trigger_input: dict, service: PipelineSe
                         raw6 = await asyncio.to_thread(_in_thread, session_id, settlement_roll_agent, json.dumps(roll_items))
                         ctx["step6_raw"] = str(raw6)
                         parsed6 = _safe_json(str(raw6), "roll_execution_report")
-                        roll_report = parsed6.get("roll_execution_report", parsed6)
+                        raw_roll = parsed6.get("roll_execution_report", parsed6)
+                        roll_report = raw_roll if isinstance(raw_roll, dict) else {}
                         ctx["roll_report"] = roll_report
                         for ev in _reasoning_entries(parsed6, 6):
                             await emit(ev)
@@ -530,7 +637,8 @@ async def run_pipeline(session_id: str, trigger_input: dict, service: PipelineSe
         raw7 = await asyncio.to_thread(_in_thread, session_id, reporting_audit_agent, pipeline_ctx_str)
         ctx["step7_raw"] = str(raw7)
         parsed7 = _safe_json(str(raw7), "pipeline_summary")
-        pipeline_summary = parsed7.get("pipeline_summary", parsed7)
+        raw_summary = parsed7.get("pipeline_summary", parsed7)
+        pipeline_summary = raw_summary if isinstance(raw_summary, dict) else {}
         ctx["pipeline_summary"] = pipeline_summary
         for ev in _reasoning_entries(parsed7, 7):
             await emit(ev)

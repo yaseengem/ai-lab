@@ -1,0 +1,74 @@
+[
+  {
+    "timestamp": "2026-05-06T16:43:37.499361+00:00",
+    "agent_name": "Settlement Exposure Agent",
+    "action_taken": "DATA_SNAPSHOT_CREATION",
+    "input_summary": "Retrieved 8 trades (4 T+1, 4 T+2) from ECS/TIS systems with 7 counterparty profiles from CIS",
+    "output_summary": "Generated settlement exposure snapshot with ZAR 319.5M total exposure across 8 trades",
+    "rule_applied": "DATA_COLLECTION_PROTOCOL",
+    "regulatory_basis": null
+  },
+  {
+    "timestamp": "2026-05-06T16:43:37.499361+00:00",
+    "agent_name": "Risk Scoring Agent",
+    "action_taken": "RISK_CLASSIFICATION",
+    "input_summary": "Processed 8 trades with counterparty profiles and ECS positions for risk assessment",
+    "output_summary": "Classified 3 CRITICAL (TRD-2001, TRD-2007, TRD-2005), 3 HIGH (TRD-2002, TRD-2008, TRD-2003), 2 LOW trades",
+    "rule_applied": "JSE_RISK_CLASSIFICATION_RULES",
+    "regulatory_basis": null
+  },
+  {
+    "timestamp": "2026-05-06T16:43:37.499361+00:00",
+    "agent_name": "Risk Scoring Agent",
+    "action_taken": "CRITICAL_ESCALATION",
+    "input_summary": "TRD-2001 NET_OBLIGATION_EXCEEDS_100M with ZAR 120M exposure",
+    "output_summary": "Escalated to CRITICAL risk classification with priority 1 ranking",
+    "rule_applied": "NET_OBLIGATION_EXCEEDS_100M",
+    "regulatory_basis": "JSE_CCP_RULE_3.10.2"
+  },
+  {
+    "timestamp": "2026-05-06T16:43:37.499361+00:00",
+    "agent_name": "Risk Scoring Agent",
+    "action_taken": "CRITICAL_ESCALATION",
+    "input_summary": "TRD-2007 CIS_UNAVAILABLE status for CP-007 with ZAR 55M exposure",
+    "output_summary": "Escalated to CRITICAL risk classification due to system integration failure",
+    "rule_applied": "CIS_UNAVAILABLE",
+    "regulatory_basis": "JSE_CCP_RULE_4.2.1"
+  },
+  {
+    "timestamp": "2026-05-06T16:43:37.499361+00:00",
+    "agent_name": "Risk Scoring Agent",
+    "action_taken": "CRITICAL_ESCALATION",
+    "input_summary": "TRD-2005 JSE_WATCHLIST status for CP-005 with ZAR 35M exposure",
+    "output_summary": "Escalated to CRITICAL risk classification due to regulatory watchlist status",
+    "rule_applied": "JSE_WATCHLIST",
+    "regulatory_basis": "JSE_CCP_RULE_2.5.3"
+  },
+  {
+    "timestamp": "2026-05-06T16:43:37.499361+00:00",
+    "agent_name": "Intervention Planning Agent",
+    "action_taken": "LOLR_INTERVENTION_PLANNED",
+    "input_summary": "TRD-2001 CRITICAL classification with ZAR 120M net obligation exceeding threshold",
+    "output_summary": "Planned LOLR trigger intervention with confirmed capacity of 83,000 units available",
+    "rule_applied": "LOLR_TRIGGER_RULE",
+    "regulatory_basis": "JSE_CCP_RULE_5.1.2_LOLR_ACTIVATION"
+  },
+  {
+    "timestamp": "2026-05-06T16:43:37.499361+00:00",
+    "agent_name": "Intervention Planning Agent",
+    "action_taken": "HUMAN_ESCALATION_PLANNED",
+    "input_summary": "TRD-2007 CRITICAL with CIS_UNAVAILABLE status preventing automated intervention",
+    "output_summary": "Escalated to human operations team due to system integration failure",
+    "rule_applied": "HUMAN_ESCALATION_REQUIRED",
+    "regulatory_basis": "JSE_CCP_RULE_4.2.4_MANUAL_OVERSIGHT"
+  },
+  {
+    "timestamp": "2026-05-06T16:43:37.499361+00:00",
+    "agent_name": "Intervention Planning Agent",
+    "action_taken": "HUMAN_ESCALATION_PLANNED",
+    "input_summary": "TRD-2005 CRITICAL with JSE_WATCHLIST status requiring manual review",
+    "output_summary": "Escalated to human operations team due to regulatory watchlist status",
+    "rule_applied": "HUMAN_ESCALATION_REQUIRED",
+    "regulatory_basis": "JSE_CCP_RULE_2.5.5_MANUAL_REVIEW"
+  }
+]

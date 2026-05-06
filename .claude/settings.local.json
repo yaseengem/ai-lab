@@ -11,7 +11,9 @@
       "Bash(python -m json.tool)",
       "Bash(echo 'VITE_API_URL=http://localhost:3004 *)",
       "Bash(npm run *)",
-      "Bash(curl -s http://localhost:8004/)"
+      "Bash(curl -s http://localhost:8004/)",
+      "Bash(python3 -c \"import json; d=json.load\\(open\\('c:/pro/active/ai-agents/agents/demo4/data/test_scenarios/tc14-standard-cycle.json'\\)\\); print\\(json.dumps\\(d.get\\('expected'\\), indent=2\\)\\); print\\(\\); print\\('ASSERTIONS:'\\); [print\\(' -', a\\) for a in d['expected'].get\\('assertions',[]\\)]\")",
+      "Bash(python3 -c ' *)"
     ]
   }
 }
