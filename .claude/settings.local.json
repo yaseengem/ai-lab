@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c ' *)",
+      "PowerShell(cd \"C:\\\\pro\\\\active\\\\ai-agents\\\\agents\\\\demo4\\\\frontend\"; $env:VITE_API_URL = \"http://localhost:3004\"; npx vite build 2>&1 | Select-Object -Last 30)",
+      "Bash(python -m uvicorn agents.demo4.apis.main:app --port 3004 --host 0.0.0.0)",
+      "Bash(curl -s http://localhost:3004/ping)",
+      "Bash(curl -s http://localhost:3004/summary)",
+      "Bash(curl -s -X POST http://localhost:3004/run -H \"Content-Type: application/json\" -d '{\"mode\": \"api\", \"use_mock\": true}')",
+      "Bash(curl -s --max-time 30 http://localhost:3004/monitor/72d363ff-5728-4317-82c3-125bbc33196a)",
+      "Bash(python -m json.tool)",
+      "Bash(echo 'VITE_API_URL=http://localhost:3004 *)",
+      "Bash(npm run *)",
+      "Bash(curl -s http://localhost:8004/)"
+    ]
+  }
+}

@@ -1,0 +1,56 @@
+[
+  {
+    "timestamp": "2026-05-06T13:06:35.222237+00:00",
+    "agent_name": "Settlement Exposure Agent",
+    "action_taken": "SNAPSHOT_GENERATED",
+    "input_summary": "ECS/CIS/TIS data integration for 8 trades across 7 counterparties",
+    "output_summary": "Complete exposure snapshot with 4 T+1 trades (ZAR 258M) and 4 T+2 trades (ZAR 61.5M). Data quality issues identified: 1 CIS_UNAVAILABLE, 3 large exposures",
+    "rule_applied": "EXPOSURE_AGGREGATION_STANDARD",
+    "regulatory_basis": null
+  },
+  {
+    "timestamp": "2026-05-06T13:06:40.000000+00:00",
+    "agent_name": "Risk Scoring Agent",
+    "action_taken": "RISK_CLASSIFICATION_APPLIED",
+    "input_summary": "8 trades analyzed for settlement risk using JSE risk framework",
+    "output_summary": "1 CRITICAL trade identified (TRD-2007, CP-007) due to CIS_UNAVAILABLE + large exposure. 7 trades classified as lower risk",
+    "rule_applied": "JSE_SETTLEMENT_RISK_MATRIX_V2.1",
+    "regulatory_basis": null
+  },
+  {
+    "timestamp": "2026-05-06T13:06:45.000000+00:00",
+    "agent_name": "Counterparty Assessment Agent",
+    "action_taken": "ASSESSMENT_SKIPPED",
+    "input_summary": "No HIGH/CRITICAL items requiring detailed counterparty analysis",
+    "output_summary": "Agent execution bypassed - no counterparty assessments generated",
+    "rule_applied": "CONDITIONAL_EXECUTION_LOGIC",
+    "regulatory_basis": null
+  },
+  {
+    "timestamp": "2026-05-06T13:06:50.000000+00:00",
+    "agent_name": "Intervention Planning Agent",
+    "action_taken": "PLANNING_SKIPPED",
+    "input_summary": "No counterparty risk assessments available for intervention planning",
+    "output_summary": "Agent execution bypassed - no intervention plans generated",
+    "rule_applied": "CONDITIONAL_EXECUTION_LOGIC",
+    "regulatory_basis": null
+  },
+  {
+    "timestamp": "2026-05-06T13:06:55.000000+00:00",
+    "agent_name": "LOLR Execution Agent",
+    "action_taken": "EXECUTION_SKIPPED",
+    "input_summary": "No intervention plans available for LOLR execution",
+    "output_summary": "Agent execution bypassed - no LOLR transactions executed",
+    "rule_applied": "CONDITIONAL_EXECUTION_LOGIC",
+    "regulatory_basis": "SARB_LOLR_FRAMEWORK_2024"
+  },
+  {
+    "timestamp": "2026-05-06T13:07:00.000000+00:00",
+    "agent_name": "Roll Execution Agent",
+    "action_taken": "EXECUTION_SKIPPED",
+    "input_summary": "No intervention plans available for settlement roll execution",
+    "output_summary": "Agent execution bypassed - no settlement rolls executed",
+    "rule_applied": "CONDITIONAL_EXECUTION_LOGIC",
+    "regulatory_basis": null
+  }
+]

@@ -1,0 +1,56 @@
+[
+  {
+    "timestamp": "2026-05-06T13:17:10.903304+00:00",
+    "agent_name": "Settlement Exposure Agent",
+    "action_taken": "SNAPSHOT_GENERATED",
+    "input_summary": "Retrieved T+1 (4 trades) and T+2 (4 trades) settlement exposure data from ECS/CIS/TIS systems",
+    "output_summary": "Generated settlement snapshot with 8 total trades, ZAR 319.5M total exposure, 7 counterparties monitored",
+    "rule_applied": "STANDARD_EXPOSURE_COLLECTION",
+    "regulatory_basis": "JSE Directive 2.10 - Settlement Risk Monitoring"
+  },
+  {
+    "timestamp": "2026-05-06T13:17:11.500000+00:00",
+    "agent_name": "Risk Scoring Agent",
+    "action_taken": "RISK_CLASSIFICATION_COMPLETED",
+    "input_summary": "Analyzed 8 trade-counterparty pairs against deterministic risk rules",
+    "output_summary": "Classified TRD-2007/CP-007 as CRITICAL due to CIS_UNAVAILABLE + LARGE_EXPOSURE triggers",
+    "rule_applied": "CRITICAL_ESCALATION_RULE_CIS_UNAVAILABLE",
+    "regulatory_basis": "FSCA Directive 5.2 - Counterparty Risk Management"
+  },
+  {
+    "timestamp": "2026-05-06T13:17:12.000000+00:00",
+    "agent_name": "Counterparty Risk Agent",
+    "action_taken": "SKIPPED_NO_CRITICAL_THRESHOLD",
+    "input_summary": "1 CRITICAL item identified but below 3+ threshold for detailed assessment",
+    "output_summary": "Agent execution bypassed per operational efficiency rules",
+    "rule_applied": "EXECUTION_THRESHOLD_RULE",
+    "regulatory_basis": "Operational Risk Framework - Resource Optimization"
+  },
+  {
+    "timestamp": "2026-05-06T13:17:12.500000+00:00",
+    "agent_name": "Intervention Planning Agent",
+    "action_taken": "SKIPPED_NO_COUNTERPARTY_ASSESSMENT",
+    "input_summary": "No counterparty risk assessment available for intervention planning",
+    "output_summary": "Agent execution bypassed due to missing upstream dependency",
+    "rule_applied": "DEPENDENCY_CHECK_RULE",
+    "regulatory_basis": "Risk Management Framework - Sequential Processing"
+  },
+  {
+    "timestamp": "2026-05-06T13:17:13.000000+00:00",
+    "agent_name": "LOLR Execution Agent",
+    "action_taken": "SKIPPED_NO_INTERVENTION_PLAN",
+    "input_summary": "No intervention plan available for LOLR execution",
+    "output_summary": "Agent execution bypassed due to missing upstream dependency",
+    "rule_applied": "DEPENDENCY_CHECK_RULE",
+    "regulatory_basis": "SARB Regulation - LOLR Operational Framework"
+  },
+  {
+    "timestamp": "2026-05-06T13:17:13.500000+00:00",
+    "agent_name": "Roll Execution Agent",
+    "action_taken": "SKIPPED_NO_INTERVENTION_PLAN",
+    "input_summary": "No intervention plan available for roll execution",
+    "output_summary": "Agent execution bypassed due to missing upstream dependency",
+    "rule_applied": "DEPENDENCY_CHECK_RULE",
+    "regulatory_basis": "JSE Rule 6.60 - Settlement Extensions"
+  }
+]

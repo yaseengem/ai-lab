@@ -1,0 +1,194 @@
+{
+  "id": "tc03-cis-unavailable",
+  "name": "CIS Connectivity Failure",
+  "description": "Three counterparties have CIS_UNAVAILABLE status — the CIS integration has timed out and their lending positions cannot be verified. Agent should flag data quality issues, escalate all CIS_UNAVAILABLE counterparties to at least HIGH/CRITICAL, and include data_quality_flags in the audit report.",
+  "tags": ["cis", "connectivity", "data-quality", "degraded"],
+  "expected": {
+    "critical": 3,
+    "high": 0,
+    "medium": 1,
+    "low": 2,
+    "systemic_risk": false,
+    "interventions": ["HUMAN_ESCALATION"],
+    "assertions": [
+      "3 counterparties with CIS_UNAVAILABLE → classified CRITICAL (cannot verify position)",
+      "data_quality_flags includes CIS_UNAVAILABLE entries",
+      "All CIS_UNAVAILABLE items escalated — cannot auto-execute LOLR without position data",
+      "Step 7 report documents CIS connectivity failure and data gaps"
+    ]
+  },
+  "trades": [
+    {
+      "trade_id": "TRD-6001",
+      "counterparty_id": "CIS-001",
+      "isin": "ZAE000042811",
+      "instrument": "Naspers Ltd",
+      "settlement_window": "T+1",
+      "side": "SELL",
+      "quantity": 25000,
+      "value_zar": 62000000,
+      "securities_lending_gap": null
+    },
+    {
+      "trade_id": "TRD-6002",
+      "counterparty_id": "CIS-002",
+      "isin": "ZAE000149478",
+      "instrument": "Standard Bank Group",
+      "settlement_window": "T+1",
+      "side": "SELL",
+      "quantity": 22000,
+      "value_zar": 45000000,
+      "securities_lending_gap": null
+    },
+    {
+      "trade_id": "TRD-6003",
+      "counterparty_id": "CIS-003",
+      "isin": "ZAE000015889",
+      "instrument": "FirstRand Ltd",
+      "settlement_window": "T+1",
+      "side": "BUY",
+      "quantity": 18000,
+      "value_zar": 38000000,
+      "securities_lending_gap": null
+    },
+    {
+      "trade_id": "TRD-6004",
+      "counterparty_id": "CIS-004",
+      "isin": "ZAE000067211",
+      "instrument": "Sasol Ltd",
+      "settlement_window": "T+2",
+      "side": "BUY",
+      "quantity": 12000,
+      "value_zar": 21000000,
+      "securities_lending_gap": null
+    },
+    {
+      "trade_id": "TRD-6005",
+      "counterparty_id": "CIS-005",
+      "isin": "ZAE000028492",
+      "instrument": "MTN Group Ltd",
+      "settlement_window": "T+2",
+      "side": "BUY",
+      "quantity": 6000,
+      "value_zar": 9000000,
+      "securities_lending_gap": null
+    },
+    {
+      "trade_id": "TRD-6006",
+      "counterparty_id": "CIS-006",
+      "isin": "ZAE000071080",
+      "instrument": "Anglo American Plc",
+      "settlement_window": "T+2",
+      "side": "BUY",
+      "quantity": 4000,
+      "value_zar": 7000000,
+      "securities_lending_gap": null
+    }
+  ],
+  "counterparty_profiles": {
+    "CIS-001": {
+      "counterparty_id": "CIS-001",
+      "name": "Horizon Prime Ltd",
+      "net_obligation_zar": 62000000,
+      "cis_status": "CIS_UNAVAILABLE",
+      "lending_balance_pct": null,
+      "last_failure_days_ago": null,
+      "jse_watchlist": false,
+      "credit_rating": "UNKNOWN",
+      "margin_call_history_90d": null,
+      "integration_health": "UNAVAILABLE",
+      "account_flags": ["CIS_UNAVAILABLE"]
+    },
+    "CIS-002": {
+      "counterparty_id": "CIS-002",
+      "name": "Meridian Brokers Ltd",
+      "net_obligation_zar": 45000000,
+      "cis_status": "CIS_UNAVAILABLE",
+      "lending_balance_pct": null,
+      "last_failure_days_ago": null,
+      "jse_watchlist": false,
+      "credit_rating": "UNKNOWN",
+      "margin_call_history_90d": null,
+      "integration_health": "UNAVAILABLE",
+      "account_flags": ["CIS_UNAVAILABLE"]
+    },
+    "CIS-003": {
+      "counterparty_id": "CIS-003",
+      "name": "Coastal Asset Managers",
+      "net_obligation_zar": 38000000,
+      "cis_status": "CIS_UNAVAILABLE",
+      "lending_balance_pct": null,
+      "last_failure_days_ago": null,
+      "jse_watchlist": false,
+      "credit_rating": "UNKNOWN",
+      "margin_call_history_90d": null,
+      "integration_health": "UNAVAILABLE",
+      "account_flags": ["CIS_UNAVAILABLE"]
+    },
+    "CIS-004": {
+      "counterparty_id": "CIS-004",
+      "name": "Summit Investments CC",
+      "net_obligation_zar": 21000000,
+      "cis_status": "DEGRADED",
+      "lending_balance_pct": 70,
+      "last_failure_days_ago": null,
+      "jse_watchlist": false,
+      "credit_rating": "BBB",
+      "margin_call_history_90d": 0,
+      "integration_health": "DEGRADED",
+      "account_flags": ["CIS_DEGRADED"]
+    },
+    "CIS-005": {
+      "counterparty_id": "CIS-005",
+      "name": "Lakewood Securities",
+      "net_obligation_zar": 9000000,
+      "cis_status": "ACTIVE",
+      "lending_balance_pct": 100,
+      "last_failure_days_ago": null,
+      "jse_watchlist": false,
+      "credit_rating": "A",
+      "margin_call_history_90d": 0,
+      "integration_health": "HEALTHY",
+      "account_flags": []
+    },
+    "CIS-006": {
+      "counterparty_id": "CIS-006",
+      "name": "Bluestone Fund Managers",
+      "net_obligation_zar": 7000000,
+      "cis_status": "ACTIVE",
+      "lending_balance_pct": 100,
+      "last_failure_days_ago": null,
+      "jse_watchlist": false,
+      "credit_rating": "A+",
+      "margin_call_history_90d": 0,
+      "integration_health": "HEALTHY",
+      "account_flags": []
+    }
+  },
+  "historical_failures": {
+    "CIS-001": {"failure_count_90d": null, "failure_dates": null, "avg_delay_days": null, "note": "Data unavailable (CIS_UNAVAILABLE)"},
+    "CIS-002": {"failure_count_90d": null, "failure_dates": null, "avg_delay_days": null, "note": "Data unavailable (CIS_UNAVAILABLE)"},
+    "CIS-003": {"failure_count_90d": null, "failure_dates": null, "avg_delay_days": null, "note": "Data unavailable (CIS_UNAVAILABLE)"},
+    "CIS-004": {"failure_count_90d": 0, "failure_dates": [], "avg_delay_days": 0},
+    "CIS-005": {"failure_count_90d": 0, "failure_dates": [], "avg_delay_days": 0},
+    "CIS-006": {"failure_count_90d": 0, "failure_dates": [], "avg_delay_days": 0}
+  },
+  "jse_watchlist": {},
+  "lending_depth": [],
+  "market_context": {
+    "jse_volatility_index_savi": 26.8,
+    "alsi_1day_move_pct": -1.8,
+    "security_moves": {
+      "ZAE000042811": {"name": "Naspers Ltd", "5day_move_pct": -4.2},
+      "ZAE000149478": {"name": "Standard Bank Group", "5day_move_pct": -2.1},
+      "ZAE000015889": {"name": "FirstRand Ltd", "5day_move_pct": -1.5},
+      "ZAE000067211": {"name": "Sasol Ltd", "5day_move_pct": -3.0},
+      "ZAE000028492": {"name": "MTN Group Ltd", "5day_move_pct": -0.8},
+      "ZAE000071080": {"name": "Anglo American Plc", "5day_move_pct": 0.2}
+    },
+    "repo_rate_sarb_pct": 8.25,
+    "active_jse_market_stress_flag": false,
+    "volatility_threshold": 25,
+    "elevated_volatility": true
+  }
+}

@@ -1,0 +1,156 @@
+{
+  "fsca_compliance_report": {
+    "run_id": "JSE-SFPP-20260506-1307",
+    "run_timestamp": "2026-05-06T13:07:00.000000+00:00",
+    "report_version": "FSCA-SFPP-V2.1",
+    "regulatory_framework": "FSCA Directive PD-4 (2024) - Settlement Risk Management",
+    "data_sources": {
+      "ecs_integration": {
+        "status": "HEALTHY",
+        "last_update": "2026-05-06T13:06:33.191133+00:00",
+        "coverage": "7/7 counterparties"
+      },
+      "cis_integration": {
+        "status": "DEGRADED",
+        "last_update": "2026-05-06T13:06:35.222237+00:00",
+        "coverage": "6/7 counterparties",
+        "unavailable_counterparties": [
+          "CP-007"
+        ]
+      },
+      "tis_integration": {
+        "status": "HEALTHY",
+        "last_update": "2026-05-06T13:06:35.222237+00:00",
+        "coverage": "8/8 trades"
+      }
+    },
+    "monitoring_coverage": {
+      "total_trades": 8,
+      "total_counterparties": 7,
+      "t1_exposure_zar": 258000000,
+      "t2_exposure_zar": 61500000,
+      "total_market_exposure_zar": 319500000
+    },
+    "risk_assessment_summary": {
+      "assessment_methodology": "JSE Settlement Risk Matrix V2.1",
+      "risk_classifications": {
+        "CRITICAL": {
+          "count": 1,
+          "trades": [
+            "TRD-2007"
+          ],
+          "total_exposure_zar": 55000000,
+          "percentage_of_total": 17.2
+        },
+        "HIGH": {
+          "count": 0,
+          "trades": [],
+          "total_exposure_zar": 0,
+          "percentage_of_total": 0
+        },
+        "MEDIUM": {
+          "count": 0,
+          "trades": [],
+          "total_exposure_zar": 0,
+          "percentage_of_total": 0
+        },
+        "LOW": {
+          "count": 7,
+          "trades": [
+            "TRD-2001",
+            "TRD-2002",
+            "TRD-2003",
+            "TRD-2004",
+            "TRD-2005",
+            "TRD-2006",
+            "TRD-2008"
+          ],
+          "total_exposure_zar": 264500000,
+          "percentage_of_total": 82.8
+        }
+      }
+    },
+    "critical_item_analysis": [
+      {
+        "trade_id": "TRD-2007",
+        "counterparty_id": "CP-007",
+        "counterparty_name": "TerraFin Brokers Ltd",
+        "settlement_date": "2026-05-07",
+        "exposure_zar": 55000000,
+        "risk_triggers": [
+          "CIS_UNAVAILABLE",
+          "NET_OBLIGATION_50M_PLUS"
+        ],
+        "regulatory_concern": "Inability to assess counterparty settlement capacity due to CIS system unavailability, combined with large exposure exceeding prudential thresholds",
+        "agent_decision_rationale": "CRITICAL classification applied due to dual risk factors: (1) CIS integration timeout preventing real-time counterparty assessment, (2) net obligation of ZAR 55M exceeding JSE large exposure threshold of ZAR 50M. Manual intervention required per FSCA Directive PD-4 Section 3.2.1",
+        "escalation_required": true,
+        "human_intervention_status": "PENDING"
+      }
+    ],
+    "interventions_executed": {
+      "lolr_transactions": {
+        "count": 0,
+        "total_value_zar": 0,
+        "regulatory_basis": "None executed - no intervention plans generated",
+        "sarb_notifications": []
+      },
+      "settlement_rolls": {
+        "count": 0,
+        "total_value_zar": 0,
+        "regulatory_basis": "None executed - no intervention plans generated"
+      },
+      "manual_escalations": {
+        "count": 4,
+        "trade_ids": [
+          "TRD-2001",
+          "TRD-2002",
+          "TRD-2007",
+          "TRD-2003"
+        ],
+        "reasons": [
+          "LARGE_EXPOSURE",
+          "LARGE_EXPOSURE_WITH_RECENT_FAILURE",
+          "CRITICAL_CIS_UNAVAILABLE",
+          "CIS_DEGRADED"
+        ]
+      }
+    },
+    "data_quality_attestation": {
+      "overall_quality": "DEGRADED",
+      "critical_gaps": [
+        {
+          "type": "CIS_UNAVAILABLE",
+          "counterparty": "CP-007",
+          "impact": "Unable to assess real-time settlement capacity for ZAR 55M exposure",
+          "mitigation": "Manual counterparty contact initiated, alternative data sources being evaluated"
+        }
+      ],
+      "data_completeness": {
+        "ecs_coverage": "100%",
+        "cis_coverage": "85.7%",
+        "tis_coverage": "100%"
+      },
+      "fsca_compliance_status": "PARTIAL_COMPLIANCE_DATA_GAP_REPORTED"
+    },
+    "systemic_risk_indicators": {
+      "trend_analysis": {
+        "direction": "STABLE",
+        "critical_count_change": 0,
+        "systemic_stress": false
+      },
+      "concentration_risk": {
+        "large_exposures_count": 3,
+        "largest_single_exposure_zar": 120000000,
+        "top_3_concentration_pct": 73.8
+      }
+    },
+    "regulatory_attestation": {
+      "fsca_pd4_compliance": "PARTIAL - Data gap reported for CP-007",
+      "settlement_risk_framework_applied": "JSE Settlement Risk Matrix V2.1",
+      "escalation_procedures_followed": true,
+      "audit_trail_complete": true,
+      "next_review_required": "2026-05-06T14:07:00.000000+00:00"
+    }
+  },
+  "stored_at": "2026-05-06T13:08:14.432274+00:00"
+}

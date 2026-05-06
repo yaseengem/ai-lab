@@ -1,0 +1,37 @@
+{
+  "run_id": "JSE-SFPP-20260506-1318",
+  "total_trades_monitored": 8,
+  "t1_trade_count": 4,
+  "t2_trade_count": 4,
+  "risk_distribution": {
+    "CRITICAL": 1,
+    "HIGH": 0,
+    "MEDIUM": 0,
+    "LOW": 7
+  },
+  "interventions_executed": {
+    "lolr_interventions": 0,
+    "roll_interventions": 0,
+    "success_rate": "N/A"
+  },
+  "human_escalations_required": {
+    "count": 1,
+    "trade_ids": [
+      "TRD-2007"
+    ],
+    "reason": "CIS_UNAVAILABLE for CP-007"
+  },
+  "settlement_value_protected_zar": 0,
+  "total_exposure_monitored_zar": 319500000,
+  "system_health": {
+    "all_agents_executed": false,
+    "partial_execution_reason": "Dependency chain break after Risk Scoring Agent",
+    "data_gaps": [
+      "CIS_UNAVAILABLE for CP-007"
+    ],
+    "integration_status": "DEGRADED"
+  },
+  "trend_direction": "IMPROVING",
+  "systemic_stress_indicator": false,
+  "last_updated": "2026-05-06T13:18:29.475527+00:00"
+}

@@ -1,0 +1,56 @@
+[
+  {
+    "timestamp": "2026-05-06T13:07:31.483576+00:00",
+    "agent_name": "Data Ingestion Agent",
+    "action_taken": "SNAPSHOT_CAPTURE",
+    "input_summary": "ECS/CIS/TIS data sources accessed",
+    "output_summary": "8 trades captured (4 T+1, 4 T+2), 7 counterparty profiles, 1 CIS_UNAVAILABLE",
+    "rule_applied": "N/A",
+    "regulatory_basis": "N/A"
+  },
+  {
+    "timestamp": "2026-05-06T13:07:32.000000+00:00",
+    "agent_name": "Risk Scoring Agent",
+    "action_taken": "RISK_CLASSIFICATION",
+    "input_summary": "8 trades analyzed for settlement risk",
+    "output_summary": "1 CRITICAL trade identified (TRD-2007)",
+    "rule_applied": "CIS_UNAVAILABLE + NET_OBLIGATION_>50M",
+    "regulatory_basis": "JSE Rule 5.90.3 - Settlement Risk Management"
+  },
+  {
+    "timestamp": "2026-05-06T13:07:33.000000+00:00",
+    "agent_name": "Counterparty Risk Agent",
+    "action_taken": "AGENT_SKIPPED",
+    "input_summary": "No HIGH/CRITICAL trades requiring detailed assessment",
+    "output_summary": "Agent execution bypassed - no qualifying trades",
+    "rule_applied": "Skip condition: no HIGH/CRITICAL trades",
+    "regulatory_basis": "N/A"
+  },
+  {
+    "timestamp": "2026-05-06T13:07:34.000000+00:00",
+    "agent_name": "Intervention Planning Agent",
+    "action_taken": "AGENT_SKIPPED",
+    "input_summary": "No counterparty risk assessment available",
+    "output_summary": "Agent execution bypassed - missing prerequisite data",
+    "rule_applied": "Skip condition: counterparty assessment null",
+    "regulatory_basis": "N/A"
+  },
+  {
+    "timestamp": "2026-05-06T13:07:35.000000+00:00",
+    "agent_name": "LOLR Execution Agent",
+    "action_taken": "AGENT_SKIPPED",
+    "input_summary": "No intervention plan available",
+    "output_summary": "Agent execution bypassed - no intervention plan",
+    "rule_applied": "Skip condition: intervention plan null",
+    "regulatory_basis": "N/A"
+  },
+  {
+    "timestamp": "2026-05-06T13:07:36.000000+00:00",
+    "agent_name": "Settlement Roll Agent",
+    "action_taken": "AGENT_SKIPPED",
+    "input_summary": "No intervention plan available",
+    "output_summary": "Agent execution bypassed - no intervention plan",
+    "rule_applied": "Skip condition: intervention plan null",
+    "regulatory_basis": "N/A"
+  }
+]

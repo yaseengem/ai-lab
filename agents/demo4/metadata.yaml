@@ -1,0 +1,18 @@
+name: Settlement Failure Prevention Agent
+description: >
+  Real-time settlement failure prediction and prevention system for JSE (Johannesburg
+  Stock Exchange). Monitors T+1 and T+2 clearing positions from ECS, counterparty health
+  from CIS, and open trades from TIS to predict settlement failures 24-48 hours in advance.
+  Applies deterministic rule engine combined with LLM reasoning to classify risk as
+  CRITICAL/HIGH/MEDIUM/LOW, then autonomously executes interventions: triggering JSE's
+  Lender-of-Last-Resort (LOLR) facility, delivering Strate settlement roll instructions,
+  and escalating regulatory-flagged items to human review. Produces FSCA-compliant audit
+  reports for every pipeline run.
+use_case: settlement_failure_prevention
+domain: capital_markets
+api_port: 3004
+frontend_port: 8004
+entry_point: "agents.demo4.apis.main:app"
+api_version: "1.0.0"
+status: active
+version: "1.0.0"

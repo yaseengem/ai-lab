@@ -1,0 +1,168 @@
+{
+  "id": "tc16-zero-risk",
+  "name": "Zero HIGH/CRITICAL Items",
+  "description": "All counterparties have small obligations (below ZAR 20M), ACTIVE CIS, no recent failures, and no watchlist entries. Agent should classify all trades as LOW risk, skip Steps 3-6, and produce a clean audit report with no interventions.",
+  "tags": ["boundary", "no-intervention", "clean-cycle"],
+  "expected": {
+    "critical": 0,
+    "high": 0,
+    "medium": 0,
+    "low": 5,
+    "systemic_risk": false,
+    "interventions": [],
+    "assertions": [
+      "All 5 trades classified LOW",
+      "Steps 3-6 skipped: No HIGH or CRITICAL items",
+      "Audit report shows zero interventions",
+      "Pipeline completes successfully in 2 active steps (1 and 2)"
+    ]
+  },
+  "trades": [
+    {
+      "trade_id": "TRD-3001",
+      "counterparty_id": "SIM-A",
+      "isin": "ZAE000028492",
+      "instrument": "MTN Group Ltd",
+      "settlement_window": "T+2",
+      "side": "BUY",
+      "quantity": 5000,
+      "value_zar": 9000000,
+      "securities_lending_gap": null
+    },
+    {
+      "trade_id": "TRD-3002",
+      "counterparty_id": "SIM-B",
+      "isin": "ZAE000015889",
+      "instrument": "FirstRand Ltd",
+      "settlement_window": "T+2",
+      "side": "SELL",
+      "quantity": 8000,
+      "value_zar": 12000000,
+      "securities_lending_gap": null
+    },
+    {
+      "trade_id": "TRD-3003",
+      "counterparty_id": "SIM-C",
+      "isin": "ZAE000071080",
+      "instrument": "Anglo American Plc",
+      "settlement_window": "T+2",
+      "side": "BUY",
+      "quantity": 3000,
+      "value_zar": 7500000,
+      "securities_lending_gap": null
+    },
+    {
+      "trade_id": "TRD-3004",
+      "counterparty_id": "SIM-D",
+      "isin": "ZAE000149478",
+      "instrument": "Standard Bank Group",
+      "settlement_window": "T+2",
+      "side": "BUY",
+      "quantity": 6000,
+      "value_zar": 11000000,
+      "securities_lending_gap": null
+    },
+    {
+      "trade_id": "TRD-3005",
+      "counterparty_id": "SIM-E",
+      "isin": "ZAE000067211",
+      "instrument": "Sasol Ltd",
+      "settlement_window": "T+2",
+      "side": "SELL",
+      "quantity": 4000,
+      "value_zar": 8000000,
+      "securities_lending_gap": null
+    }
+  ],
+  "counterparty_profiles": {
+    "SIM-A": {
+      "counterparty_id": "SIM-A",
+      "name": "Zenith Fund Managers",
+      "net_obligation_zar": 9000000,
+      "cis_status": "ACTIVE",
+      "lending_balance_pct": 100,
+      "last_failure_days_ago": null,
+      "jse_watchlist": false,
+      "credit_rating": "AA",
+      "margin_call_history_90d": 0,
+      "integration_health": "HEALTHY",
+      "account_flags": []
+    },
+    "SIM-B": {
+      "counterparty_id": "SIM-B",
+      "name": "Oceana Asset Management",
+      "net_obligation_zar": 12000000,
+      "cis_status": "ACTIVE",
+      "lending_balance_pct": 100,
+      "last_failure_days_ago": null,
+      "jse_watchlist": false,
+      "credit_rating": "A+",
+      "margin_call_history_90d": 0,
+      "integration_health": "HEALTHY",
+      "account_flags": []
+    },
+    "SIM-C": {
+      "counterparty_id": "SIM-C",
+      "name": "Pinnacle Capital Ltd",
+      "net_obligation_zar": 7500000,
+      "cis_status": "ACTIVE",
+      "lending_balance_pct": 98,
+      "last_failure_days_ago": null,
+      "jse_watchlist": false,
+      "credit_rating": "A",
+      "margin_call_history_90d": 0,
+      "integration_health": "HEALTHY",
+      "account_flags": []
+    },
+    "SIM-D": {
+      "counterparty_id": "SIM-D",
+      "name": "Meridian Securities",
+      "net_obligation_zar": 11000000,
+      "cis_status": "ACTIVE",
+      "lending_balance_pct": 100,
+      "last_failure_days_ago": null,
+      "jse_watchlist": false,
+      "credit_rating": "AA-",
+      "margin_call_history_90d": 0,
+      "integration_health": "HEALTHY",
+      "account_flags": []
+    },
+    "SIM-E": {
+      "counterparty_id": "SIM-E",
+      "name": "Evergreen Brokers CC",
+      "net_obligation_zar": 8000000,
+      "cis_status": "ACTIVE",
+      "lending_balance_pct": 100,
+      "last_failure_days_ago": null,
+      "jse_watchlist": false,
+      "credit_rating": "BBB+",
+      "margin_call_history_90d": 0,
+      "integration_health": "HEALTHY",
+      "account_flags": []
+    }
+  },
+  "historical_failures": {
+    "SIM-A": {"failure_count_90d": 0, "failure_dates": [], "avg_delay_days": 0},
+    "SIM-B": {"failure_count_90d": 0, "failure_dates": [], "avg_delay_days": 0},
+    "SIM-C": {"failure_count_90d": 0, "failure_dates": [], "avg_delay_days": 0},
+    "SIM-D": {"failure_count_90d": 0, "failure_dates": [], "avg_delay_days": 0},
+    "SIM-E": {"failure_count_90d": 0, "failure_dates": [], "avg_delay_days": 0}
+  },
+  "jse_watchlist": {},
+  "lending_depth": [],
+  "market_context": {
+    "jse_volatility_index_savi": 16.2,
+    "alsi_1day_move_pct": 0.3,
+    "security_moves": {
+      "ZAE000028492": {"name": "MTN Group Ltd", "5day_move_pct": 0.5},
+      "ZAE000015889": {"name": "FirstRand Ltd", "5day_move_pct": 0.2},
+      "ZAE000071080": {"name": "Anglo American Plc", "5day_move_pct": -0.1},
+      "ZAE000149478": {"name": "Standard Bank Group", "5day_move_pct": 0.4},
+      "ZAE000067211": {"name": "Sasol Ltd", "5day_move_pct": -0.3}
+    },
+    "repo_rate_sarb_pct": 8.25,
+    "active_jse_market_stress_flag": false,
+    "volatility_threshold": 25,
+    "elevated_volatility": false
+  }
+}

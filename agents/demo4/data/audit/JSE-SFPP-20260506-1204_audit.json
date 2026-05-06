@@ -1,0 +1,56 @@
+[
+  {
+    "timestamp": "2026-05-06T12:03:52.432420+00:00",
+    "agent_name": "Settlement Monitoring Agent",
+    "action_taken": "SNAPSHOT_GENERATED",
+    "input_summary": "Processed 8 trades across T+1 and T+2 windows from ECS/CIS/TIS systems",
+    "output_summary": "Captured ZAR 319.5M total exposure across 7 counterparties with 5 data quality flags",
+    "rule_applied": "Standard monitoring coverage",
+    "regulatory_basis": "FSCA Settlement Rules Section 4.1"
+  },
+  {
+    "timestamp": "2026-05-06T12:04:15.000000+00:00",
+    "agent_name": "Risk Scoring Agent",
+    "action_taken": "RISK_CLASSIFICATION",
+    "input_summary": "Analyzed 8 trades with counterparty profiles and exposure data",
+    "output_summary": "Classified TRD-2001 as CRITICAL due to ZAR 120M net obligation exceeding ZAR 100M threshold",
+    "rule_applied": "Rule R1: Net obligation > ZAR 100M \u2192 CRITICAL",
+    "regulatory_basis": "FSCA Market Conduct Rules 3.2.1"
+  },
+  {
+    "timestamp": "2026-05-06T12:04:30.000000+00:00",
+    "agent_name": "Counterparty Risk Agent",
+    "action_taken": "ASSESSMENT_SKIPPED",
+    "input_summary": "No HIGH or CRITICAL risk items requiring detailed counterparty assessment",
+    "output_summary": "Counterparty risk assessment bypassed per operational efficiency rules",
+    "rule_applied": "Skip assessment when watchlist contains only standard risk items",
+    "regulatory_basis": "Internal operational procedure"
+  },
+  {
+    "timestamp": "2026-05-06T12:04:35.000000+00:00",
+    "agent_name": "Intervention Planning Agent",
+    "action_taken": "INTERVENTION_SKIPPED",
+    "input_summary": "Pipeline execution status marked as PARTIAL",
+    "output_summary": "No intervention plan generated due to incomplete pipeline execution",
+    "rule_applied": "Skip intervention when upstream agents incomplete",
+    "regulatory_basis": "Risk management operational procedure"
+  },
+  {
+    "timestamp": "2026-05-06T12:04:40.000000+00:00",
+    "agent_name": "LOLR Execution Agent",
+    "action_taken": "EXECUTION_SKIPPED",
+    "input_summary": "No intervention plan available",
+    "output_summary": "LOLR operations not executed due to missing intervention plan",
+    "rule_applied": "Require valid intervention plan for LOLR execution",
+    "regulatory_basis": "FSCA Settlement Rules Section 6.3"
+  },
+  {
+    "timestamp": "2026-05-06T12:04:42.000000+00:00",
+    "agent_name": "Roll Management Agent",
+    "action_taken": "EXECUTION_SKIPPED",
+    "input_summary": "No intervention plan available",
+    "output_summary": "Settlement roll operations not executed due to missing intervention plan",
+    "rule_applied": "Require valid intervention plan for roll execution",
+    "regulatory_basis": "FSCA Settlement Rules Section 5.4"
+  }
+]

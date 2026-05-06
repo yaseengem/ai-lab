@@ -1,0 +1,22 @@
+{
+  "id": "tc14-standard-cycle",
+  "name": "Standard Monitoring Cycle",
+  "description": "The default UC8 Section 6.2 dataset. 7 counterparties, 8 trades across T+1 and T+2 windows. Covers all three intervention types: LOLR (CP-001), settlement roll (CP-002/CP-003), and regulatory escalation (CP-005 watchlist). Validates the full 7-step pipeline end-to-end.",
+  "tags": ["standard", "full-cycle", "uc8-spec", "all-steps"],
+  "expected": {
+    "critical": 3,
+    "high": 1,
+    "medium": 1,
+    "low": 3,
+    "systemic_risk": false,
+    "interventions": ["LOLR_TRIGGER", "SETTLEMENT_ROLL", "HUMAN_ESCALATION"],
+    "assertions": [
+      "CP-001 (ZAR 120M) → CRITICAL, LOLR_TRIGGER",
+      "CP-005 (watchlist, FSCA flag) → CRITICAL, HUMAN_ESCALATION",
+      "CP-007 (CIS_UNAVAILABLE) → CRITICAL",
+      "CP-002 (28% lending gap, recent failure) → HIGH, SETTLEMENT_ROLL",
+      "CP-003 (CIS DEGRADED) → MEDIUM",
+      "CP-004 and CP-006 → LOW"
+    ]
+  }
+}

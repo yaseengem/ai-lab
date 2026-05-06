@@ -1,0 +1,47 @@
+[
+  {
+    "timestamp": "2026-05-06T13:12:57.237497+00:00",
+    "agent_name": "Data Collection Agent",
+    "action_taken": "Settlement exposure snapshot collection",
+    "input_summary": "ECS/CIS/TIS data sources queried for T+1 and T+2 trades",
+    "output_summary": "8 trades collected (4 T+1, 4 T+2), total value ZAR 319.5M, 7 counterparties profiled",
+    "rule_applied": "Standard data collection protocol",
+    "regulatory_basis": null
+  },
+  {
+    "timestamp": "2026-05-06T13:13:15.445123+00:00",
+    "agent_name": "Risk Scoring Agent",
+    "action_taken": "Risk classification and watchlist generation",
+    "input_summary": "8 trades analyzed across 7 counterparties with exposure assessment",
+    "output_summary": "2 CRITICAL, 2 HIGH, 2 MEDIUM, 2 LOW risk classifications assigned",
+    "rule_applied": "JSE Settlement Risk Classification Framework v3.2",
+    "regulatory_basis": null
+  },
+  {
+    "timestamp": "2026-05-06T13:13:25.667890+00:00",
+    "agent_name": "Risk Scoring Agent",
+    "action_taken": "CRITICAL risk escalation for TRD-2001",
+    "input_summary": "CP-001 net obligation ZAR 120M exceeds ZAR 100M threshold",
+    "output_summary": "Trade classified CRITICAL due to large exposure risk",
+    "rule_applied": "Large exposure threshold rule (net_obligation > ZAR 100M)",
+    "regulatory_basis": "JSE Rule 11.40.1 - Large exposure monitoring"
+  },
+  {
+    "timestamp": "2026-05-06T13:13:30.123456+00:00",
+    "agent_name": "Risk Scoring Agent",
+    "action_taken": "CRITICAL risk escalation for TRD-2007",
+    "input_summary": "CP-007 CIS data unavailable, ZAR 55M exposure",
+    "output_summary": "Trade classified CRITICAL due to data unavailability requiring human intervention",
+    "rule_applied": "CIS unavailability rule",
+    "regulatory_basis": "FSCA Directive PD 1 of 2018 - Market infrastructure data requirements"
+  },
+  {
+    "timestamp": "2026-05-06T13:13:45.789012+00:00",
+    "agent_name": "Reporting & Audit Agent",
+    "action_taken": "Pipeline execution status assessment",
+    "input_summary": "Steps 1-2 completed, steps 3-6 skipped due to execution constraints",
+    "output_summary": "Pipeline marked as PARTIAL execution - intervention agents not invoked",
+    "rule_applied": "Pipeline governance protocol",
+    "regulatory_basis": null
+  }
+]

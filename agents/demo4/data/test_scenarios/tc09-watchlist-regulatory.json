@@ -1,0 +1,218 @@
+{
+  "id": "tc09-watchlist-regulatory",
+  "name": "JSE Watchlist — Regulatory Escalation",
+  "description": "Two counterparties are on active JSE watchlist with FSCA regulatory flags. Obligations are below LOLR thresholds, but the regulatory flags mandate CRITICAL classification and HUMAN_ESCALATION. No automated LOLR or settlement rolls — pure compliance escalation pathway.",
+  "tags": ["watchlist", "regulatory", "fsca", "escalation"],
+  "expected": {
+    "critical": 2,
+    "high": 0,
+    "medium": 1,
+    "low": 3,
+    "systemic_risk": false,
+    "interventions": ["HUMAN_ESCALATION", "ALERT_OPERATIONS"],
+    "assertions": [
+      "2 watchlist counterparties classified CRITICAL despite moderate obligations",
+      "HUMAN_ESCALATION required for all CRITICAL watchlist items",
+      "No LOLR or settlement rolls — no eligible intervention",
+      "Regulatory basis cited in audit trail for FSCA items",
+      "Alert generated for ops team"
+    ]
+  },
+  "trades": [
+    {
+      "trade_id": "TRD-7001",
+      "counterparty_id": "WL-001",
+      "isin": "ZAE000042811",
+      "instrument": "Naspers Ltd",
+      "settlement_window": "T+1",
+      "side": "SELL",
+      "quantity": 15000,
+      "value_zar": 38000000,
+      "securities_lending_gap": null
+    },
+    {
+      "trade_id": "TRD-7002",
+      "counterparty_id": "WL-002",
+      "isin": "ZAE000067211",
+      "instrument": "Sasol Ltd",
+      "settlement_window": "T+1",
+      "side": "SELL",
+      "quantity": 12000,
+      "value_zar": 28000000,
+      "securities_lending_gap": null
+    },
+    {
+      "trade_id": "TRD-7003",
+      "counterparty_id": "WL-003",
+      "isin": "ZAE000015889",
+      "instrument": "FirstRand Ltd",
+      "settlement_window": "T+2",
+      "side": "BUY",
+      "quantity": 12000,
+      "value_zar": 23000000,
+      "securities_lending_gap": null
+    },
+    {
+      "trade_id": "TRD-7004",
+      "counterparty_id": "WL-004",
+      "isin": "ZAE000028492",
+      "instrument": "MTN Group Ltd",
+      "settlement_window": "T+2",
+      "side": "BUY",
+      "quantity": 8000,
+      "value_zar": 14000000,
+      "securities_lending_gap": null
+    },
+    {
+      "trade_id": "TRD-7005",
+      "counterparty_id": "WL-005",
+      "isin": "ZAE000071080",
+      "instrument": "Anglo American Plc",
+      "settlement_window": "T+2",
+      "side": "BUY",
+      "quantity": 5000,
+      "value_zar": 10000000,
+      "securities_lending_gap": null
+    },
+    {
+      "trade_id": "TRD-7006",
+      "counterparty_id": "WL-006",
+      "isin": "ZAE000149478",
+      "instrument": "Standard Bank Group",
+      "settlement_window": "T+2",
+      "side": "SELL",
+      "quantity": 4000,
+      "value_zar": 8000000,
+      "securities_lending_gap": null
+    }
+  ],
+  "counterparty_profiles": {
+    "WL-001": {
+      "counterparty_id": "WL-001",
+      "name": "Quantum Trading Ltd",
+      "net_obligation_zar": 38000000,
+      "cis_status": "ACTIVE",
+      "lending_balance_pct": 100,
+      "last_failure_days_ago": null,
+      "jse_watchlist": true,
+      "credit_rating": "B",
+      "margin_call_history_90d": 3,
+      "integration_health": "HEALTHY",
+      "account_flags": ["WATCHLIST"],
+      "watchlist_reason": "FSCA investigation: suspected insider trading — active prosecution"
+    },
+    "WL-002": {
+      "counterparty_id": "WL-002",
+      "name": "Falcon Securities (Pty) Ltd",
+      "net_obligation_zar": 28000000,
+      "cis_status": "ACTIVE",
+      "lending_balance_pct": 100,
+      "last_failure_days_ago": null,
+      "jse_watchlist": true,
+      "credit_rating": "BB-",
+      "margin_call_history_90d": 2,
+      "integration_health": "HEALTHY",
+      "account_flags": ["WATCHLIST"],
+      "watchlist_reason": "Non-disclosure breach — regulatory fine imposed Q1 2026"
+    },
+    "WL-003": {
+      "counterparty_id": "WL-003",
+      "name": "Cascadia Fund Management",
+      "net_obligation_zar": 23000000,
+      "cis_status": "DEGRADED",
+      "lending_balance_pct": 78,
+      "last_failure_days_ago": null,
+      "jse_watchlist": false,
+      "credit_rating": "BBB-",
+      "margin_call_history_90d": 1,
+      "integration_health": "DEGRADED",
+      "account_flags": ["CIS_DEGRADED"]
+    },
+    "WL-004": {
+      "counterparty_id": "WL-004",
+      "name": "Topaz Clearing Ltd",
+      "net_obligation_zar": 14000000,
+      "cis_status": "ACTIVE",
+      "lending_balance_pct": 100,
+      "last_failure_days_ago": null,
+      "jse_watchlist": false,
+      "credit_rating": "A-",
+      "margin_call_history_90d": 0,
+      "integration_health": "HEALTHY",
+      "account_flags": []
+    },
+    "WL-005": {
+      "counterparty_id": "WL-005",
+      "name": "Sagebrush Asset Managers",
+      "net_obligation_zar": 10000000,
+      "cis_status": "ACTIVE",
+      "lending_balance_pct": 100,
+      "last_failure_days_ago": null,
+      "jse_watchlist": false,
+      "credit_rating": "A",
+      "margin_call_history_90d": 0,
+      "integration_health": "HEALTHY",
+      "account_flags": []
+    },
+    "WL-006": {
+      "counterparty_id": "WL-006",
+      "name": "Greenridge Brokers CC",
+      "net_obligation_zar": 8000000,
+      "cis_status": "ACTIVE",
+      "lending_balance_pct": 100,
+      "last_failure_days_ago": null,
+      "jse_watchlist": false,
+      "credit_rating": "BBB+",
+      "margin_call_history_90d": 0,
+      "integration_health": "HEALTHY",
+      "account_flags": []
+    }
+  },
+  "historical_failures": {
+    "WL-001": {"failure_count_90d": 0, "failure_dates": [], "avg_delay_days": 0},
+    "WL-002": {"failure_count_90d": 0, "failure_dates": [], "avg_delay_days": 0},
+    "WL-003": {"failure_count_90d": 0, "failure_dates": [], "avg_delay_days": 0},
+    "WL-004": {"failure_count_90d": 0, "failure_dates": [], "avg_delay_days": 0},
+    "WL-005": {"failure_count_90d": 0, "failure_dates": [], "avg_delay_days": 0},
+    "WL-006": {"failure_count_90d": 0, "failure_dates": [], "avg_delay_days": 0}
+  },
+  "jse_watchlist": {
+    "WL-001": {
+      "active": true,
+      "entries": [{
+        "entry_date": "2026-02-10",
+        "reason": "FSCA investigation: suspected insider trading — active prosecution",
+        "severity": "HIGH",
+        "review_date": "2026-08-10",
+        "ccp_risk_flag": true
+      }]
+    },
+    "WL-002": {
+      "active": true,
+      "entries": [{
+        "entry_date": "2026-03-01",
+        "reason": "Non-disclosure breach — regulatory fine imposed Q1 2026",
+        "severity": "MEDIUM",
+        "review_date": "2026-06-01",
+        "ccp_risk_flag": false
+      }]
+    }
+  },
+  "lending_depth": [],
+  "market_context": {
+    "jse_volatility_index_savi": 22.1,
+    "alsi_1day_move_pct": -0.9,
+    "security_moves": {
+      "ZAE000042811": {"name": "Naspers Ltd", "5day_move_pct": -2.3},
+      "ZAE000067211": {"name": "Sasol Ltd", "5day_move_pct": -1.8},
+      "ZAE000015889": {"name": "FirstRand Ltd", "5day_move_pct": 0.4},
+      "ZAE000028492": {"name": "MTN Group Ltd", "5day_move_pct": -0.5},
+      "ZAE000071080": {"name": "Anglo American Plc", "5day_move_pct": 0.8},
+      "ZAE000149478": {"name": "Standard Bank Group", "5day_move_pct": -0.2}
+    },
+    "repo_rate_sarb_pct": 8.25,
+    "active_jse_market_stress_flag": false,
+    "volatility_threshold": 25,
+    "elevated_volatility": false
+  }
+}

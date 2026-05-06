@@ -1,0 +1,180 @@
+{
+  "id": "tc17-lolr-cap",
+  "name": "LOLR ZAR 500M Cap Guard",
+  "description": "Two counterparties require LOLR execution. The first (ZAR 380M) proceeds normally; the second (ZAR 200M) would breach the per-cycle cap of ZAR 500M and triggers the lolr-guard-triggered SSE event. Tests the automatic execution guard and ensures partial execution with held items.",
+  "tags": ["lolr", "cap-breach", "partial-execute", "guard"],
+  "expected": {
+    "critical": 2,
+    "high": 1,
+    "medium": 1,
+    "low": 1,
+    "systemic_risk": false,
+    "interventions": ["LOLR_TRIGGER"],
+    "assertions": [
+      "TRD-5001 (ZAR 380M) LOLR executes successfully",
+      "TRD-5002 (ZAR 200M) triggers lolr-guard-triggered event (total would exceed 500M)",
+      "lolr-guard-triggered SSE event emitted",
+      "Partial execution: 1 confirmed, 1 held for human approval",
+      "Step 5 summary reports the 500M guard breach"
+    ]
+  },
+  "trades": [
+    {
+      "trade_id": "TRD-5001",
+      "counterparty_id": "CAP-001",
+      "isin": "ZAE000042811",
+      "instrument": "Naspers Ltd",
+      "settlement_window": "T+1",
+      "side": "SELL",
+      "quantity": 158000,
+      "value_zar": 380000000,
+      "securities_lending_gap": null
+    },
+    {
+      "trade_id": "TRD-5002",
+      "counterparty_id": "CAP-002",
+      "isin": "ZAE000149478",
+      "instrument": "Standard Bank Group",
+      "settlement_window": "T+1",
+      "side": "SELL",
+      "quantity": 96000,
+      "value_zar": 200000000,
+      "securities_lending_gap": 0.45
+    },
+    {
+      "trade_id": "TRD-5003",
+      "counterparty_id": "CAP-003",
+      "isin": "ZAE000015889",
+      "instrument": "FirstRand Ltd",
+      "settlement_window": "T+1",
+      "side": "BUY",
+      "quantity": 30000,
+      "value_zar": 55000000,
+      "securities_lending_gap": null
+    },
+    {
+      "trade_id": "TRD-5004",
+      "counterparty_id": "CAP-004",
+      "isin": "ZAE000071080",
+      "instrument": "Anglo American Plc",
+      "settlement_window": "T+2",
+      "side": "BUY",
+      "quantity": 12000,
+      "value_zar": 22000000,
+      "securities_lending_gap": null
+    },
+    {
+      "trade_id": "TRD-5005",
+      "counterparty_id": "CAP-005",
+      "isin": "ZAE000028492",
+      "instrument": "MTN Group Ltd",
+      "settlement_window": "T+2",
+      "side": "BUY",
+      "quantity": 7000,
+      "value_zar": 8000000,
+      "securities_lending_gap": null
+    }
+  ],
+  "counterparty_profiles": {
+    "CAP-001": {
+      "counterparty_id": "CAP-001",
+      "name": "Starlux Securities Ltd",
+      "net_obligation_zar": 380000000,
+      "cis_status": "ACTIVE",
+      "lending_balance_pct": 90,
+      "last_failure_days_ago": null,
+      "jse_watchlist": false,
+      "credit_rating": "BBB",
+      "margin_call_history_90d": 0,
+      "integration_health": "HEALTHY",
+      "account_flags": []
+    },
+    "CAP-002": {
+      "counterparty_id": "CAP-002",
+      "name": "Delta Prime Brokers",
+      "net_obligation_zar": 200000000,
+      "cis_status": "ACTIVE",
+      "lending_balance_pct": 55,
+      "last_failure_days_ago": 5,
+      "jse_watchlist": false,
+      "credit_rating": "BB",
+      "margin_call_history_90d": 2,
+      "integration_health": "HEALTHY",
+      "account_flags": ["RECENT_FAILURE"]
+    },
+    "CAP-003": {
+      "counterparty_id": "CAP-003",
+      "name": "Southgate Fund Managers",
+      "net_obligation_zar": 55000000,
+      "cis_status": "ACTIVE",
+      "lending_balance_pct": 85,
+      "last_failure_days_ago": null,
+      "jse_watchlist": false,
+      "credit_rating": "A",
+      "margin_call_history_90d": 0,
+      "integration_health": "HEALTHY",
+      "account_flags": []
+    },
+    "CAP-004": {
+      "counterparty_id": "CAP-004",
+      "name": "Beacon Asset Management",
+      "net_obligation_zar": 22000000,
+      "cis_status": "ACTIVE",
+      "lending_balance_pct": 92,
+      "last_failure_days_ago": null,
+      "jse_watchlist": false,
+      "credit_rating": "A+",
+      "margin_call_history_90d": 0,
+      "integration_health": "HEALTHY",
+      "account_flags": []
+    },
+    "CAP-005": {
+      "counterparty_id": "CAP-005",
+      "name": "Clearview Brokers CC",
+      "net_obligation_zar": 8000000,
+      "cis_status": "ACTIVE",
+      "lending_balance_pct": 100,
+      "last_failure_days_ago": null,
+      "jse_watchlist": false,
+      "credit_rating": "BBB+",
+      "margin_call_history_90d": 0,
+      "integration_health": "HEALTHY",
+      "account_flags": []
+    }
+  },
+  "historical_failures": {
+    "CAP-001": {"failure_count_90d": 0, "failure_dates": [], "avg_delay_days": 0},
+    "CAP-002": {"failure_count_90d": 1, "failure_dates": [], "avg_delay_days": 2},
+    "CAP-003": {"failure_count_90d": 0, "failure_dates": [], "avg_delay_days": 0},
+    "CAP-004": {"failure_count_90d": 0, "failure_dates": [], "avg_delay_days": 0},
+    "CAP-005": {"failure_count_90d": 0, "failure_dates": [], "avg_delay_days": 0}
+  },
+  "jse_watchlist": {},
+  "lending_depth": [
+    {
+      "counterparty_id": "CAP-002",
+      "isin": "ZAE000149478",
+      "name": "Standard Bank Group",
+      "available_inventory": 53000,
+      "current_borrows": 43000,
+      "required": 96000,
+      "net_available": 53000,
+      "shortfall_pct": 45.0
+    }
+  ],
+  "market_context": {
+    "jse_volatility_index_savi": 31.2,
+    "alsi_1day_move_pct": -3.1,
+    "security_moves": {
+      "ZAE000042811": {"name": "Naspers Ltd", "5day_move_pct": -8.5, "note": "Significant price stress"},
+      "ZAE000149478": {"name": "Standard Bank Group", "5day_move_pct": -4.2},
+      "ZAE000015889": {"name": "FirstRand Ltd", "5day_move_pct": -2.1},
+      "ZAE000071080": {"name": "Anglo American Plc", "5day_move_pct": 0.5},
+      "ZAE000028492": {"name": "MTN Group Ltd", "5day_move_pct": -1.0}
+    },
+    "repo_rate_sarb_pct": 8.25,
+    "active_jse_market_stress_flag": false,
+    "volatility_threshold": 25,
+    "elevated_volatility": true
+  }
+}
