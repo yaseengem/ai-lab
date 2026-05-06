@@ -220,6 +220,17 @@ def get_report(session_id: str):
     return report
 
 
+# ── Event log ─────────────────────────────────────────────────────────────────
+
+@router.get("/pipeline/{session_id}/events")
+def get_pipeline_events(session_id: str):
+    """Return the full SSE event log for a completed pipeline run."""
+    session = service.get_session(session_id)
+    if session is None:
+        raise HTTPException(status_code=404, detail="Session not found")
+    return {"events": service.get_event_log(session_id)}
+
+
 # ── Summary dashboard ─────────────────────────────────────────────────────────
 
 @router.get("/summary")

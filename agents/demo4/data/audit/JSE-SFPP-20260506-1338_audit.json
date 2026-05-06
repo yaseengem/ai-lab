@@ -1,0 +1,56 @@
+[
+  {
+    "timestamp": "2026-05-06T13:37:38.823200+00:00",
+    "agent_name": "Settlement Exposure Agent",
+    "action_taken": "SNAPSHOT_GENERATED",
+    "input_summary": "Retrieved 8 trades (4 T+1, 4 T+2) across 7 counterparties from ECS/CIS/TIS",
+    "output_summary": "Identified 1 CIS_UNAVAILABLE, 3 LARGE_EXPOSURE flags, total exposure ZAR 319.5M",
+    "rule_applied": "Large exposure threshold ZAR 50M",
+    "regulatory_basis": null
+  },
+  {
+    "timestamp": "2026-05-06T13:37:39.123456+00:00",
+    "agent_name": "Risk Scoring Agent",
+    "action_taken": "RISK_CLASSIFICATION_APPLIED",
+    "input_summary": "Analyzed 8 trades for settlement risk factors",
+    "output_summary": "Classified TRD-2007 as CRITICAL due to CIS_UNAVAILABLE + large exposure",
+    "rule_applied": "CRITICAL: CIS_UNAVAILABLE AND net_obligation >50M",
+    "regulatory_basis": null
+  },
+  {
+    "timestamp": "2026-05-06T13:37:39.234567+00:00",
+    "agent_name": "Counterparty Risk Agent",
+    "action_taken": "AGENT_SKIPPED",
+    "input_summary": "No HIGH/CRITICAL items requiring counterparty assessment",
+    "output_summary": "Agent execution bypassed - no qualifying risk items",
+    "rule_applied": "Skip condition: Only CRITICAL items trigger counterparty assessment",
+    "regulatory_basis": null
+  },
+  {
+    "timestamp": "2026-05-06T13:37:39.345678+00:00",
+    "agent_name": "Intervention Planning Agent",
+    "action_taken": "AGENT_SKIPPED",
+    "input_summary": "No actionable risk items for intervention planning",
+    "output_summary": "Agent execution bypassed - no intervention targets identified",
+    "rule_applied": "Skip condition: CIS_UNAVAILABLE items require manual escalation",
+    "regulatory_basis": null
+  },
+  {
+    "timestamp": "2026-05-06T13:37:39.456789+00:00",
+    "agent_name": "LOLR Execution Agent",
+    "action_taken": "AGENT_SKIPPED",
+    "input_summary": "No LOLR intervention plan available",
+    "output_summary": "Agent execution bypassed - no LOLR actions required",
+    "rule_applied": "Skip condition: No intervention plan provided",
+    "regulatory_basis": "SARB Guidelines on Market Making Support"
+  },
+  {
+    "timestamp": "2026-05-06T13:37:39.567890+00:00",
+    "agent_name": "Settlement Roll Agent",
+    "action_taken": "AGENT_SKIPPED",
+    "input_summary": "No settlement roll plan available",
+    "output_summary": "Agent execution bypassed - no roll actions required",
+    "rule_applied": "Skip condition: No roll intervention plan provided",
+    "regulatory_basis": "JSE Settlement Rules Section 12.4"
+  }
+]

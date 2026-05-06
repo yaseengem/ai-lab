@@ -1,8 +1,8 @@
 {
-  "run_id": "JSE-SFPP-20260506-1318",
+  "run_id": "JSE-SFPP-20260506-1338",
   "total_trades_monitored": 8,
-  "t1_trade_count": 4,
-  "t2_trade_count": 4,
+  "t1_trades_count": 4,
+  "t2_trades_count": 4,
   "risk_distribution": {
     "CRITICAL": 1,
     "HIGH": 0,
@@ -10,28 +10,34 @@
     "LOW": 7
   },
   "interventions_executed": {
-    "lolr_interventions": 0,
-    "roll_interventions": 0,
-    "success_rate": "N/A"
+    "lolr_actions": 0,
+    "settlement_rolls": 0,
+    "manual_escalations": 1
   },
   "human_escalations_required": {
     "count": 1,
     "trade_ids": [
       "TRD-2007"
     ],
-    "reason": "CIS_UNAVAILABLE for CP-007"
+    "reason": "CIS_UNAVAILABLE with large exposure ZAR 55M"
   },
-  "settlement_value_protected_zar": 0,
+  "estimated_settlement_value_protected_zar": 0,
   "total_exposure_monitored_zar": 319500000,
   "system_health": {
     "all_agents_executed": false,
-    "partial_execution_reason": "Dependency chain break after Risk Scoring Agent",
-    "data_gaps": [
-      "CIS_UNAVAILABLE for CP-007"
+    "agents_skipped": [
+      "Counterparty Risk Agent",
+      "Intervention Planning Agent",
+      "LOLR Execution Agent",
+      "Settlement Roll Agent"
     ],
-    "integration_status": "DEGRADED"
+    "data_gaps": [
+      "CIS integration unavailable for CP-007"
+    ],
+    "integration_status": "PARTIAL - CIS timeout for 1 counterparty"
   },
-  "trend_direction": "IMPROVING",
-  "systemic_stress_indicator": false,
-  "last_updated": "2026-05-06T13:18:29.475527+00:00"
+  "data_quality_issues": 6,
+  "critical_alerts_generated": 1,
+  "next_run_scheduled": "2026-05-07T06:00:00Z",
+  "last_updated": "2026-05-06T13:38:56.276332+00:00"
 }

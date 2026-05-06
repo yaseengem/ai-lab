@@ -158,7 +158,7 @@ async def run_pipeline(session_id: str, trigger_input: dict, service: PipelineSe
         flags = snapshot.get("data_quality_flags", [])
         summary1 = f"{t1_count + t2_count} trades ({t1_count} T+1, {t2_count} T+2), {len(flags)} quality flags"
         await emit({"type": "tool-result", "step": 1, "tool": "get_tis_open_trades",
-                    "preview": f"{t1_count + t2_count} trades loaded"})
+                    "preview": f"{t1_count + t2_count} trades loaded ({t1_count} T+1, {t2_count} T+2), {len(flags)} quality flags"})
         await step_complete(1, summary1, snapshot)
     except Exception as e:
         logger.error("[BRIDGE] step1_failed  session_id=%s error=%s", session_id, e)
@@ -209,6 +209,17 @@ async def run_pipeline(session_id: str, trigger_input: dict, service: PipelineSe
                     "rule_triggers": item.get("rule_triggers", []),
                 })
 
+            # Emit classification observations for CRITICAL items
+            await emit({"type": "tool-result", "step": 2, "tool": "get_historical_failure_rates",
+                        "preview": f"{counts['CRITICAL']} CRITICAL / {counts['HIGH']} HIGH / {counts['MEDIUM']} MEDIUM / {counts['LOW']} LOW"})
+            for item in [i for i in watchlist_data if i.get("risk_classification") == "CRITICAL"]:
+                rationale = (item.get("classification_rationale") or "")[:200]
+                triggers = item.get("rule_triggers", [])
+                obs = f"{item.get('trade_id')} ({item.get('counterparty_name', item.get('counterparty_id', ''))}): {rationale}"
+                if triggers:
+                    obs += f"  [{', '.join(triggers[:3])}]"
+                await emit({"type": "agent-observation", "step": 2, "text": obs})
+
             summary2 = (f"{counts['CRITICAL']} CRITICAL / {counts['HIGH']} HIGH / "
                         f"{counts['MEDIUM']} MEDIUM / {counts['LOW']} LOW")
             await step_complete(2, summary2, {"settlement_watchlist": watchlist_data, "counts": counts})
@@ -227,6 +238,10 @@ async def run_pipeline(session_id: str, trigger_input: dict, service: PipelineSe
         else:
             # ── Step 3: Counterparty Risk ──────────────────────────────────────
             await step_start(3)
+            await emit({"type": "tool-call", "step": 3, "tool": "get_cis_deep_profile", "status": "running"})
+            await emit({"type": "tool-call", "step": 3, "tool": "check_jse_watchlist", "status": "running"})
+            await emit({"type": "tool-call", "step": 3, "tool": "get_historical_settlement_record", "status": "running"})
+            await emit({"type": "tool-call", "step": 3, "tool": "get_securities_lending_depth", "status": "running"})
             try:
                 raw3 = await asyncio.to_thread(
                     _in_thread, session_id, counterparty_risk_agent,
@@ -252,6 +267,8 @@ async def run_pipeline(session_id: str, trigger_input: dict, service: PipelineSe
                         "recommended": brief.get("recommended_intervention_type", "ALERT"),
                     })
 
+                await emit({"type": "tool-result", "step": 3, "tool": "get_cis_deep_profile",
+                            "preview": f"{len(risk_assessment)} counterparties risk-assessed"})
                 flag_note = " [SYSTEMIC RISK FLAG]" if systemic_flag else ""
                 summary3 = f"{len(risk_assessment)} counterparties analysed{flag_note}"
                 await step_complete(3, summary3, parsed3)
@@ -264,6 +281,9 @@ async def run_pipeline(session_id: str, trigger_input: dict, service: PipelineSe
 
             # ── Step 4: Intervention Decision ──────────────────────────────────
             await step_start(4)
+            await emit({"type": "tool-call", "step": 4, "tool": "get_jse_rulebook_guidance", "status": "running"})
+            await emit({"type": "tool-call", "step": 4, "tool": "calculate_intervention_cost", "status": "running"})
+            await emit({"type": "tool-call", "step": 4, "tool": "check_lolr_capacity", "status": "running"})
             try:
                 risk_ctx_input = json.dumps({
                     "settlement_watchlist": watchlist_data,
@@ -290,6 +310,8 @@ async def run_pipeline(session_id: str, trigger_input: dict, service: PipelineSe
                         "rationale": item.get("intervention_rationale", ""),
                     })
 
+                await emit({"type": "tool-result", "step": 4, "tool": "get_jse_rulebook_guidance",
+                            "preview": f"{len(plan_items)} intervention decisions generated"})
                 by_type: dict[str, int] = {}
                 for item in plan_items:
                     t = item.get("intervention_type", "UNKNOWN")
@@ -374,6 +396,11 @@ async def run_pipeline(session_id: str, trigger_input: dict, service: PipelineSe
                             capped_items.append(item)
                             total_value += val
 
+                        await emit({"type": "agent-observation", "step": 5,
+                                    "text": f"ZAR committed: {total_value:,} / 500,000,000 — {len(capped_items)} items within cap"})
+                        await emit({"type": "tool-call", "step": 5, "tool": "construct_lolr_transaction", "status": "running"})
+                        await emit({"type": "tool-call", "step": 5, "tool": "validate_lolr_transaction", "status": "running"})
+                        await emit({"type": "tool-call", "step": 5, "tool": "submit_lolr_transaction", "status": "running"})
                         try:
                             raw5 = await asyncio.to_thread(_in_thread, session_id, lolr_execution_agent, json.dumps(capped_items))
                             ctx["step5_raw"] = str(raw5)
@@ -397,6 +424,9 @@ async def run_pipeline(session_id: str, trigger_input: dict, service: PipelineSe
                     await step_skip(6, "No SETTLEMENT_ROLL items in intervention plan")
                 else:
                     await step_start(6)
+                    await emit({"type": "tool-call", "step": 6, "tool": "get_strate_roll_eligibility", "status": "running"})
+                    await emit({"type": "tool-call", "step": 6, "tool": "submit_roll_to_tis", "status": "running"})
+                    await emit({"type": "tool-call", "step": 6, "tool": "notify_counterparty", "status": "running"})
                     try:
                         raw6 = await asyncio.to_thread(_in_thread, session_id, settlement_roll_agent, json.dumps(roll_items))
                         ctx["step6_raw"] = str(raw6)
@@ -413,6 +443,10 @@ async def run_pipeline(session_id: str, trigger_input: dict, service: PipelineSe
 
     # ── Step 7: Reporting & Audit (ALWAYS) ────────────────────────────────────
     await step_start(7)
+    await emit({"type": "tool-call", "step": 7, "tool": "compare_with_prior_cycle", "status": "running"})
+    await emit({"type": "tool-call", "step": 7, "tool": "write_audit_log", "status": "running"})
+    await emit({"type": "tool-call", "step": 7, "tool": "store_fsca_report", "status": "running"})
+    await emit({"type": "tool-call", "step": 7, "tool": "update_operations_dashboard", "status": "running"})
     try:
         pipeline_ctx_str = json.dumps({
             "settlement_exposure_snapshot": ctx.get("exposure_snapshot"),

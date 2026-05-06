@@ -41,6 +41,16 @@ def _load_scenarios() -> list[dict]:
     return scenarios
 
 
+@router.get("/scenarios/{scenario_id}/data")
+def get_scenario_data(scenario_id: str):
+    """Return the full test scenario JSON including trades, counterparties, and market context."""
+    scenarios = _load_scenarios()
+    scenario = next((s for s in scenarios if s["id"] == scenario_id), None)
+    if scenario is None:
+        raise HTTPException(status_code=404, detail=f"Scenario '{scenario_id}' not found")
+    return scenario
+
+
 @router.get("/scenarios")
 def list_scenarios():
     """List all available test scenarios with metadata and expected results."""
@@ -79,6 +89,9 @@ async def run_scenario(scenario_id: str):
 
     meta = _service.create_session(trigger_mode="test", upload_id=None)
     session_id = meta["session_id"]
+
+    # Store scenario identity on the session so it shows in history
+    _service.update_session(session_id, scenario_id=scenario_id, scenario_name=scenario["name"])
 
     # Register scenario data so mock tools pick it up via threading.local
     set_session_scenario(session_id, scenario)
