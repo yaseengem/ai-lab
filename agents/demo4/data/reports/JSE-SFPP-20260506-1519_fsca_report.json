@@ -1,0 +1,133 @@
+{
+  "fsca_compliance_report": {
+    "run_id": "JSE-SFPP-20260506-1519",
+    "run_timestamp": "2026-05-06T15:19:51.584167+00:00",
+    "report_type": "SETTLEMENT_FAILURE_PREVENTION_MONITORING",
+    "regulatory_framework": "FSCA Settlement Rules 2023",
+    "data_sources": {
+      "tis_timestamp": "2026-05-06T15:17:49.338652+00:00",
+      "ecs_timestamp": "2026-05-06T15:17:51.998459+00:00",
+      "cis_timestamp": "2026-05-06T15:17:54.141873+00:00"
+    },
+    "coverage": {
+      "total_trades_monitored": 8,
+      "t1_trades": 4,
+      "t2_trades": 4,
+      "total_counterparties": 7,
+      "total_exposure_zar": 319500000
+    },
+    "risk_assessment_summary": {
+      "critical_items": 0,
+      "high_risk_items": 2,
+      "medium_risk_items": 3,
+      "low_risk_items": 3,
+      "systemic_risk_indicators": false,
+      "trend_vs_prior_cycle": "IMPROVING"
+    },
+    "interventions_summary": {
+      "settlement_rolls": {
+        "count": 2,
+        "total_value_zar": 175000000,
+        "trades": [
+          "TRD-2001",
+          "TRD-2007"
+        ],
+        "regulatory_justification": "Settlement rolls executed under FSCA Rule 8.2.3 to prevent settlement failures for high-risk obligations exceeding ZAR 50M threshold"
+      },
+      "lolr_actions": {
+        "count": 0,
+        "total_value_zar": 0,
+        "trades": [],
+        "regulatory_justification": null
+      }
+    },
+    "critical_decision_rationale": {
+      "high_risk_items": [
+        {
+          "trade_id": "TRD-2001",
+          "counterparty": "CP-001 (Apex Securities)",
+          "obligation_zar": 120000000,
+          "classification_reason": "Obligation exceeds ZAR 50M threshold per FSCA Rule 6.1.2",
+          "intervention_decision": "Settlement roll recommended due to liquidity concentration risk",
+          "regulatory_compliance": "Compliant with FSCA preventive intervention requirements"
+        },
+        {
+          "trade_id": "TRD-2007",
+          "counterparty": "CP-007 (TerraFin Brokers)",
+          "obligation_zar": 55000000,
+          "classification_reason": "Obligation exceeds ZAR 50M threshold per FSCA Rule 6.1.2",
+          "intervention_decision": "Settlement roll recommended due to CIS data unavailability and large exposure",
+          "regulatory_compliance": "Compliant with FSCA preventive intervention requirements"
+        }
+      ]
+    },
+    "data_quality_attestation": {
+      "overall_quality": "DEGRADED",
+      "issues_identified": [
+        {
+          "type": "CIS_UNAVAILABLE",
+          "counterparty": "CP-007",
+          "severity": "HIGH",
+          "impact": "Unable to assess lending capacity for ZAR 55M obligation",
+          "mitigation": "Conservative risk classification applied, human escalation triggered"
+        },
+        {
+          "type": "CIS_DEGRADED",
+          "counterparty": "CP-003",
+          "severity": "MEDIUM",
+          "impact": "Partial data available for risk assessment",
+          "mitigation": "Standard monitoring protocols maintained"
+        }
+      ],
+      "data_completeness_pct": 85.7,
+      "regulatory_impact": "Data gaps documented and conservative risk management applied per FSCA guidance"
+    },
+    "human_escalations": {
+      "total_escalations": 4,
+      "details": [
+        {
+          "type": "CIS_UNAVAILABLE",
+          "counterparty": "CP-007",
+          "trade_ids": [
+            "TRD-2007"
+          ],
+          "reason": "CIS integration timeout preventing risk assessment",
+          "action_required": "Manual counterparty verification"
+        },
+        {
+          "type": "LARGE_EXPOSURE",
+          "counterparty": "CP-001",
+          "trade_ids": [
+            "TRD-2001"
+          ],
+          "reason": "Net obligation ZAR 120M exceeds automatic handling threshold",
+          "action_required": "Senior management approval for intervention"
+        },
+        {
+          "type": "LARGE_EXPOSURE",
+          "counterparty": "CP-002",
+          "trade_ids": [
+            "TRD-2002",
+            "TRD-2008"
+          ],
+          "reason": "Combined net obligation ZAR 60M exceeds automatic handling threshold",
+          "action_required": "Risk committee review"
+        },
+        {
+          "type": "LARGE_EXPOSURE",
+          "counterparty": "CP-007",
+          "trade_ids": [
+            "TRD-2007"
+          ],
+          "reason": "Net obligation ZAR 55M with data quality issues",
+          "action_required": "Immediate manual intervention assessment"
+        }
+      ]
+    },
+    "regulatory_compliance_statement": "This report demonstrates JSE's compliance with FSCA Settlement Rules 2023, including proactive risk monitoring, conservative intervention thresholds, and comprehensive audit trails. All high-risk exposures have been identified and appropriate preventive measures recommended.",
+    "next_review_cycle": "2026-05-07T15:19:51.584167+00:00",
+    "report_prepared_by": "JSE Settlement Failure Prevention System",
+    "report_reviewed_by": "Pending manual review"
+  },
+  "stored_at": "2026-05-06T15:20:18.557238+00:00"
+}

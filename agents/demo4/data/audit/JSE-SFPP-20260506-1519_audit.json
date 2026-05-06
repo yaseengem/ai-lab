@@ -1,0 +1,65 @@
+[
+  {
+    "timestamp": "2026-05-06T15:17:54.141873+00:00",
+    "agent_name": "Settlement Data Collection Agent",
+    "action_taken": "DATA_COLLECTION",
+    "input_summary": "Collected settlement data from TIS, ECS, and CIS systems",
+    "output_summary": "8 trades across 7 counterparties, total exposure ZAR 319.5M",
+    "rule_applied": "Standard data collection protocols",
+    "regulatory_basis": null
+  },
+  {
+    "timestamp": "2026-05-06T15:17:54.141873+00:00",
+    "agent_name": "Settlement Data Collection Agent",
+    "action_taken": "DATA_QUALITY_FLAG",
+    "input_summary": "CIS integration timeout for CP-007",
+    "output_summary": "Flagged CIS_UNAVAILABLE with HIGH severity",
+    "rule_applied": "Data quality monitoring rules",
+    "regulatory_basis": null
+  },
+  {
+    "timestamp": "2026-05-06T15:17:54.141873+00:00",
+    "agent_name": "Risk Scoring Agent",
+    "action_taken": "RISK_CLASSIFICATION",
+    "input_summary": "TRD-2001: ZAR 120M obligation, CP-001",
+    "output_summary": "Classified as HIGH risk due to LARGE_OBLIGATION",
+    "rule_applied": "R001: Obligations >ZAR 50M = HIGH risk",
+    "regulatory_basis": null
+  },
+  {
+    "timestamp": "2026-05-06T15:17:54.141873+00:00",
+    "agent_name": "Risk Scoring Agent",
+    "action_taken": "RISK_CLASSIFICATION",
+    "input_summary": "TRD-2007: ZAR 55M obligation, CP-007",
+    "output_summary": "Classified as HIGH risk due to LARGE_OBLIGATION",
+    "rule_applied": "R001: Obligations >ZAR 50M = HIGH risk",
+    "regulatory_basis": null
+  },
+  {
+    "timestamp": "2026-05-06T15:17:54.141873+00:00",
+    "agent_name": "Risk Scoring Agent",
+    "action_taken": "RISK_CLASSIFICATION",
+    "input_summary": "TRD-2002, TRD-2005, TRD-2003: Medium exposure trades",
+    "output_summary": "Classified as MEDIUM risk due to MODERATE_EXPOSURE",
+    "rule_applied": "R002: Obligations ZAR 20-50M = MEDIUM risk",
+    "regulatory_basis": null
+  },
+  {
+    "timestamp": "2026-05-06T15:17:54.141873+00:00",
+    "agent_name": "Counterparty Risk Assessment Agent",
+    "action_taken": "COUNTERPARTY_ANALYSIS",
+    "input_summary": "Analyzed CP-001 with ZAR 120M exposure",
+    "output_summary": "Identified LIQUIDITY root cause, strong fundamentals",
+    "rule_applied": "Counterparty assessment framework",
+    "regulatory_basis": null
+  },
+  {
+    "timestamp": "2026-05-06T15:17:54.141873+00:00",
+    "agent_name": "Intervention Planning Agent",
+    "action_taken": "INTERVENTION_DECISION",
+    "input_summary": "2 HIGH risk items with T+1 settlement",
+    "output_summary": "Recommended SETTLEMENT_ROLL for both items",
+    "rule_applied": "HIGH risk + STANDARD urgency = SETTLEMENT_ROLL",
+    "regulatory_basis": null
+  }
+]

@@ -1,0 +1,65 @@
+[
+  {
+    "timestamp": "2026-05-06T14:24:38.592744+00:00",
+    "agent_name": "Settlement Exposure Agent",
+    "action_taken": "SNAPSHOT_GENERATION",
+    "input_summary": "ECS positions for 7 counterparties, CIS profiles for 8 trades",
+    "output_summary": "8 trades monitored (4 T+1, 4 T+2), total value ZAR 319.5M",
+    "rule_applied": "Standard exposure aggregation",
+    "regulatory_basis": null
+  },
+  {
+    "timestamp": "2026-05-06T14:24:40.000000+00:00",
+    "agent_name": "Risk Scoring Agent",
+    "action_taken": "RISK_CLASSIFICATION",
+    "input_summary": "1 trade analyzed: TRD-2001",
+    "output_summary": "1 CRITICAL risk item identified - net obligation ZAR 120M",
+    "rule_applied": "CRITICAL: net_obligation > ZAR 100M",
+    "regulatory_basis": "JSE Rule 7.50 - Large Exposure Monitoring"
+  },
+  {
+    "timestamp": "2026-05-06T14:24:41.000000+00:00",
+    "agent_name": "Risk Scoring Agent",
+    "action_taken": "DATA_QUALITY_ESCALATION",
+    "input_summary": "CP-007 CIS integration failure detected",
+    "output_summary": "Human escalation required for TerraFin Brokers Ltd data unavailability",
+    "rule_applied": "CIS_UNAVAILABLE flag triggers escalation",
+    "regulatory_basis": "FSCA Directive - Operational Risk Management"
+  },
+  {
+    "timestamp": "2026-05-06T14:24:42.000000+00:00",
+    "agent_name": "Counterparty Risk Agent",
+    "action_taken": "AGENT_SKIPPED",
+    "input_summary": "No trades requiring detailed counterparty assessment",
+    "output_summary": "Agent execution bypassed - no qualifying criteria met",
+    "rule_applied": "Skip conditions: no HIGH/CRITICAL items with specific risk factors",
+    "regulatory_basis": null
+  },
+  {
+    "timestamp": "2026-05-06T14:24:43.000000+00:00",
+    "agent_name": "Intervention Planning Agent",
+    "action_taken": "AGENT_SKIPPED",
+    "input_summary": "No intervention-eligible trades identified",
+    "output_summary": "Agent execution bypassed - no actionable risk scenarios",
+    "rule_applied": "Skip conditions: no trades meeting intervention thresholds",
+    "regulatory_basis": null
+  },
+  {
+    "timestamp": "2026-05-06T14:24:44.000000+00:00",
+    "agent_name": "LOLR Execution Agent",
+    "action_taken": "AGENT_SKIPPED",
+    "input_summary": "No LOLR intervention plan provided",
+    "output_summary": "Agent execution bypassed - no LOLR actions scheduled",
+    "rule_applied": "Skip conditions: no intervention plan input",
+    "regulatory_basis": null
+  },
+  {
+    "timestamp": "2026-05-06T14:24:45.000000+00:00",
+    "agent_name": "Roll Execution Agent",
+    "action_taken": "AGENT_SKIPPED",
+    "input_summary": "No roll intervention plan provided",
+    "output_summary": "Agent execution bypassed - no roll actions scheduled",
+    "rule_applied": "Skip conditions: no intervention plan input",
+    "regulatory_basis": null
+  }
+]

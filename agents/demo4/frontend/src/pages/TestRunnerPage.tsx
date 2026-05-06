@@ -109,7 +109,7 @@ function buildLogEntries(event: Record<string, unknown>, ts: string): LogEntry[]
     const status = ((event.status as string) || '').toUpperCase()
     const icon = status === 'COMPLETE' ? '✓' : status === 'FAILED' ? '✗' : status === 'SKIPPED' ? '→' : '…'
     const color = status === 'COMPLETE' ? '#3fb950' : status === 'FAILED' ? '#f85149' : status === 'SKIPPED' ? '#6e7681' : '#58a6ff'
-    const extra = (event.output_summary as string) || (event.reason as string) || ''
+    const extra = (event.output_summary as string) || (event.reason as string) || (event.error as string) || ''
     push(0, color, `[${ts}] ${icon} Step ${event.step}: ${event.agent} — ${status}${extra ? `  ·  ${extra}` : ''}`)
 
   } else if (type === 'tool-call') {
@@ -180,7 +180,7 @@ function LogPane({
 }: {
   entries: LogEntry[]
   running?: boolean
-  logRef?: React.RefObject<HTMLDivElement | null>
+  logRef?: React.RefObject<HTMLDivElement>
 }) {
   return (
     <div
@@ -214,7 +214,11 @@ function LogPane({
 
 export function TestRunnerPage() {
   const navigate = useNavigate()
-  const { reset, handleEvent } = useRun()
+  const { reset, handleEvent, setSessionId, setRunning, sessionId: ctxSessionId, done: ctxDone } = useRun()
+
+  // Always call the latest handleEvent even if the EventSource closure is stale
+  const handleEventRef = useRef(handleEvent)
+  useEffect(() => { handleEventRef.current = handleEvent }, [handleEvent])
 
   const [scenarios, setScenarios] = useState<Scenario[]>([])
   const [loading, setLoading] = useState(true)
@@ -255,6 +259,46 @@ export function TestRunnerPage() {
       .catch(() => {})
   }, [activeRun?.done])
 
+  // Restore live output after page refresh — RunContext already replayed events into
+  // global state; here we rebuild the local log view and activeRun from the same data.
+  useEffect(() => {
+    if (!ctxSessionId || activeRun) return
+    const restore = async () => {
+      try {
+        const [sessRes, evRes] = await Promise.all([
+          fetch(`${API}/sessions`),
+          fetch(`${API}/pipeline/${ctxSessionId}/events`),
+        ])
+        const sessions: PastRun[] = await sessRes.json()
+        const evData = await evRes.json()
+        const events: Record<string, unknown>[] = evData.events || []
+        if (!events.length) return
+
+        const match = sessions.find(s => s.session_id === ctxSessionId)
+        const ts = new Date().toISOString().slice(11, 19)
+        const restored: LogEntry[] = [
+          { id: nextId(), ts, type: 'meta', line: `[RESTORED] ${ctxSessionId}`, color: '#58a6ff', indent: 0 },
+        ]
+        for (const ev of events) {
+          const evTs = ((ev._ts as string) || '').slice(11, 19) || '--:--:--'
+          restored.push(...buildLogEntries(ev, evTs))
+        }
+
+        setLiveLog(restored)
+        setActiveRun({
+          sessionId: ctxSessionId,
+          scenarioId: match?.scenario_id || '',
+          scenarioName: match?.scenario_name || ctxSessionId,
+          expected: {},
+          started: match?.created_at ? new Date(match.created_at).getTime() : Date.now(),
+          done: ctxDone,
+          donePayload: ctxDone ? { execution_status: match?.execution_status ?? undefined } : undefined,
+        })
+      } catch { /* ignore */ }
+    }
+    restore()
+  }, [ctxSessionId]) // eslint-disable-line react-hooks/exhaustive-deps
+
   const runScenario = async (scenario: Scenario) => {
     if (esRef.current) { esRef.current.close(); esRef.current = null }
     reset()
@@ -266,6 +310,9 @@ export function TestRunnerPage() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const data = await res.json()
 
+      setSessionId(data.session_id)
+      setRunning(true)
+      localStorage.setItem('nexus-sfp-session', data.session_id)
       setActiveRun({
         sessionId: data.session_id,
         scenarioId: scenario.id,
@@ -286,7 +333,7 @@ export function TestRunnerPage() {
       es.onmessage = (ev) => {
         try {
           const event = JSON.parse(ev.data)
-          handleEvent(event)
+          handleEventRef.current(event)
           const evTs = new Date().toISOString().slice(11, 19)
           const entries = buildLogEntries(event, evTs)
           if (entries.length > 0) setLiveLog(p => [...p, ...entries])
@@ -536,7 +583,7 @@ export function TestRunnerPage() {
                                   ['ALSI 1d', `${(fullData.market_context as Record<string, unknown>).alsi_1day_move_pct}%`],
                                   ['Repo', `${(fullData.market_context as Record<string, unknown>).repo_rate_sarb_pct}%`],
                                 ].map(([k, v]) => (
-                                  <span key={k as string}>{k}: <span style={{ color: '#c9d1d9' }}>{v as string}</span></span>
+                                  <span key={k as string}>{String(k)}: <span style={{ color: '#c9d1d9' }}>{String(v)}</span></span>
                                 ))}
                                 <span>Stress: <span style={{
                                   color: (fullData.market_context as Record<string, unknown>).active_jse_market_stress_flag ? '#f85149' : '#3fb950',

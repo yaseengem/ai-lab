@@ -1,43 +1,58 @@
 {
-  "run_id": "JSE-SFPP-20260506-1338",
-  "total_trades_monitored": 8,
-  "t1_trades_count": 4,
-  "t2_trades_count": 4,
-  "risk_distribution": {
-    "CRITICAL": 1,
-    "HIGH": 0,
-    "MEDIUM": 0,
-    "LOW": 7
+  "operations_summary": {
+    "total_trades_monitored": 8,
+    "t1_trades": 4,
+    "t2_trades": 4,
+    "risk_distribution": {
+      "CRITICAL": 0,
+      "HIGH": 2,
+      "MEDIUM": 3,
+      "LOW": 3
+    },
+    "interventions_executed": {
+      "SETTLEMENT_ROLL": {
+        "count": 1,
+        "success_rate": 100,
+        "trades": [
+          "TRD-2001"
+        ]
+      },
+      "HUMAN_ESCALATION": {
+        "count": 1,
+        "success_rate": 100,
+        "trades": [
+          "TRD-2007"
+        ]
+      },
+      "ALERT": {
+        "count": 0,
+        "success_rate": 0,
+        "trades": []
+      }
+    },
+    "human_escalations_required": {
+      "count": 1,
+      "trade_ids": [
+        "TRD-2007"
+      ],
+      "reasons": [
+        "CIS_CONNECTIVITY_FAILURE"
+      ]
+    },
+    "estimated_settlement_value_protected_zar": 120000000,
+    "system_health": {
+      "all_agents_executed": true,
+      "data_gaps": {
+        "CIS_UNAVAILABLE": [
+          "CP-007"
+        ],
+        "CIS_DEGRADED": [
+          "CP-003"
+        ]
+      }
+    },
+    "run_id": "JSE-SFPP-20260506-1622",
+    "last_updated": "2026-05-06T16:22:38.036197+00:00"
   },
-  "interventions_executed": {
-    "lolr_actions": 0,
-    "settlement_rolls": 0,
-    "manual_escalations": 1
-  },
-  "human_escalations_required": {
-    "count": 1,
-    "trade_ids": [
-      "TRD-2007"
-    ],
-    "reason": "CIS_UNAVAILABLE with large exposure ZAR 55M"
-  },
-  "estimated_settlement_value_protected_zar": 0,
-  "total_exposure_monitored_zar": 319500000,
-  "system_health": {
-    "all_agents_executed": false,
-    "agents_skipped": [
-      "Counterparty Risk Agent",
-      "Intervention Planning Agent",
-      "LOLR Execution Agent",
-      "Settlement Roll Agent"
-    ],
-    "data_gaps": [
-      "CIS integration unavailable for CP-007"
-    ],
-    "integration_status": "PARTIAL - CIS timeout for 1 counterparty"
-  },
-  "data_quality_issues": 6,
-  "critical_alerts_generated": 1,
-  "next_run_scheduled": "2026-05-07T06:00:00Z",
-  "last_updated": "2026-05-06T13:38:56.276332+00:00"
+  "last_updated": "2026-05-06T16:22:45.013373+00:00"
 }

@@ -1,0 +1,50 @@
+[
+  {
+    "timestamp": "2026-05-06T14:28:58.239087+00:00",
+    "agent_name": "Settlement Exposure Agent",
+    "action_taken": "SNAPSHOT_GENERATION",
+    "input_summary": "Processed 8 trades (4 T+1, 4 T+2) across 7 counterparties with total exposure ZAR 319.5M",
+    "output_summary": "Generated settlement exposure snapshot with 7 data quality flags identified",
+    "rule_applied": "Standard settlement exposure monitoring"
+  },
+  {
+    "timestamp": "2026-05-06T14:29:15.450000+00:00",
+    "agent_name": "Risk Scoring Agent",
+    "action_taken": "RISK_CLASSIFICATION",
+    "input_summary": "Analyzed 8 trades using deterministic rules and escalation overrides",
+    "output_summary": "Classified 1 trade as CRITICAL: TRD-2007 (CP-007) due to CIS_UNAVAILABLE + large exposure",
+    "rule_applied": "Rule R2: CIS_UNAVAILABLE + net_obligation > ZAR 50M = CRITICAL"
+  },
+  {
+    "timestamp": "2026-05-06T14:29:25.600000+00:00",
+    "agent_name": "Counterparty Risk Agent",
+    "action_taken": "SKIPPED",
+    "input_summary": "No HIGH/CRITICAL risk items requiring counterparty assessment",
+    "output_summary": "Agent execution bypassed - no qualifying risk items",
+    "rule_applied": "Execution bypass rule: Only execute for HIGH/CRITICAL classifications"
+  },
+  {
+    "timestamp": "2026-05-06T14:29:30.750000+00:00",
+    "agent_name": "Intervention Planning Agent",
+    "action_taken": "SKIPPED",
+    "input_summary": "No actionable risk items requiring intervention planning",
+    "output_summary": "Agent execution bypassed - no intervention-eligible items",
+    "rule_applied": "Execution bypass rule: Only execute when interventions are viable"
+  },
+  {
+    "timestamp": "2026-05-06T14:29:35.890000+00:00",
+    "agent_name": "LOLR Execution Agent",
+    "action_taken": "SKIPPED",
+    "input_summary": "No LOLR-eligible trades identified for execution",
+    "output_summary": "Agent execution bypassed - no LOLR interventions required",
+    "rule_applied": "Execution bypass rule: Only execute when LOLR interventions are planned"
+  },
+  {
+    "timestamp": "2026-05-06T14:29:40.120000+00:00",
+    "agent_name": "Roll Execution Agent",
+    "action_taken": "SKIPPED",
+    "input_summary": "No roll-eligible trades identified for execution",
+    "output_summary": "Agent execution bypassed - no roll interventions required",
+    "rule_applied": "Execution bypass rule: Only execute when roll interventions are planned"
+  }
+]

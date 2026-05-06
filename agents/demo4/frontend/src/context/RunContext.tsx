@@ -1,10 +1,12 @@
-import { createContext, useContext, useState, useCallback, useRef } from 'react'
+import { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { API } from '../config'
 import type {
   StepStatus, StepState, RiskItem, CounterpartyBrief, InterventionItem,
   LolrItem, RollItem, ApprovalItem, ApprovalDecision, SseEvent, Alert,
 } from '../types'
+
+const SESSION_STORAGE_KEY = 'nexus-sfp-session'
 
 const STEP_LABELS: Record<number, string> = {
   1: 'Data Ingestion', 2: 'Risk Scoring', 3: 'Counterparty Risk',
@@ -74,6 +76,189 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
     sessionIdRef.current = id
   }
 
+  // On mount: restore the last completed session from localStorage so monitoring
+  // pages have data even after a page refresh.
+  useEffect(() => {
+    const stored = localStorage.getItem(SESSION_STORAGE_KEY)
+    if (!stored) return
+    fetch(`${API}/pipeline/${stored}/events`)
+      .then(r => r.json())
+      .then(data => {
+        const events: SseEvent[] = data.events || []
+        if (!events.length) return
+
+        setSessionIdState(stored)
+        sessionIdRef.current = stored
+
+        const newSteps = initSteps()
+        const newRiskItems: RiskItem[] = []
+        const newCounterpartyBriefs: CounterpartyBrief[] = []
+        const newInterventionItems: InterventionItem[] = []
+        const newLolrItems: LolrItem[] = []
+        let newLolrTotalZar = 0
+        const newRollItems: RollItem[] = []
+        const newPendingApprovals: ApprovalItem[] = []
+        const newApprovalHistory: ApprovalDecision[] = []
+        let newSystemicRisk = false
+        const newDataQualityFlags: string[] = []
+        let newDoneSummary: Record<string, unknown> | null = null
+        let isDone = false
+
+        for (const ev of events) {
+          switch (ev.type) {
+            case 'pipeline-step': {
+              const idx = newSteps.findIndex(s => s.step === (ev.step as number))
+              if (idx >= 0) newSteps[idx] = {
+                ...newSteps[idx],
+                status: ev.status as StepStatus,
+                outputSummary: (ev.output_summary as string) || newSteps[idx].outputSummary,
+              }
+              break
+            }
+            case 'risk-item':
+              newRiskItems.push(ev as unknown as RiskItem)
+              break
+            case 'counterparty-brief':
+              newCounterpartyBriefs.push({
+                counterparty_id: ev.counterparty_id as string,
+                counterparty_name: ev.counterparty_name as string | undefined,
+                root_cause: ev.root_cause as string,
+                urgency: ev.urgency as string,
+                severity_assessment: ev.severity_assessment as string | undefined,
+                securities_at_risk: ev.securities_at_risk as Array<{ isin: string; shortfall_qty: number }> | undefined,
+                recommended_intervention: (ev.recommended_intervention || ev.recommended) as string | undefined,
+                cis_status: ev.cis_status as string | undefined,
+                lending_balance_pct: ev.lending_balance_pct as number | undefined,
+                last_failure_date: ev.last_failure_date as string | undefined,
+                watchlist_status: ev.watchlist_status as boolean | undefined,
+              })
+              break
+            case 'intervention-item': {
+              const item: InterventionItem = {
+                trade_id: ev.trade_id as string,
+                counterparty_id: ev.counterparty_id as string,
+                counterparty_name: ev.counterparty_name as string | undefined,
+                intervention_type: ev.intervention_type as InterventionItem['intervention_type'],
+                rationale: ev.rationale as string | undefined,
+                estimated_cost_zar: ev.estimated_cost_zar as number | undefined,
+                execution_priority: ev.execution_priority as number | undefined,
+                requires_human_approval: ev.requires_human_approval as boolean | undefined,
+              }
+              newInterventionItems.push(item)
+              if (item.intervention_type === 'LOLR_TRIGGER' && !newLolrItems.some(l => l.item_id === item.trade_id)) {
+                newLolrItems.push({
+                  item_id: item.trade_id, trade_id: item.trade_id,
+                  counterparty_id: item.counterparty_id,
+                  isin: ev.isin as string || '—',
+                  value_zar: item.estimated_cost_zar || 0,
+                  status: item.requires_human_approval ? 'Awaiting Approval' : 'Pending',
+                  timestamp: new Date().toISOString(),
+                })
+              }
+              if (item.intervention_type === 'SETTLEMENT_ROLL' && !newRollItems.some(r => r.trade_id === item.trade_id)) {
+                newRollItems.push({
+                  trade_id: item.trade_id, counterparty_id: item.counterparty_id,
+                  status: 'Submitted', timestamp: new Date().toISOString(),
+                })
+              }
+              break
+            }
+            case 'lolr-execution': {
+              const lolr: LolrItem = {
+                item_id: ev.transaction_id as string || ev.trade_id as string,
+                trade_id: ev.trade_id as string,
+                counterparty_id: ev.counterparty_id as string,
+                isin: ev.security_id as string || ev.isin as string || '—',
+                direction: ev.direction as 'LEND' | 'BORROW' | undefined,
+                value_zar: ev.estimated_cost_zar as number || 0,
+                status: ev.status as LolrItem['status'] || 'Pending',
+                confirmation_id: ev.confirmation_id as string | undefined,
+                timestamp: ev.execution_timestamp as string || new Date().toISOString(),
+                regulatory_basis: ev.regulatory_basis as string | undefined,
+              }
+              const idx = newLolrItems.findIndex(l => l.item_id === lolr.item_id)
+              if (idx >= 0) newLolrItems[idx] = lolr
+              else newLolrItems.push(lolr)
+              if (lolr.status === 'Confirmed') newLolrTotalZar += lolr.value_zar
+              break
+            }
+            case 'roll-execution': {
+              const roll: RollItem = {
+                trade_id: ev.trade_id as string,
+                counterparty_id: ev.counterparty_id as string,
+                original_settlement_date: ev.original_settlement_date as string | undefined,
+                new_settlement_date: ev.new_settlement_date as string | undefined,
+                reason_code: ev.reason_code as string | undefined,
+                strate_confirmation_ref: ev.strate_confirmation_ref as string | undefined,
+                counterparty_notified: ev.counterparty_notified as boolean | undefined,
+                status: ev.status as RollItem['status'] || 'Submitted',
+                timestamp: ev.timestamp as string || new Date().toISOString(),
+              }
+              const idx = newRollItems.findIndex(r => r.trade_id === roll.trade_id)
+              if (idx >= 0) newRollItems[idx] = roll
+              else newRollItems.push(roll)
+              break
+            }
+            case 'human-approval-required':
+              if (!newPendingApprovals.some(a => a.item_id === (ev.item_id as string))) {
+                newPendingApprovals.push({
+                  item_id: ev.item_id as string, trade_id: ev.trade_id as string,
+                  counterparty_id: ev.counterparty_id as string,
+                  isin: ev.isin as string, value_zar: ev.value_zar as number,
+                  rationale: ev.rationale as string, timestamp: Date.now(),
+                })
+              }
+              break
+            case 'approval-decision': {
+              const itemId = ev.item_id as string
+              const decision = ev.decision as 'approved' | 'rejected'
+              const pIdx = newPendingApprovals.findIndex(a => a.item_id === itemId)
+              if (pIdx >= 0) newPendingApprovals.splice(pIdx, 1)
+              newApprovalHistory.push({
+                item_id: itemId, trade_id: ev.trade_id as string || itemId,
+                decision, approver_id: ev.approver_id as string || 'ops-user', timestamp: Date.now(),
+              })
+              if (decision === 'approved') {
+                const lIdx = newLolrItems.findIndex(l => l.item_id === itemId)
+                if (lIdx >= 0) {
+                  newLolrTotalZar += newLolrItems[lIdx].value_zar
+                  newLolrItems[lIdx] = { ...newLolrItems[lIdx], status: 'Confirmed' }
+                }
+              }
+              break
+            }
+            case 'systemic-risk-alert':
+              newSystemicRisk = true
+              break
+            case 'data-quality-flag': {
+              const flag = ev.flag as string || String(ev.message || '')
+              if (flag && !newDataQualityFlags.includes(flag)) newDataQualityFlags.push(flag)
+              break
+            }
+            case 'done':
+              isDone = true
+              newDoneSummary = ev.summary as Record<string, unknown>
+              break
+          }
+        }
+
+        setSteps(newSteps)
+        setRiskItems(newRiskItems)
+        setCounterpartyBriefs(newCounterpartyBriefs)
+        setInterventionItems(newInterventionItems)
+        setLolrItems(newLolrItems)
+        setLolrTotalZar(newLolrTotalZar)
+        setRollItems(newRollItems)
+        setPendingApprovals(newPendingApprovals)
+        setApprovalHistory(newApprovalHistory)
+        setSystemicRisk(newSystemicRisk)
+        setDataQualityFlags(newDataQualityFlags)
+        setEventLog(events)
+        if (isDone) { setDone(true); setDoneSummary(newDoneSummary) }
+      })
+      .catch(() => {})
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   const reset = () => {
     setSessionIdState(null)
     sessionIdRef.current = null
@@ -134,7 +319,7 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
           urgency: ev.urgency as string,
           severity_assessment: ev.severity_assessment as string | undefined,
           securities_at_risk: ev.securities_at_risk as Array<{ isin: string; shortfall_qty: number }> | undefined,
-          recommended_intervention: ev.recommended_intervention as string | undefined,
+          recommended_intervention: (ev.recommended_intervention || ev.recommended) as string | undefined,
           cis_status: ev.cis_status as string | undefined,
           lending_balance_pct: ev.lending_balance_pct as number | undefined,
           last_failure_date: ev.last_failure_date as string | undefined,

@@ -1,0 +1,126 @@
+{
+  "run_id": "JSE-SFPP-20260506-1429",
+  "run_timestamp": "2026-05-06T14:28:58.239087+00:00",
+  "report_generated_at": "2026-05-06T14:30:20.000000+00:00",
+  "regulatory_framework": "FSCA Settlement Rules",
+  "data_sources": {
+    "ecs_system": {
+      "status": "OPERATIONAL",
+      "last_update": "2026-05-06T14:28:55.803108+00:00",
+      "coverage": "8 trades, 7 counterparties"
+    },
+    "cis_system": {
+      "status": "DEGRADED",
+      "last_update": "2026-05-06T14:28:58.239087+00:00",
+      "coverage": "6 of 7 counterparties (CP-007 unavailable)"
+    },
+    "tis_system": {
+      "status": "OPERATIONAL",
+      "coverage": "8 trades processed"
+    }
+  },
+  "coverage_summary": {
+    "total_trades_monitored": 8,
+    "t1_settlements": 4,
+    "t2_settlements": 4,
+    "total_value_monitored_zar": 319500000,
+    "counterparties_covered": 7
+  },
+  "risk_assessment_summary": {
+    "methodology": "Deterministic rule-based classification with escalation overrides",
+    "critical_items": 1,
+    "high_items": 0,
+    "medium_items": 0,
+    "low_items": 0,
+    "critical_item_details": [
+      {
+        "trade_id": "TRD-2007",
+        "counterparty_id": "CP-007",
+        "counterparty_name": "TerraFin Brokers Ltd",
+        "exposure_zar": 55000000,
+        "risk_factors": [
+          "CIS_UNAVAILABLE",
+          "LARGE_EXPOSURE"
+        ],
+        "regulatory_basis": "FSCA Settlement Rule 5.2.1 - Data availability requirements for large exposures"
+      }
+    ]
+  },
+  "interventions_summary": {
+    "lolr_interventions": {
+      "executed": 0,
+      "planned": 0,
+      "total_value_zar": 0,
+      "regulatory_basis": null
+    },
+    "roll_interventions": {
+      "executed": 0,
+      "planned": 0,
+      "total_value_zar": 0
+    },
+    "human_escalations": {
+      "required": 2,
+      "trade_ids": [
+        "TRD-2007"
+      ],
+      "escalation_reasons": [
+        "CIS data unavailable for large exposure counterparty"
+      ]
+    }
+  },
+  "agent_decision_rationale": {
+    "critical_items": [
+      {
+        "trade_id": "TRD-2007",
+        "decision": "CRITICAL classification assigned",
+        "rationale": "CIS data unavailable (CP-007) combined with large exposure (ZAR 55M > ZAR 50M threshold) triggers deterministic Rule R2. Unable to assess counterparty settlement capacity without CIS data.",
+        "regulatory_requirement": "FSCA Settlement Rule 5.2.1 requires real-time counterparty data availability for exposures exceeding ZAR 50M",
+        "human_intervention_required": true,
+        "recommended_action": "Immediate contact with CP-007 to resolve CIS connectivity and manual verification of settlement capacity"
+      }
+    ]
+  },
+  "data_quality_attestation": {
+    "overall_quality": "DEGRADED",
+    "critical_gaps": [
+      {
+        "gap_type": "CIS_UNAVAILABLE",
+        "counterparty_id": "CP-007",
+        "counterparty_name": "TerraFin Brokers Ltd",
+        "impact": "Unable to assess lending balance and settlement capacity for ZAR 55M exposure",
+        "severity": "HIGH",
+        "escalation_required": true
+      }
+    ],
+    "data_freshness": {
+      "ecs_data": "2026-05-06T14:28:55.803108+00:00",
+      "cis_data": "2026-05-06T14:28:58.239087+00:00",
+      "all_data_within_sla": false
+    },
+    "completeness_metrics": {
+      "ecs_coverage": "100%",
+      "cis_coverage": "85.7%",
+      "overall_coverage": "92.9%"
+    }
+  },
+  "system_performance": {
+    "agents_executed": 2,
+    "agents_skipped": 4,
+    "total_processing_time_seconds": 42,
+    "pipeline_completion_status": "PARTIAL"
+  },
+  "regulatory_compliance_summary": {
+    "settlement_monitoring_requirement": "COMPLIANT - All T+1 and T+2 trades monitored within regulatory timeframes",
+    "risk_assessment_requirement": "COMPLIANT - Deterministic risk classification applied to all trades",
+    "data_quality_requirement": "NON_COMPLIANT - CIS data unavailable for 1 counterparty with large exposure",
+    "escalation_requirement": "COMPLIANT - Human escalation triggered for data quality issue",
+    "audit_trail_requirement": "COMPLIANT - Complete audit trail generated and stored"
+  },
+  "next_actions": [
+    "Resolve CIS connectivity issue with CP-007 (TerraFin Brokers Ltd)",
+    "Manual verification of CP-007 settlement capacity for TRD-2007",
+    "Monitor trend direction in next pipeline cycle",
+    "Review CIS system resilience for large exposure counterparties"
+  ],
+  "stored_at": "2026-05-06T14:30:41.920672+00:00"
+}

@@ -1,0 +1,47 @@
+[
+  {
+    "timestamp": "2026-05-06T16:20:30.692927+00:00",
+    "agent_name": "Settlement Exposure Agent",
+    "action_taken": "SNAPSHOT_GENERATION",
+    "input_summary": "Generated settlement exposure snapshot from ECS/CIS/TIS integrations covering 8 trades (4 T+1, 4 T+2) across 7 counterparties with total exposure ZAR 319.5M",
+    "output_summary": "Identified 5 data quality flags including CIS_UNAVAILABLE for CP-007, 3 large exposures (CP-001: 120M, CP-002: 60M, CP-007: 55M), CIS degraded for CP-003",
+    "rule_applied": "LARGE_EXPOSURE_THRESHOLD_50M",
+    "regulatory_basis": null
+  },
+  {
+    "timestamp": "2026-05-06T16:21:15.123456+00:00",
+    "agent_name": "Risk Scoring Agent",
+    "action_taken": "RISK_CLASSIFICATION",
+    "input_summary": "Processed 8 trades for risk scoring using obligation thresholds and counterparty profiles",
+    "output_summary": "Classified 2 HIGH risk (TRD-2001: 120M, TRD-2007: 55M), 3 MEDIUM risk (TRD-2002: 48M, TRD-2005: 35M, TRD-2003: 22M), 3 LOW risk trades",
+    "rule_applied": "LARGE_OBLIGATION_THRESHOLD_50M, MODERATE_EXPOSURE_THRESHOLD_15M",
+    "regulatory_basis": null
+  },
+  {
+    "timestamp": "2026-05-06T16:21:45.789012+00:00",
+    "agent_name": "Counterparty Risk Assessment Agent",
+    "action_taken": "DETAILED_ANALYSIS",
+    "input_summary": "Analyzed HIGH risk counterparties CP-001 and CP-007 for root cause and intervention recommendations",
+    "output_summary": "CP-001: LIQUIDITY category, STANDARD urgency, ALERT recommended. CP-007: CIS_CONNECTIVITY category, IMMEDIATE urgency, HUMAN_ESCALATION recommended due to CIS unavailability",
+    "rule_applied": "CIS_UNAVAILABLE_ESCALATION_RULE",
+    "regulatory_basis": null
+  },
+  {
+    "timestamp": "2026-05-06T16:22:00.345678+00:00",
+    "agent_name": "Intervention Orchestrator",
+    "action_taken": "INTERVENTION_PLANNING",
+    "input_summary": "Processed intervention recommendations for CP-001 (ALERT) and CP-007 (HUMAN_ESCALATION)",
+    "output_summary": "Planned SETTLEMENT_ROLL for TRD-2001 due to LOLR capacity insufficient. Flagged TRD-2007 for human escalation due to CIS connectivity issues",
+    "rule_applied": "LOLR_CAPACITY_CHECK, CIS_UNAVAILABLE_ESCALATION",
+    "regulatory_basis": null
+  },
+  {
+    "timestamp": "2026-05-06T16:22:25.344085+00:00",
+    "agent_name": "Reporting & Audit Agent",
+    "action_taken": "TREND_COMPARISON",
+    "input_summary": "Compared current watchlist with prior pipeline cycle",
+    "output_summary": "STABLE trend direction, no critical count increase, systemic_stress_indicator=false",
+    "rule_applied": "SYSTEMIC_STRESS_THRESHOLD_50PCT_INCREASE",
+    "regulatory_basis": null
+  }
+]

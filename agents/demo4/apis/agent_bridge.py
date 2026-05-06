@@ -180,7 +180,54 @@ async def run_pipeline(session_id: str, trigger_input: dict, service: PipelineSe
             raw2 = await asyncio.to_thread(_in_thread, session_id, risk_scoring_agent, json.dumps(snapshot))
             ctx["step2_raw"] = str(raw2)
             parsed2 = _safe_json(str(raw2), "settlement_watchlist")
-            watchlist_data = parsed2.get("settlement_watchlist", parsed2 if isinstance(parsed2, list) else [])
+            raw_watchlist = parsed2.get("settlement_watchlist", parsed2 if isinstance(parsed2, list) else [])
+            # Ensure it's actually a list of dicts, not a string/other type
+            watchlist_data = [i for i in raw_watchlist if isinstance(i, dict)] if isinstance(raw_watchlist, list) else []
+
+            # Deterministic fallback: if LLM returned nothing, classify from input trades directly
+            if not watchlist_data:
+                logger.warning("[BRIDGE] step2_empty_watchlist  session_id=%s — applying deterministic fallback", session_id)
+                trades_all = snapshot.get("t1_trades", []) + snapshot.get("t2_trades", [])
+                cp_profiles = snapshot.get("counterparty_profiles", {})
+                for t in trades_all:
+                    cp_id = t.get("counterparty_id", "")
+                    cp = cp_profiles.get(cp_id, {}) if isinstance(cp_profiles, dict) else {}
+                    obligation = t.get("value_zar", 0) or 0
+                    cis = cp.get("cis_status", "ACTIVE")
+                    watchlisted = cp.get("jse_watchlist", False)
+                    lending_pct = cp.get("lending_balance_pct")
+                    last_fail = cp.get("last_failure_days_ago")
+                    # Classify: CRITICAL if watchlisted/CIS unavailable, HIGH if recent failure/large exposure,
+                    # MEDIUM if moderate exposure, LOW otherwise
+                    if watchlisted or cis == "CIS_UNAVAILABLE":
+                        tier = "CRITICAL"
+                        triggers = ["WATCHLIST_ACTIVE" if watchlisted else "CIS_UNAVAILABLE"]
+                        rationale = f"{'Watchlist flag active' if watchlisted else 'CIS system unavailable'} — cannot verify position"
+                    elif last_fail is not None and last_fail <= 7 or obligation >= 50_000_000:
+                        tier = "HIGH"
+                        triggers = ["RECENT_FAILURE" if last_fail else "LARGE_OBLIGATION"]
+                        rationale = f"Recent failure {last_fail}d ago" if last_fail else f"Obligation ZAR {obligation:,} exceeds threshold"
+                    elif cis == "DEGRADED" or (lending_pct is not None and lending_pct < 80) or obligation >= 20_000_000:
+                        tier = "MEDIUM"
+                        triggers = ["CIS_DEGRADED" if cis == "DEGRADED" else "LENDING_SHORTFALL" if lending_pct and lending_pct < 80 else "MODERATE_EXPOSURE"]
+                        rationale = f"CIS degraded" if cis == "DEGRADED" else f"Lending coverage {lending_pct}%" if lending_pct else f"Obligation ZAR {obligation:,}"
+                    else:
+                        tier = "LOW"
+                        triggers = []
+                        rationale = f"Standard profile, obligation ZAR {obligation:,}"
+                    watchlist_data.append({
+                        "trade_id": t.get("trade_id", ""),
+                        "counterparty_id": cp_id,
+                        "counterparty_name": cp.get("name", cp_id),
+                        "risk_classification": tier,
+                        "net_obligation_zar": obligation,
+                        "settlement_window": t.get("settlement_window", "T+1"),
+                        "isin": t.get("isin", ""),
+                        "classification_rationale": rationale,
+                        "rule_triggers": triggers,
+                    })
+                watchlist_data.sort(key=lambda x: {"CRITICAL": 0, "HIGH": 1, "MEDIUM": 2, "LOW": 3}.get(x["risk_classification"], 4))
+
             ctx["watchlist"] = watchlist_data
 
             # Count by risk tier
