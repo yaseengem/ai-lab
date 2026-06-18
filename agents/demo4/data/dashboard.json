@@ -1,59 +1,58 @@
 {
-  "run_id": "JSE-SFPP-20260508-1516",
-  "operations_summary": {
-    "total_trades_monitored": 8,
-    "t1_trades": 4,
-    "t2_trades": 4,
-    "risk_distribution": {
-      "CRITICAL": 3,
-      "HIGH": 2,
-      "MEDIUM": 1,
-      "LOW": 2
-    },
-    "interventions_executed": {
-      "HUMAN_ESCALATION": {
-        "count": 3,
-        "success_rate": "100%",
-        "trades": [
-          "TRD-2001",
-          "TRD-2007",
-          "TRD-2005"
-        ]
-      },
-      "SETTLEMENT_ROLL": {
-        "count": 2,
-        "success_rate": "Pending",
-        "trades": [
-          "TRD-2002",
-          "TRD-2008"
-        ]
-      },
-      "LOLR_TRIGGER": {
-        "count": 0,
-        "success_rate": "N/A",
-        "trades": []
-      }
-    },
-    "human_escalations_required": {
+  "run_id": "JSE-SFPP-20260508-1615",
+  "run_timestamp": "2026-05-08T16:14:33.648993+00:00",
+  "total_trades_monitored": 8,
+  "risk_distribution": {
+    "CRITICAL": 3,
+    "HIGH": 2,
+    "MEDIUM": 1,
+    "LOW": 2
+  },
+  "interventions_executed": {
+    "HUMAN_ESCALATION": {
       "count": 3,
-      "trade_ids": [
-        "TRD-2001",
+      "success_rate": "100%",
+      "trades": [
         "TRD-2007",
-        "TRD-2005"
+        "TRD-2005",
+        "TRD-2001"
       ]
     },
-    "estimated_settlement_value_protected_zar": 210000000,
-    "system_health": {
-      "all_agents_executed": true,
-      "data_gaps": [
-        "CIS_UNAVAILABLE_CP-007",
-        "CIS_DEGRADED_CP-003"
-      ],
-      "integration_status": "PARTIAL_DEGRADATION"
+    "SETTLEMENT_ROLL": {
+      "count": 2,
+      "success_rate": "DEFERRED",
+      "trades": [
+        "TRD-2002",
+        "TRD-2008"
+      ]
     },
-    "systemic_stress_indicator": false,
-    "trend_direction": "STABLE",
-    "next_scheduled_run": "2026-05-09T15:16:00+00:00"
+    "LOLR_TRIGGER": {
+      "count": 0,
+      "success_rate": "N/A",
+      "trades": []
+    }
   },
-  "last_updated": "2026-05-08T15:18:40.077023+00:00"
+  "human_escalations_required": {
+    "count": 3,
+    "trade_ids": [
+      "TRD-2007",
+      "TRD-2005",
+      "TRD-2001"
+    ]
+  },
+  "estimated_settlement_value_protected_zar": 0,
+  "system_health": {
+    "all_agents_executed": false,
+    "data_gaps": [
+      {
+        "counterparty": "CP-007",
+        "issue": "CIS_UNAVAILABLE",
+        "impact": "Position verification impossible"
+      }
+    ],
+    "execution_status": "SUCCESS"
+  },
+  "systemic_stress_indicator": false,
+  "trend_direction": "STABLE",
+  "last_updated": "2026-05-08T16:16:58.515720+00:00"
 }
