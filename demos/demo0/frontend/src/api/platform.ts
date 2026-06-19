@@ -24,6 +24,16 @@ export async function fetchAgents(): Promise<PlatformAgent[]> {
   return res.json()
 }
 
+/**
+ * Live status per agent: { [agentId]: 'online' | 'offline' }.
+ * Fetched separately so the agent list can render before health probes finish.
+ */
+export async function fetchAgentStatuses(): Promise<Record<string, PlatformAgent['live_status']>> {
+  const res = await fetch(`${PLATFORM_API}/api/agents/status`)
+  if (!res.ok) throw new Error(`Failed to fetch agent statuses: ${res.status}`)
+  return res.json()
+}
+
 export async function fetchAgent(id: string): Promise<PlatformAgent> {
   const res = await fetch(`${PLATFORM_API}/api/agents/${id}`)
   if (!res.ok) throw new Error(`Agent not found: ${id}`)

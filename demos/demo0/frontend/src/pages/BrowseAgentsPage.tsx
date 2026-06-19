@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { fetchAgents, type PlatformAgent } from '@/api/platform'
+import { fetchAgents, fetchAgentStatuses, type PlatformAgent } from '@/api/platform'
 
 const DOMAIN_META: Record<string, { icon: string; tagCls: string; bg: string }> = {
   insurance: { icon: '🏥', tagCls: 'tb', bg: 'var(--acd)' },
@@ -115,10 +115,25 @@ export function BrowseAgentsPage() {
   }, [params])
 
   useEffect(() => {
+    let cancelled = false
+    // 1. Load metadata and render immediately (live_status comes back "unknown").
     fetchAgents()
-      .then(setAgents)
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false))
+      .then((list) => {
+        if (cancelled) return
+        setAgents(list)
+        // 2. Probe live status in the background and patch it into the cards.
+        fetchAgentStatuses()
+          .then((statuses) => {
+            if (cancelled) return
+            setAgents((prev) =>
+              prev.map((a) => ({ ...a, live_status: statuses[a.id] ?? a.live_status })),
+            )
+          })
+          .catch(() => { /* leave statuses as "unknown" if the probe fails */ })
+      })
+      .catch((e) => { if (!cancelled) setError(e.message) })
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
   }, [])
 
   const filtered = agents.filter((a) => {

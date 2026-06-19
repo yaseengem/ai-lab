@@ -1,0 +1,33 @@
+/* ── Fleet Management (demo2) — light professional theme (shared with AI Lab) ── */
+:root {
+  --bg:  #F8FAFC;
+  --s:   #FFFFFF;
+  --s2:  #F1F5F9;
+  --s3:  #E2E8F0;
+  --b:   #E2E8F0;
+  --b2:  #CBD5E1;
+  --t:   #0F172A;
+  --t2:  #475569;
+  --t3:  #94A3B8;
+  --ac:  #2563EB;
+  --acd: #DBEAFE;
+  --gn:  #059669;
+  --gnd: #D1FAE5;
+  --am:  #D97706;
+  --amd: #FEF3C7;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root { margin: 0; min-height: 100%; }
+
+body {
+  background: var(--bg);
+  color: var(--t);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; text-decoration: none; }

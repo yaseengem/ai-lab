@@ -23,32 +23,29 @@ import { NotFoundPage } from '@/pages/NotFoundPage'
 
 import { MarketplaceShell } from '@/components/layout/MarketplaceShell'
 import { AppShell } from '@/components/layout/AppShell'
-import { AuthGate } from '@/components/auth/AuthGate'
 
 export default function App() {
   return (
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-      <AuthGate>
-        <Routes>
-          {/* ── Marketplace routes (light theme shell) ── */}
-          <Route element={<MarketplaceShell />}>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/browse" element={<BrowseAgentsPage />} />
-            <Route path="/agents/:agentId" element={<AgentDetailPage />} />
-            <Route path="/connect/:agentId" element={<ConnectWorkspacePage />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
-          </Route>
+      <Routes>
+        {/* ── Marketplace routes (light theme shell) ── */}
+        <Route element={<MarketplaceShell />}>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/browse" element={<BrowseAgentsPage />} />
+          <Route path="/agents/:agentId" element={<AgentDetailPage />} />
+          <Route path="/connect/:agentId" element={<ConnectWorkspacePage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
+        </Route>
 
-          {/* ── Legacy chat routes (original AppShell) ── */}
-          <Route path="/chat" element={<AppShell><AgentListPage /></AppShell>} />
-          <Route path="/chat/:agentId" element={<AppShell><RoleSelectPage /></AppShell>} />
-          <Route path="/chat/:agentId/user" element={<AppShell><UserChatPage /></AppShell>} />
-          <Route path="/chat/:agentId/support" element={<AppShell><SupportChatPage /></AppShell>} />
-          <Route path="/chat/:agentId/admin" element={<AppShell><AdminChatPage /></AppShell>} />
+        {/* ── Legacy chat routes (original AppShell) ── */}
+        <Route path="/chat" element={<AppShell><AgentListPage /></AppShell>} />
+        <Route path="/chat/:agentId" element={<AppShell><RoleSelectPage /></AppShell>} />
+        <Route path="/chat/:agentId/user" element={<AppShell><UserChatPage /></AppShell>} />
+        <Route path="/chat/:agentId/support" element={<AppShell><SupportChatPage /></AppShell>} />
+        <Route path="/chat/:agentId/admin" element={<AppShell><AdminChatPage /></AppShell>} />
 
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
-      </AuthGate>
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
     </BrowserRouter>
   )
 }

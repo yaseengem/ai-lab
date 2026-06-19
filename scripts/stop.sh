@@ -42,18 +42,20 @@ kill_port() {
   done
 }
 
-# AI Lab launcher
-LAUNCHER_PORT=$(python -c "import yaml; print(yaml.safe_load(open(r'$REPO_ROOT_PY/config.yaml'))['launcher_port'])" 2>/dev/null || echo "5000")
-kill_port "$LAUNCHER_PORT" "ai-lab-launcher"
-
-# AI Agents Squad (demo0)
+# Collect every (port,label) to kill, then fire them all off in parallel.
 read_demo0() {
   python -c "import yaml; print(yaml.safe_load(open(r'$DEMO0_DIR_PY/config.yaml'))$1)" 2>/dev/null || echo ""
 }
-kill_port "$(read_demo0 "['ports']['platform_backend']")"  "squad-api"
-kill_port "$(read_demo0 "['ports']['platform_frontend']")" "squad-frontend"
 
-python -c "
+PORT_SPECS=()
+# AI Lab launcher
+LAUNCHER_PORT=$(python -c "import yaml; print(yaml.safe_load(open(r'$REPO_ROOT_PY/config.yaml'))['launcher_port'])" 2>/dev/null || echo "5000")
+PORT_SPECS+=("${LAUNCHER_PORT}|ai-lab-launcher")
+# AI Agents Squad (demo0)
+PORT_SPECS+=("$(read_demo0 "['ports']['platform_backend']")|squad-api")
+PORT_SPECS+=("$(read_demo0 "['ports']['platform_frontend']")|squad-frontend")
+
+AGENT_LIST=$(python -c "
 import yaml
 from pathlib import Path
 
@@ -64,10 +66,21 @@ for d in sorted(agents_dir.iterdir()):
     meta = yaml.safe_load(meta_file.read_text())
     if meta.get('status') in ('template', 'stub'): continue
     print(f\"{d.name}|{meta['name']}|{meta['api_port']}|{meta['frontend_port']}\")
-" 2>/dev/null | while IFS='|' read -r agent_dir name api_port frontend_port; do
-  kill_port "$api_port"      "agent-$agent_dir api"
-  kill_port "$frontend_port" "agent-$agent_dir frontend"
+" 2>/dev/null)
+
+while IFS='|' read -r agent_dir name api_port frontend_port; do
+  [[ -z "$agent_dir" ]] && continue
+  PORT_SPECS+=("${api_port}|agent-$agent_dir api")
+  PORT_SPECS+=("${frontend_port}|agent-$agent_dir frontend")
+done <<< "$AGENT_LIST"
+
+# Kill all ports in parallel
+for spec in "${PORT_SPECS[@]}"; do
+  IFS='|' read -r port label <<< "$spec"
+  [[ -z "$port" ]] && continue
+  kill_port "$port" "$label" &
 done
+wait
 
 echo ""
 echo "=== Done ==="

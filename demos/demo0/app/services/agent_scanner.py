@@ -6,6 +6,7 @@ to determine live_status.  Also validates that no two agents share a port.
 from __future__ import annotations
 
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
 
@@ -15,6 +16,7 @@ from app.config import get_settings
 from app.schemas.agent import AgentDetail, AgentSummary
 
 _PING_TIMEOUT_SECS = 2
+_MAX_PROBE_WORKERS = 16
 
 
 def _probe_ping(port: int) -> str:
@@ -56,11 +58,9 @@ def validate_port_conflicts(agents: list[AgentSummary]) -> list[str]:
     return conflicts
 
 
-def scan_agents(probe_live: bool = True) -> list[AgentSummary]:
-    """Return all non-template agents found in agents/ with optional live probing."""
-    settings = get_settings()
-    agents: list[AgentSummary] = []
-
+def _iter_agent_metadata(settings) -> list[tuple[str, dict[str, Any]]]:
+    """Return (agent_id, metadata) for every non-template agent on disk."""
+    result: list[tuple[str, dict[str, Any]]] = []
     for agent_dir in sorted(settings.agents_dir.iterdir()):
         if not agent_dir.is_dir():
             continue
@@ -73,10 +73,26 @@ def scan_agents(probe_live: bool = True) -> list[AgentSummary]:
         if meta.get("status") == "template":
             continue
 
-        live_status = _probe_ping(meta["api_port"]) if probe_live else "unknown"
+        result.append((agent_dir.name, meta))
+    return result
 
-        agents.append(AgentSummary(
-            id=agent_dir.name,
+
+def scan_agents(probe_live: bool = True) -> list[AgentSummary]:
+    """Return all non-template agents found in agents/ with optional live probing.
+
+    Live probing is intentionally OFF by default for list endpoints: pinging each
+    agent serially blocks the response (2s timeout per offline agent). Callers that
+    want live status should leave probe_live=False here and use scan_agent_statuses()
+    (probes in parallel) instead, so metadata renders immediately.
+    """
+    settings = get_settings()
+    entries = _iter_agent_metadata(settings)
+
+    statuses = scan_agent_statuses() if probe_live else {}
+
+    return [
+        AgentSummary(
+            id=agent_id,
             name=meta["name"],
             description=meta.get("description", "").strip(),
             use_case=meta.get("use_case", ""),
@@ -86,10 +102,26 @@ def scan_agents(probe_live: bool = True) -> list[AgentSummary]:
             status=meta.get("status", "stub"),
             version=meta.get("version", "0.0.0"),
             template_version=meta.get("template_version"),
-            live_status=live_status,
-        ))
+            live_status=statuses.get(agent_id, "unknown"),
+        )
+        for agent_id, meta in entries
+    ]
 
-    return agents
+
+def scan_agent_statuses() -> dict[str, str]:
+    """Probe every non-template agent's /ping endpoint in parallel.
+
+    Returns {agent_id: 'online' | 'offline'}. Parallel probing keeps the call
+    bounded by the slowest single ping (~timeout) rather than the sum of all pings.
+    """
+    settings = get_settings()
+    entries = _iter_agent_metadata(settings)
+    if not entries:
+        return {}
+
+    with ThreadPoolExecutor(max_workers=_MAX_PROBE_WORKERS) as pool:
+        statuses = pool.map(lambda e: _probe_ping(e[1]["api_port"]), entries)
+        return {agent_id: status for (agent_id, _), status in zip(entries, statuses)}
 
 
 def get_agent_detail(agent_id: str, probe_live: bool = True) -> AgentDetail | None:

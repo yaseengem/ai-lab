@@ -18,7 +18,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from commons.logger import setup_logging
 from app.config import get_settings
-from app.routers import agents, auth, config, health
+from app.routers import agents, config, health
 from app.services.agent_scanner import scan_agents, validate_port_conflicts
 
 setup_logging()
@@ -45,7 +45,6 @@ app.add_middleware(
 app.include_router(agents.router)
 app.include_router(health.router)
 app.include_router(config.router)
-app.include_router(auth.router)
 
 
 @app.on_event("startup")
