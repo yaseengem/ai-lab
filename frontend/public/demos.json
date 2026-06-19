@@ -5,7 +5,7 @@
     {
       "id": "demo0",
       "name": "AI Agents Squad",
-      "description": "A multi-agent platform — a marketplace of AI agents for claims, underwriting, loan, and settlement, with role-aware chat and human-in-the-loop approval.",
+      "description": "A multi-agent platform \u2014 a marketplace of AI agents for claims, underwriting, loan, and settlement, with role-aware chat and human-in-the-loop approval.",
       "url": "http://localhost:8001",
       "status": "active"
     },
