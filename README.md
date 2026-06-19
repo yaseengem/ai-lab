@@ -1,6 +1,6 @@
 # Neural — Multi-Agent AI Platform for Financial Services
 
-Neural is a demo multi-agent AI platform that exposes three isolated AI agents — **Claims Processing**, **Underwriting**, and **Loan Processing** — each with role-aware chat interfaces (User, Support, Admin) and a full human-in-the-loop approval workflow.
+Neural is a demo multi-agent AI platform that exposes three isolated AI agents — **Claims Processing**, **Underwriting**, and **Loan Processing** —each with role-aware chat interfaces (User, Support, Admin) and a full human-in-the-loop approval workflow.
 
 See [docs/architecture.md](docs/architecture.md) for the full technical design.
 
