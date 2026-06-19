@@ -1,5 +1,5 @@
 """
-Local memory backend for Neural agents.
+Local memory backend for AI Lab agents.
 
 Provides a file-backed key-value store that persists agent rules and state to
 data/memory/{agent_name}_memory.json relative to the agent folder.  A factory

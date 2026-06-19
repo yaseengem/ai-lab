@@ -9,7 +9,7 @@ from fastapi import APIRouter, HTTPException
 
 from .service import PipelineService
 from .agent_bridge import run_pipeline
-from agents.demo4.agentic.tools.mock_data import set_session_scenario
+from agents.agent4.agentic.tools.mock_data import set_session_scenario
 
 from commons.logger import get_logger
 

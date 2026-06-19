@@ -13,7 +13,7 @@ All three agents run locally but there is no production deployment. The platform
 
 ## Solution
 
-Deploy Neural to a single EC2 instance:
+Deploy AI Lab to a single EC2 instance:
 - React frontend built and served by Nginx
 - Three FastAPI agent backends managed by systemd (auto-start, auto-restart)
 - Nginx reverse-proxies `/api/claims/`, `/api/underwriting/`, `/api/loan/` to the correct ports
@@ -44,11 +44,11 @@ New folder: `infrastructure/`
 ```
 infrastructure/
   nginx/
-    neural.conf          ← Nginx site config
+    ailab.conf          ← Nginx site config
   systemd/
-    neural-demo1.service
-    neural-demo2.service
-    neural-demo3.service
+    ailab-agent1.service
+    ailab-agent2.service
+    ailab-agent3.service
   deploy-ec2.sh          ← one-shot deploy script
 ```
 
@@ -59,16 +59,16 @@ No changes to `app/`, `agents/`, or `frontend/`. Ports come from `config.yaml` �
 ## Implementation Checklist
 
 ### Nginx
-- [ ] `infrastructure/nginx/neural.conf` — serves React build from `/var/www/neural/`
+- [ ] `infrastructure/nginx/ailab.conf` — serves React build from `/var/www/ailab/`
 - [ ] Proxy `/api/claims/` → `localhost:3001`
 - [ ] Proxy `/api/underwriting/` → `localhost:3002`
 - [ ] Proxy `/api/loan/` → `localhost:3003`
 - [ ] SSE proxying: `proxy_buffering off`, `X-Accel-Buffering no` on all `/chat/` locations
 
 ### systemd
-- [ ] `neural-demo1.service` — uvicorn for Claims on port 3001
-- [ ] `neural-demo2.service` — uvicorn for Underwriting on port 3002
-- [ ] `neural-demo3.service` — uvicorn for Loan on port 3003
+- [ ] `ailab-agent1.service` — uvicorn for Claims on port 3001
+- [ ] `ailab-agent2.service` — uvicorn for Underwriting on port 3002
+- [ ] `ailab-agent3.service` — uvicorn for Loan on port 3003
 - [ ] Each service: `Restart=on-failure`, `RestartSec=5`, loads `.env` via `EnvironmentFile=`
 
 ### Deploy script
@@ -90,7 +90,7 @@ No changes to `app/`, `agents/`, or `frontend/`. Ports come from `config.yaml` �
 2. `curl http://{EC2_IP}/api/claims/ping` → `{"status":"ok","agent":"claims"}`
 3. `curl http://{EC2_IP}/api/underwriting/ping` → `{"status":"ok","agent":"underwriting"}`
 4. `curl http://{EC2_IP}/api/loan/ping` → `{"status":"ok","agent":"loan"}`
-5. `http://{EC2_IP}` — Neural frontend loads, agent cards visible
+5. `http://{EC2_IP}` — AI Lab frontend loads, agent cards visible
 6. Submit a test claim through the UI — SSE streams correctly through Nginx
-7. `sudo systemctl stop neural-demo1` → service restarts automatically within 5 s
+7. `sudo systemctl stop ailab-agent1` → service restarts automatically within 5 s
 8. Reboot EC2 → all three services start on boot without manual intervention

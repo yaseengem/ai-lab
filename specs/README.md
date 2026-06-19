@@ -1,6 +1,6 @@
 # Specs
 
-This folder is the authoritative record of what the Neural platform is,
+This folder is the authoritative record of what the AI Lab platform is,
 what has been built, and what is planned.
 
 ## Process

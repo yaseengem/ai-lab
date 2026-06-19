@@ -1,8 +1,14 @@
-# Neural — Multi-Agent AI Platform for Financial Services
+# AI Lab
 
-Neural is a demo multi-agent AI platform that exposes three isolated AI agents — **Claims Processing**, **Underwriting**, and **Loan Processing** —each with role-aware chat interfaces (User, Support, Admin) and a full human-in-the-loop approval workflow.
+**AI Lab** is a demo platform that hosts multiple independent **demos**. The top-level landing page lists every demo and links into it.
 
-See [docs/architecture.md](docs/architecture.md) for the full technical design.
+| Demo | What it is | Status |
+|------|------------|--------|
+| **demo0 — AI Agents Squad** | A multi-agent platform: a marketplace UI + a scanner backend + AI agents (Claims, Underwriting, Loan, Settlement) with role-aware chat and human-in-the-loop approval. | Active |
+| **demo1 — Human in the Loop** | — | Under development |
+| **demo2 — Fleet Management** | — | Under development |
+
+See [specs/v2-ai-lab-restructure.md](specs/v2-ai-lab-restructure.md) for the architecture and [docs/architecture.md](docs/architecture.md) for deeper technical design.
 
 ---
 
@@ -12,102 +18,71 @@ See [docs/architecture.md](docs/architecture.md) for the full technical design.
 |---|---|
 | Python | 3.11+ |
 | Node.js | 18+ |
-| AWS credentials | Bedrock access required (Claude model) |
+| AWS credentials | Bedrock access (Claude model) — for active agents |
 
 ---
 
-## Local Setup
-
-### 1. Clone and copy environment config
+## Local setup
 
 ```bash
-cp .env.example .env
-# Fill in AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY (or use instance profile)
-```
-
-### 2. Install backend dependencies
-
-Each agent has its own `requirements.txt`. For local dev, install claims first:
-
-```bash
+# 1. Python deps (single shared venv at repo root)
 python -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
-pip install -r agents/claims/apis/requirements.txt
+source .venv/bin/activate         # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+
+# 2. Secrets for the agent squad
+cp demos/demo0/.env.example demos/demo0/.env
+# Fill in AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY (or use an instance profile)
+
+# 3. Start everything
+./scripts/run.sh
 ```
 
-### 3. Install frontend dependencies
+`run.sh` starts the AI Lab launcher and the AI Agents Squad (its backend, marketplace, and all active agents), validating port conflicts first.
 
-```bash
-cd frontend
-cp .env.example .env
-npm install
-```
+| Service | URL |
+|---|---|
+| AI Lab landing page | http://localhost:5000 |
+| AI Agents Squad — marketplace | http://localhost:8001 |
+| AI Agents Squad — backend API | http://localhost:8002/api/health |
+| agent1 (Claims) frontend / API | http://localhost:8010 / :8011 |
+| agent4 (Settlement) frontend / API | http://localhost:8040 / :8041 |
 
-### 4. Run the services
-
-**Terminal 1 — Claims API:**
-```bash
-source .venv/bin/activate
-cd agents/claims/apis
-uvicorn main:app --port 8001
-```
-
-> **Important:** Always run with a single worker (no `--workers` flag). The human-in-the-loop approval flow uses `asyncio.Event` objects stored in process memory — multiple workers would each have isolated registries and `POST /approve` could miss the waiting workflow.
-
-**Terminal 2 — Frontend:**
-```bash
-cd frontend
-npm run dev
-```
-
-Frontend runs at http://localhost:5173 with mock APIs by default (`VITE_USE_MOCK_API=true`).  
-Set `VITE_USE_MOCK_API=false` and ensure the backend is running to use real APIs.
+> **Important:** agents run with a single uvicorn worker. The human-in-the-loop approval flow stores state in process memory — multiple workers would each have isolated registries and `POST /approve` could miss the waiting workflow.
 
 ---
 
-## Project Structure
+## Project structure
 
 ```
-ai-agents/
-├── agents/
-│   ├── claims/
-│   │   ├── apis/          # FastAPI app — runs on :8001
-│   │   └── agentic/       # Strands workflow + tools
-│   ├── underwriting/      # Same structure — runs on :8002
-│   └── loan/              # Same structure — runs on :8003
-├── frontend/              # React + Vite + TypeScript
-├── storage/               # Runtime file system (gitignored)
-│   ├── claims/{case_id}/
-│   ├── underwriting/{case_id}/
-│   ├── loan/{case_id}/
-│   └── memory/            # LocalMemoryStore JSON files
-├── test/                  # pytest test suites
-├── docs/                  # Architecture and design docs
-└── iterations/            # Sprint planning and user stories
+ai-lab/
+├── config.yaml              # AI Lab launcher port + demos manifest
+├── requirements.txt
+├── frontend/                # AI Lab landing page (:5000)
+├── scripts/                 # run.sh / stop.sh / check.sh / restart.sh
+├── specs/                   # living specs (source of truth)
+├── wireframes/              # design source of truth
+└── demos/
+    └── demo0/               # "AI Agents Squad" — self-contained
+        ├── config.yaml      # squad ports + defaults
+        ├── .env(.example)   # squad secrets
+        ├── app/             # scanner backend (:8002)
+        ├── commons/         # logger
+        ├── frontend/        # marketplace UI (:8001)
+        └── agents/
+            ├── agent1/       # Claims (active)      — :8010 / :8011
+            ├── agent2/       # Underwriting (stub)  — :8020 / :8021
+            ├── agent3/       # Loan (stub)          — :8030 / :8031
+            ├── agent4/       # Settlement (active)  — :8040 / :8041
+            └── agentx_v1_0/  # template (never run)
 ```
 
 ---
 
-## Environment Variables
-
-| Variable | Description | Default |
-|---|---|---|
-| `AWS_REGION` | AWS region for Bedrock | `us-east-1` |
-| `BEDROCK_MODEL_ID` | Bedrock model ID | `anthropic.claude-3-haiku-20240307-v1:0` |
-| `STORAGE_PATH` | Root path for file system storage | `./storage` |
-| `MEMORY_BACKEND` | Memory backend: `local` or `agentcore` | `local` |
-| `CLAIMS_API_PORT` | Claims FastAPI port | `8001` |
-| `UNDERWRITING_API_PORT` | Underwriting FastAPI port | `8002` |
-| `LOAN_API_PORT` | Loan FastAPI port | `8003` |
-
----
-
-## Running Tests
+## Running tests
 
 ```bash
-# Memory backend unit tests
-pytest test/test_memory_backend.py -v
-
-# Claims API integration tests (requires running claims API on :8001)
-pytest test/claims/test_claims_api.py -v
+cd demos/demo0
+pytest app/tests/              # platform scanner tests
+pytest agents/agent1/tests/    # Claims API tests
 ```

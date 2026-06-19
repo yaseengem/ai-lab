@@ -1,8 +1,8 @@
 """
-Neural AI Agents — Platform Backend (:5001)
+AI Agents Squad — Platform Backend (:8002)
 
-Run from repo root:
-    uvicorn app.main:app --host 0.0.0.0 --port 5001 --reload
+Run from demos/demo0:
+    uvicorn app.main:app --host 0.0.0.0 --port 8002 --reload
 
 Extension pattern:
     new feature = routers/{domain}.py + services/{domain}_service.py

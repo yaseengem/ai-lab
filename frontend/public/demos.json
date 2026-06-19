@@ -1,0 +1,27 @@
+{
+  "appName": "AI Lab",
+  "tagline": "A lab of AI demos",
+  "demos": [
+    {
+      "id": "demo0",
+      "name": "AI Agents Squad",
+      "description": "A multi-agent platform — a marketplace of AI agents for claims, underwriting, loan, and settlement, with role-aware chat and human-in-the-loop approval.",
+      "url": "http://localhost:8001",
+      "status": "active"
+    },
+    {
+      "id": "demo1",
+      "name": "Human in the Loop",
+      "description": "Workflows that pause for human review and approval.",
+      "url": "http://localhost:9100",
+      "status": "under_development"
+    },
+    {
+      "id": "demo2",
+      "name": "Fleet Management",
+      "description": "Coordinating and monitoring a fleet of agents.",
+      "url": "http://localhost:9200",
+      "status": "under_development"
+    }
+  ]
+}

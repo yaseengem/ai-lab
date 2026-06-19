@@ -2,7 +2,7 @@
 Settlement Failure Prevention Agent — FastAPI application entry point.
 
 Run from the repo root:
-  uvicorn agents.demo4.apis.main:app --host 0.0.0.0 --port 3004 --reload
+  uvicorn agents.agent4.apis.main:app --host 0.0.0.0 --port 8041 --reload
 """
 
 from __future__ import annotations
@@ -38,7 +38,7 @@ setup_logging()
 _meta = yaml.safe_load(
     (Path(__file__).parent.parent / "metadata.yaml").read_text(encoding="utf-8")
 )
-_PLATFORM_ORIGIN = "http://localhost:5000"
+_PLATFORM_ORIGIN = "http://localhost:8001"
 _OWN_FRONTEND = f"http://localhost:{_meta['frontend_port']}"
 
 app = FastAPI(
@@ -86,4 +86,4 @@ if __name__ == "__main__":
     # IMPORTANT: keep workers=1. The HITL approval mechanism uses an in-memory
     # asyncio.Future dict (PipelineService._approval_futures) — cross-worker
     # resume is not implemented.
-    uvicorn.run("agents.demo4.apis.main:app", host="0.0.0.0", port=_meta.get("api_port", 3004), reload=True, workers=1)
+    uvicorn.run("agents.agent4.apis.main:app", host="0.0.0.0", port=_meta.get("api_port", 8041), reload=True, workers=1)

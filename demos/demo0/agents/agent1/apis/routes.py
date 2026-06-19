@@ -25,7 +25,7 @@ logger = get_logger(__name__)
 router = APIRouter()
 service = ClaimsService()
 
-_AGENT_DIR = Path(__file__).parent.parent  # agents/demo1/
+_AGENT_DIR = Path(__file__).parent.parent  # agents/agent1/
 _CASES_DIR = _AGENT_DIR / "data" / "cases"
 _MAX_UPLOAD_BYTES = 20 * 1024 * 1024  # 20 MB
 _ALLOWED_SUFFIXES = {".pdf", ".png", ".jpg", ".jpeg", ".docx", ".txt"}
@@ -224,7 +224,7 @@ def get_status(session_id: str):
     # Look up case status from CSV
     csv_status = ""
     if case_id:
-        from agents.demo1.agentic.tools.csv_store import query_claims_metadata  # noqa: PLC0415
+        from agents.agent1.agentic.tools.csv_store import query_claims_metadata  # noqa: PLC0415
         raw = query_claims_metadata(
             filters=_json.dumps({"case_id": case_id}),
             columns='["status"]',
@@ -288,7 +288,7 @@ def list_cases(
     Wraps query_claims_metadata directly for the frontend cases table.
     end_user role is automatically restricted to their own user_id.
     """
-    from agents.demo1.agentic.tools.csv_store import query_claims_metadata
+    from agents.agent1.agentic.tools.csv_store import query_claims_metadata
     import json as _json
 
     filters: dict = {}

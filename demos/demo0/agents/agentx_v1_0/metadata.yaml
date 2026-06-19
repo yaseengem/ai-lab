@@ -21,7 +21,7 @@ use_case: template
 domain: template
 api_port: 3099
 frontend_port: 8099
-entry_point: "agents.demox_v1_0.apis.main:app"
+entry_point: "agents.agentx_v1_0.apis.main:app"
 api_version: "1.0.0"
 status: template
 version: "0.1.0"

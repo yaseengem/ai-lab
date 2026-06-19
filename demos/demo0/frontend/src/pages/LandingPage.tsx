@@ -59,7 +59,7 @@ export function LandingPage() {
             <button className="btn btn-lg" onClick={() => document.getElementById('how')?.scrollIntoView({ behavior: 'smooth' })}>How it works</button>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 36, marginTop: 60, justifyContent: 'center', flexWrap: 'wrap' }}>
-            {[['180+', 'AI agents'], ['12', 'Industries'], ['2,400+', 'Businesses using Neural'], ['99.4%', 'Uptime SLA']].map(([n, l], i) => (
+            {[['180+', 'AI agents'], ['12', 'Industries'], ['2,400+', 'Businesses using AI Lab'], ['99.4%', 'Uptime SLA']].map(([n, l], i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 36 }}>
                 {i > 0 && <div style={{ width: 1, height: 34, background: 'var(--b2)' }} />}
                 <div style={{ textAlign: 'center' }}>

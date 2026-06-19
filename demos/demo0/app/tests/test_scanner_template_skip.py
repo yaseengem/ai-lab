@@ -1,7 +1,7 @@
 """
 Regression test: the platform scanner skips agents on `status: template`,
-NOT on folder name. We rename the template folder over time (demox_v1_0 today,
-demox_v2_0 tomorrow) and a brittle name check would silently start running it.
+NOT on folder name. We rename the template folder over time (agentx_v1_0 today,
+agentx_v2_0 tomorrow) and a brittle name check would silently start running it.
 """
 from __future__ import annotations
 
@@ -39,14 +39,14 @@ def test_scanner_skips_template_regardless_of_folder_name(isolated_agents_dir, m
         "template_version": "1.0",
     })
     # Template at the conventional name
-    _write(isolated_agents_dir / "demox_v1_0" / "metadata.yaml", {
+    _write(isolated_agents_dir / "agentx_v1_0" / "metadata.yaml", {
         "name": "Template1", "description": "x", "use_case": "t", "domain": "t",
         "api_port": 3098, "frontend_port": 8098, "entry_point": "x",
         "api_version": "1", "status": "template", "version": "0.1.0",
         "template_version": "1.0",
     })
     # Template at a future versioned folder — should ALSO be skipped.
-    _write(isolated_agents_dir / "demox_v9_9" / "metadata.yaml", {
+    _write(isolated_agents_dir / "agentx_v9_9" / "metadata.yaml", {
         "name": "TemplateFuture", "description": "x", "use_case": "t", "domain": "t",
         "api_port": 3099, "frontend_port": 8099, "entry_point": "x",
         "api_version": "1", "status": "template", "version": "0.1.0",

@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Neural AI Agents — agent metadata.yaml",
-  "description": "Schema for agents/{demoN}/metadata.yaml. Describes how the platform scanner discovers and starts an agent. New fields can be added here without breaking existing agents.",
+  "title": "AI Lab — agent metadata.yaml",
+  "description": "Schema for demos/demo0/agents/{agentN}/metadata.yaml. Describes how the platform scanner discovers and starts an agent. New fields can be added here without breaking existing agents.",
   "type": "object",
   "required": ["name", "description", "use_case", "domain", "api_port", "frontend_port", "entry_point", "api_version", "status", "version"],
   "additionalProperties": false,
@@ -12,13 +12,13 @@
     "domain": { "type": "string" },
     "api_port": { "type": "integer", "minimum": 1, "maximum": 65535 },
     "frontend_port": { "type": "integer", "minimum": 1, "maximum": 65535 },
-    "entry_point": { "type": "string", "description": "Python dotted path to the FastAPI app, e.g. agents.demo1.apis.main:app" },
+    "entry_point": { "type": "string", "description": "Python dotted path to the FastAPI app, e.g. agents.agent1.apis.main:app" },
     "api_version": { "type": "string" },
     "status": { "type": "string", "enum": ["active", "stub", "template"] },
     "version": { "type": "string", "description": "This agent's own version" },
     "template_version": {
       "type": "string",
-      "description": "Which demox_vN_M template version this agent was spawned from (e.g. \"1.0\"). Optional for legacy agents; required for new ones."
+      "description": "Which agentx_vN_M template version this agent was spawned from (e.g. \"1.0\"). Optional for legacy agents; required for new ones."
     }
   }
 }

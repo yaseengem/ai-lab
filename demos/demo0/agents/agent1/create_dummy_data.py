@@ -1,6 +1,6 @@
 """
 Generate sample PDF and .txt documents for claims processing demo scenarios.
-Run once from the repo root: python agents/demo1/create_dummy_data.py
+Run once from the repo root: python agents/agent1/create_dummy_data.py
 Requires: fpdf2  (pip install fpdf2)
 """
 from __future__ import annotations

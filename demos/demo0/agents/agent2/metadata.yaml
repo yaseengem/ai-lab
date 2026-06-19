@@ -10,9 +10,9 @@ description: >
   audit trail for each case.
 use_case: underwriting
 domain: insurance
-api_port: 3002
-frontend_port: 8002
-entry_point: "agents.demo2.apis.main:app"
+api_port: 8021
+frontend_port: 8020
+entry_point: "agents.agent2.apis.main:app"
 api_version: "1.0.0"
 status: stub
 version: "0.1.0"

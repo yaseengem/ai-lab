@@ -25,7 +25,7 @@ from pathlib import Path
 
 from strands import tool
 
-_AGENT_DIR = Path(__file__).parent.parent.parent  # agents/demo1/
+_AGENT_DIR = Path(__file__).parent.parent.parent  # agents/agent1/
 _DUMMY = _AGENT_DIR / "data" / "dummy"
 _LIVE = _AGENT_DIR / "data"
 

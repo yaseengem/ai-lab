@@ -1,15 +1,16 @@
 #!/usr/bin/env bash
-# stop.sh — Force-kill all Neural services.
+# stop.sh — Force-kill all AI Lab services.
 # Kills by PID file first, then by port as fallback.
 # Called automatically by run.sh on Ctrl+C, or run standalone from a second terminal.
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 REPO_ROOT_PY="$(cygpath -w "$REPO_ROOT" 2>/dev/null || echo "$REPO_ROOT")"
+DEMO0_DIR_PY="$(cygpath -w "$REPO_ROOT/demos/demo0" 2>/dev/null || echo "$REPO_ROOT/demos/demo0")"
 PID_DIR="$REPO_ROOT/scripts/pids"
 
 echo ""
-echo "=== Neural — Stopping services ==="
+echo "=== AI Lab — Stopping services ==="
 echo ""
 
 # ── Kill by PID files (written by run.sh) ───────────────────────────────────
@@ -41,22 +42,22 @@ kill_port() {
   done
 }
 
-read_port() {
-  python -c "
-import yaml
-c = yaml.safe_load(open(r'$REPO_ROOT_PY/config.yaml'))
-print(c$1)
-" 2>/dev/null || echo ""
-}
+# AI Lab launcher
+LAUNCHER_PORT=$(python -c "import yaml; print(yaml.safe_load(open(r'$REPO_ROOT_PY/config.yaml'))['launcher_port'])" 2>/dev/null || echo "5000")
+kill_port "$LAUNCHER_PORT" "ai-lab-launcher"
 
-kill_port "$(read_port "['ports']['platform_backend']")"  "platform-api"
-kill_port "$(read_port "['ports']['platform_frontend']")" "platform-frontend"
+# AI Agents Squad (demo0)
+read_demo0() {
+  python -c "import yaml; print(yaml.safe_load(open(r'$DEMO0_DIR_PY/config.yaml'))$1)" 2>/dev/null || echo ""
+}
+kill_port "$(read_demo0 "['ports']['platform_backend']")"  "squad-api"
+kill_port "$(read_demo0 "['ports']['platform_frontend']")" "squad-frontend"
 
 python -c "
 import yaml
 from pathlib import Path
 
-agents_dir = Path(r'$REPO_ROOT_PY/agents')
+agents_dir = Path(r'$DEMO0_DIR_PY/agents')
 for d in sorted(agents_dir.iterdir()):
     meta_file = d / 'metadata.yaml'
     if not meta_file.exists(): continue

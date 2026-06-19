@@ -2,7 +2,7 @@
 Starts the FastAPI backend and Vite frontend for this agent.
 
 Usage (from repo root):
-    python agents/demo1/main.py
+    python agents/agent1/main.py
 """
 
 from __future__ import annotations

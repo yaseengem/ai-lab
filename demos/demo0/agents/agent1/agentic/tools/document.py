@@ -11,7 +11,7 @@ from pathlib import Path
 
 from strands import tool
 
-_AGENT_DIR = Path(__file__).parent.parent.parent  # agents/demo1/
+_AGENT_DIR = Path(__file__).parent.parent.parent  # agents/agent1/
 _SAMPLE_DOCS = _AGENT_DIR / "data" / "dummy" / "sample_documents"
 _CASES_DIR = _AGENT_DIR / "data" / "cases"
 

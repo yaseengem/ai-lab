@@ -128,7 +128,7 @@ export function DashboardPage() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
           <div>
             <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--t)' }}>My workspace</h1>
-            <div style={{ fontSize: 13, color: 'var(--t3)', marginTop: 2 }}>Neural AI Agent platform</div>
+            <div style={{ fontSize: 13, color: 'var(--t3)', marginTop: 2 }}>AI Agents Squad</div>
           </div>
           <button className="btn btn-p" onClick={() => navigate('/browse')}>+ Add agent</button>
         </div>

@@ -1,9 +1,9 @@
 /**
- * Platform API client — talks to the central platform backend (:5001).
+ * Platform API client — talks to the AI Agents Squad backend (:8002).
  * Used by marketplace pages to list/detail agents dynamically.
  */
 
-const PLATFORM_API = import.meta.env.VITE_PLATFORM_API_URL ?? 'http://localhost:5001'
+const PLATFORM_API = import.meta.env.VITE_PLATFORM_API_URL ?? 'http://localhost:8002'
 
 export interface PlatformAgent {
   id: string

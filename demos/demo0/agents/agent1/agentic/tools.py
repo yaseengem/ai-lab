@@ -25,7 +25,7 @@ from commons.logger import get_logger  # noqa: E402
 logger = get_logger(__name__)
 
 # ── constants ─────────────────────────────────────────────────────────────────
-_AGENT_DIR = Path(__file__).parent.parent  # agents/demo1/
+_AGENT_DIR = Path(__file__).parent.parent  # agents/agent1/
 _CASES_DIR = _AGENT_DIR / "data" / "cases"
 _CASE_ID_RE = re.compile(r"^[a-zA-Z0-9_-]+$")
 _MAX_SEARCH_RESULTS = 20

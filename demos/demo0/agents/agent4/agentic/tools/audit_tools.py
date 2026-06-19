@@ -3,7 +3,7 @@ Mock audit, dashboard, FSCA reporting, and LOLR execution tools.
 
 In production these would write to CloudTrail, update a live dashboard via API,
 send SNS alerts, and store to S3. In the demo they write to local JSON files
-under agents/demo4/data/.
+under agents/agent4/data/.
 """
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ from strands import tool
 
 from .mock_data import next_lolr_confirmation
 
-_AGENT_DIR = Path(__file__).parent.parent.parent  # agents/demo4/
+_AGENT_DIR = Path(__file__).parent.parent.parent  # agents/agent4/
 _DATA_DIR = _AGENT_DIR / "data"
 _AUDIT_DIR = _DATA_DIR / "audit"
 _REPORTS_DIR = _DATA_DIR / "reports"

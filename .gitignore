@@ -24,22 +24,24 @@ env/
 .env.*.local
 
 # Per-agent runtime data is owned by each agent's own .gitignore at
-# agents/{demoN}/.gitignore — each agent generates different files. This
-# file only lists what is shared across all agents (logs and the Vite .env).
-agents/**/logs/
-agents/**/frontend/.env
+# demos/demo0/agents/{agentN}/.gitignore — each agent generates different files.
+# This file only lists what is shared (logs and the Vite .env).
+**/logs/
+**/frontend/.env
 
-# Platform logs
-app/logs/
+# Platform logs (demo0 scanner backend)
+**/app/logs/
 
 # Root-level legacy folders (deleted in A14 — kept here in case of accidental recreation)
 logs/
 storage/
 
-# Frontend build output
-frontend/dist/
+# Frontend build output (AI Lab launcher + per-demo frontends)
+**/frontend/dist/
 frontend/.env
-frontend/install.log
+**/install.log
+# Note: frontend/public/demos.json is committed as a default and regenerated
+# from config.yaml by run.sh — it is intentionally NOT ignored.
 
 # IDE / OS
 .DS_Store

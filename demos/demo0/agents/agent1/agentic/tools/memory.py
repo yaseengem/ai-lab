@@ -7,7 +7,7 @@ from pathlib import Path
 
 from strands import tool
 
-_CLAIMS_BASE = Path(__file__).parent.parent.parent  # agents/demo1/
+_CLAIMS_BASE = Path(__file__).parent.parent.parent  # agents/agent1/
 _SESSIONS_DIR = _CLAIMS_BASE / "data" / "sessions"
 
 

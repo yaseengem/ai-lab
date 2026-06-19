@@ -11,7 +11,7 @@ import json
 import os
 from pathlib import Path
 
-_CLAIMS_BASE = Path(__file__).parent.parent  # agents/demo1/
+_CLAIMS_BASE = Path(__file__).parent.parent  # agents/agent1/
 _SESSIONS_DIR = _CLAIMS_BASE / "data" / "sessions"
 
 

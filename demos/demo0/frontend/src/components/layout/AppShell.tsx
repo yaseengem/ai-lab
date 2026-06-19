@@ -1,7 +1,7 @@
 /**
  * AppShell — top-level layout wrapper.
  *
- * Renders a header with "Neural" branding + breadcrumb navigation
+ * Renders a header with "AI Lab" branding + breadcrumb navigation
  * derived from the current route path, then the page content.
  */
 
@@ -71,7 +71,7 @@ export function AppShell({ children }: AppShellProps) {
           to="/"
           className="text-xl font-bold text-gray-900 tracking-tight hover:text-blue-600 transition-colors flex-shrink-0"
         >
-          <img src="/logo.png" alt="Neural AI" style={{ height: 28, width: 'auto' }} />
+          <img src="/logo.png" alt="AI Lab" style={{ height: 28, width: 'auto' }} />
         </Link>
         <Breadcrumbs />
       </header>

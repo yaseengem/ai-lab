@@ -11,9 +11,9 @@ description: >
   reports for every pipeline run.
 use_case: settlement_failure_prevention
 domain: capital_markets
-api_port: 3004
-frontend_port: 8004
-entry_point: "agents.demo4.apis.main:app"
+api_port: 8041
+frontend_port: 8040
+entry_point: "agents.agent4.apis.main:app"
 api_version: "1.0.0"
 status: active
 version: "1.0.0"

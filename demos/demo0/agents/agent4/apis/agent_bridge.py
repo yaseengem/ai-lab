@@ -22,14 +22,14 @@ from commons.logger import get_logger  # noqa: E402
 from .service import PipelineService  # noqa: E402
 
 # Sub-agent functions (called directly — not via orchestrator LLM)
-from agents.demo4.agentic.sub_agents.data_ingestion import data_ingestion_agent  # noqa: E402
-from agents.demo4.agentic.sub_agents.risk_scoring import risk_scoring_agent  # noqa: E402
-from agents.demo4.agentic.sub_agents.counterparty_risk import counterparty_risk_agent  # noqa: E402
-from agents.demo4.agentic.sub_agents.intervention_decision import intervention_decision_agent  # noqa: E402
-from agents.demo4.agentic.sub_agents.lolr_execution import lolr_execution_agent  # noqa: E402
-from agents.demo4.agentic.sub_agents.settlement_roll import settlement_roll_agent  # noqa: E402
-from agents.demo4.agentic.sub_agents.reporting_audit import reporting_audit_agent  # noqa: E402
-from agents.demo4.agentic.tools.mock_data import set_thread_session, clear_session_scenario  # noqa: E402
+from agents.agent4.agentic.sub_agents.data_ingestion import data_ingestion_agent  # noqa: E402
+from agents.agent4.agentic.sub_agents.risk_scoring import risk_scoring_agent  # noqa: E402
+from agents.agent4.agentic.sub_agents.counterparty_risk import counterparty_risk_agent  # noqa: E402
+from agents.agent4.agentic.sub_agents.intervention_decision import intervention_decision_agent  # noqa: E402
+from agents.agent4.agentic.sub_agents.lolr_execution import lolr_execution_agent  # noqa: E402
+from agents.agent4.agentic.sub_agents.settlement_roll import settlement_roll_agent  # noqa: E402
+from agents.agent4.agentic.sub_agents.reporting_audit import reporting_audit_agent  # noqa: E402
+from agents.agent4.agentic.tools.mock_data import set_thread_session, clear_session_scenario  # noqa: E402
 
 logger = get_logger(__name__)
 

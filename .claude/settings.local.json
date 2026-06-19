@@ -2,21 +2,22 @@
   "permissions": {
     "allow": [
       "Bash(python -c ' *)",
-      "PowerShell(cd \"C:\\\\pro\\\\active\\\\ai-agents\\\\agents\\\\demo4\\\\frontend\"; $env:VITE_API_URL = \"http://localhost:3004\"; npx vite build 2>&1 | Select-Object -Last 30)",
-      "Bash(python -m uvicorn agents.demo4.apis.main:app --port 3004 --host 0.0.0.0)",
-      "Bash(curl -s http://localhost:3004/ping)",
-      "Bash(curl -s http://localhost:3004/summary)",
-      "Bash(curl -s -X POST http://localhost:3004/run -H \"Content-Type: application/json\" -d '{\"mode\": \"api\", \"use_mock\": true}')",
-      "Bash(curl -s --max-time 30 http://localhost:3004/monitor/72d363ff-5728-4317-82c3-125bbc33196a)",
+      "PowerShell(cd \"C:\\\\pro\\\\active\\\\ai-lab\\\\demos\\\\demo0\\\\agents\\\\agent4\\\\frontend\"; $env:VITE_API_URL = \"http://localhost:8041\"; npx vite build 2>&1 | Select-Object -Last 30)",
+      "Bash(python -m uvicorn agents.agent4.apis.main:app --port 8041 --host 0.0.0.0)",
+      "Bash(curl -s http://localhost:8041/ping)",
+      "Bash(curl -s http://localhost:8041/summary)",
+      "Bash(curl -s -X POST http://localhost:8041/run -H \"Content-Type: application/json\" -d '{\"mode\": \"api\", \"use_mock\": true}')",
+      "Bash(curl -s --max-time 30 http://localhost:8041/monitor/72d363ff-5728-4317-82c3-125bbc33196a)",
       "Bash(python -m json.tool)",
-      "Bash(echo 'VITE_API_URL=http://localhost:3004 *)",
+      "Bash(echo 'VITE_API_URL=http://localhost:8041 *)",
       "Bash(npm run *)",
-      "Bash(curl -s http://localhost:8004/)",
-      "Bash(python3 -c \"import json; d=json.load\\(open\\('c:/pro/active/ai-agents/agents/demo4/data/test_scenarios/tc14-standard-cycle.json'\\)\\); print\\(json.dumps\\(d.get\\('expected'\\), indent=2\\)\\); print\\(\\); print\\('ASSERTIONS:'\\); [print\\(' -', a\\) for a in d['expected'].get\\('assertions',[]\\)]\")",
+      "Bash(curl -s http://localhost:8040/)",
+      "Bash(python3 -c \"import json; d=json.load\\(open\\('c:/pro/active/ai-lab/demos/demo0/agents/agent4/data/test_scenarios/tc14-standard-cycle.json'\\)\\); print\\(json.dumps\\(d.get\\('expected'\\), indent=2\\)\\); print\\(\\); print\\('ASSERTIONS:'\\); [print\\(' -', a\\) for a in d['expected'].get\\('assertions',[]\\)]\")",
       "Bash(python3 -c ' *)",
-      "Bash(curl -s http://localhost:3004/test/scenarios)",
-      "Bash(python -m uvicorn agents.demo4.apis.main:app --host 0.0.0.0 --port 3004)",
-      "Bash(echo \"PID: $!\")"
+      "Bash(curl -s http://localhost:8041/test/scenarios)",
+      "Bash(python -m uvicorn agents.agent4.apis.main:app --host 0.0.0.0 --port 8041)",
+      "Bash(echo \"PID: $!\")",
+      "Bash(git mv *)"
     ]
   }
 }

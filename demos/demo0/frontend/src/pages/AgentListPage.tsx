@@ -12,7 +12,7 @@ export function AgentListPage() {
     <div className="flex-1 p-6 sm:p-8">
       <div className="max-w-5xl mx-auto space-y-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Neural</h1>
+          <h1 className="text-3xl font-bold text-gray-900">AI Agents Squad</h1>
           <p className="mt-2 text-gray-500">
             Multi-agent AI platform for financial services. Choose an agent to get started.
           </p>

@@ -1,11 +1,11 @@
 """
 Underwriting FastAPI stub — placeholder until EP-4 is implemented.
 
-Responds to all Neural API endpoints with 501 Not Implemented,
+Responds to all AI Lab API endpoints with 501 Not Implemented,
 except GET /ping which returns a health-check so the frontend and
 run.sh can confirm the process is up.
 
-Run from the agents/underwriting/apis/ directory:
+Run from the agents/agent2/apis/ directory:
   uvicorn main:app --host 0.0.0.0 --port 8002
 """
 
@@ -18,7 +18,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 app = FastAPI(
-    title="Neural Underwriting API (stub)",
+    title="Underwriting API (stub)",
     version="0.0.0",
     description="Underwriting agent stub — not yet implemented.",
 )

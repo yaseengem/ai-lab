@@ -30,7 +30,7 @@ export function MarketplaceShell() {
       {/* Fixed nav */}
       <nav style={{ position: 'sticky', top: 0, zIndex: 100, height: 56, padding: '0 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.95)', borderBottom: '1px solid var(--b)', backdropFilter: 'blur(8px)' }}>
         <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 9, textDecoration: 'none' }}>
-          <img src="/logo.png" alt="Neural AI" style={{ height: 32, width: 'auto' }} />
+          <img src="/logo.png" alt="AI Lab" style={{ height: 32, width: 'auto' }} />
         </Link>
         <div style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
           {([
@@ -65,7 +65,7 @@ export function MarketplaceShell() {
 
       {/* Footer */}
       <footer style={{ padding: '20px 40px', borderTop: '1px solid var(--b)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--s)' }}>
-        <span style={{ fontSize: 12, color: 'var(--t3)' }}>© 2026 Neural AI Agents. All rights reserved.</span>
+        <span style={{ fontSize: 12, color: 'var(--t3)' }}>© 2026 AI Lab. All rights reserved.</span>
         <div style={{ display: 'flex', gap: 20 }}>
           {['Privacy', 'Terms', 'Security', 'Docs', 'Status'].map((l) => (
             <a key={l} href="#" style={{ fontSize: 12, color: 'var(--t3)', textDecoration: 'none' }}>{l}</a>

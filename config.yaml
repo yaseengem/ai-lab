@@ -1,0 +1,25 @@
+app:
+  name: "AI Lab"
+  description: "A lab of AI demos"
+
+# The top-level AI Lab landing page (lists the demos below).
+launcher_port: 5000
+
+# Demos shown on the landing page. demo0 is the self-contained "AI Agents Squad"
+# (its own ports live in demos/demo0/config.yaml). Future demos are siblings.
+demos:
+  - id: demo0
+    name: "AI Agents Squad"
+    description: "A multi-agent platform — a marketplace of AI agents for claims, underwriting, loan, and settlement, with role-aware chat and human-in-the-loop approval."
+    url: "http://localhost:8001"
+    status: active
+  - id: demo1
+    name: "Human in the Loop"
+    description: "Workflows that pause for human review and approval."
+    url: "http://localhost:9100"
+    status: under_development
+  - id: demo2
+    name: "Fleet Management"
+    description: "Coordinating and monitoring a fleet of agents."
+    url: "http://localhost:9200"
+    status: under_development

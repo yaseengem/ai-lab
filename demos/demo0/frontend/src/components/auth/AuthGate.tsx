@@ -39,7 +39,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ marginBottom: 32 }}>
-        <img src="/logo.png" alt="Neural AI" style={{ height: 36, width: 'auto' }} />
+        <img src="/logo.png" alt="AI Lab" style={{ height: 36, width: 'auto' }} />
       </div>
       <div style={{ background: 'var(--s)', border: '1px solid var(--b)', borderRadius: 14, padding: '36px 40px', width: 360, boxShadow: '0 8px 32px rgba(0,0,0,.08)' }}>
         <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--t)', marginBottom: 4 }}>Sign in</div>

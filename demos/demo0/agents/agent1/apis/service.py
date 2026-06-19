@@ -24,7 +24,7 @@ from .schemas import ChatRequest  # noqa: E402
 
 logger = get_logger(__name__)
 
-_AGENT_DIR = Path(__file__).parent.parent  # agents/demo1/
+_AGENT_DIR = Path(__file__).parent.parent  # agents/agent1/
 _CASES_DIR = _AGENT_DIR / "data" / "cases"
 _SESSIONS_DIR = _AGENT_DIR / "data" / "sessions"
 
@@ -132,7 +132,7 @@ class ClaimsService:
     async def chat_stream(
         self, session_id: str, req: ChatRequest
     ) -> AsyncGenerator[str, None]:
-        from agents.demo1.agentic.agent import run_chat  # noqa: PLC0415
+        from agents.agent1.agentic.agent import run_chat  # noqa: PLC0415
 
         logger.info(
             "[SERVICE] chat_stream  session_id=%s role=%s user_id=%s file_ref=%s msg_len=%d",
@@ -162,7 +162,7 @@ class ClaimsService:
     def direct_approve(self, case_id: str, approver_id: str, notes: str,
                        override_decision: str | None, override_amount: str | None) -> dict:
         """Directly approve (or override) a case, bypassing the chat interface."""
-        from agents.demo1.agentic.tools.csv_store import approve_case  # noqa: PLC0415
+        from agents.agent1.agentic.tools.csv_store import approve_case  # noqa: PLC0415
 
         decision = "overridden" if (override_decision or override_amount) else "approved"
         result = approve_case(
@@ -178,7 +178,7 @@ class ClaimsService:
 
     def direct_reject(self, case_id: str, approver_id: str, reason: str) -> dict:
         """Directly reject a case, bypassing the chat interface."""
-        from agents.demo1.agentic.tools.csv_store import approve_case  # noqa: PLC0415
+        from agents.agent1.agentic.tools.csv_store import approve_case  # noqa: PLC0415
 
         result = approve_case(
             case_id=case_id,

@@ -1,16 +1,16 @@
 app:
-  name: "Neural AI Agents"
-  description: "AI agent marketplace platform"
+  name: "AI Agents Squad"
+  description: "AI agent marketplace — demo0 of AI Lab"
 
 ports:
-  platform_frontend: 5000
-  platform_backend: 5001
+  platform_frontend: 8001   # marketplace UI
+  platform_backend: 8002    # agent scanner API
   agent_frontend:
-    start: 8001
+    start: 8010
     end: 8099
   agent_backend:
-    start: 3001
-    end: 3099
+    start: 8011
+    end: 8099
 
 defaults:
   memory_backend: local

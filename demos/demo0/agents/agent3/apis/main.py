@@ -1,11 +1,11 @@
 """
 Loan Processing FastAPI stub — placeholder until EP-5 is implemented.
 
-Responds to all Neural API endpoints with 501 Not Implemented,
+Responds to all AI Lab API endpoints with 501 Not Implemented,
 except GET /ping which returns a health-check so the frontend and
 run.sh can confirm the process is up.
 
-Run from the agents/loan/apis/ directory:
+Run from the agents/agent3/apis/ directory:
   uvicorn main:app --host 0.0.0.0 --port 8003
 """
 
@@ -18,7 +18,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 app = FastAPI(
-    title="Neural Loan Processing API (stub)",
+    title="Loan Processing API (stub)",
     version="0.0.0",
     description="Loan Processing agent stub — not yet implemented.",
 )

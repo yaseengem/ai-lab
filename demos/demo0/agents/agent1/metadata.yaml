@@ -9,9 +9,9 @@ description: >
   before issuing a pay, deny, or pend decision with a full audit trail.
 use_case: claims_processing
 domain: insurance
-api_port: 3001
-frontend_port: 8001
-entry_point: "agents.demo1.apis.main:app"
+api_port: 8011
+frontend_port: 8010
+entry_point: "agents.agent1.apis.main:app"
 api_version: "2.0.0"
 status: active
 version: "1.0.0"

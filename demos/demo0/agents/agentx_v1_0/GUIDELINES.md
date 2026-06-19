@@ -1,18 +1,19 @@
 # New Agent Guidelines (Template v1.0)
 
 This is the v1.0 template. Future template versions live alongside as
-`agents/demox_v2_0/`, `agents/demox_v3_0/`, etc. Pick the latest version
-when starting a new agent.
+`agents/agentx_v2_0/`, `agents/agentx_v3_0/`, etc. Pick the latest version
+when starting a new agent. (All agents live under `demos/demo0/agents/`.)
 
 ## Starting a new agent
 
-1. Copy this folder: `cp -r agents/demox_v1_0 agents/demoN`
+1. Copy this folder: `cp -r agents/agentx_v1_0 agents/agentN`
 2. Update `metadata.yaml`:
    - set `name`, `description`, `use_case`, `domain`, `api_port`, `frontend_port`
+     (port scheme: frontend `80N0`, api `80N1`)
    - change `status: template` → `status: stub` (or `active`)
-   - update `entry_point` to `agents.demoN.apis.main:app` (use the new folder name)
+   - update `entry_point` to `agents.agentN.apis.main:app` (use the new folder name)
    - keep `template_version: "1.0"` so we can track which template version this agent inherits from
-3. Update Python module strings inside the new folder: any `agents.demox_v1_0.*` → `agents.demoN.*`
+3. Update Python module strings inside the new folder: any `agents.agentx_v1_0.*` → `agents.agentN.*`
 4. Write a spec in `specs/` first (see `specs/_template.md`)
 5. Implement agentic logic inside `agentic/`
 6. Wire up the FastAPI app inside `apis/`
@@ -21,9 +22,9 @@ when starting a new agent.
 ## Folder map
 
 ```
-agents/demoN/
+agents/agentN/
 ├── metadata.yaml          # agent identity — read by platform scanner and main.py
-├── main.py                # starts API + frontend (copy from demox_v1_0, unchanged)
+├── main.py                # starts API + frontend (copy from agentx_v1_0, unchanged)
 ├── GUIDELINES.md          # (remove from your copy once read)
 │
 ├── agentic/               # all AI/agent code lives here
@@ -39,14 +40,14 @@ agents/demoN/
 │
 ├── apis/                  # FastAPI application
 │   ├── __init__.py
-│   ├── main.py            # FastAPI app, CORS (allow :5000 + own frontend_port)
+│   ├── main.py            # FastAPI app, CORS (allow :8001 + own frontend_port)
 │   ├── routes.py          # router with /ping, /sessions, /chat/{id}, etc.
 │   ├── schemas.py         # Pydantic request/response models
 │   └── service.py         # service layer between routes and agentic/
 │
 ├── frontend/              # standalone Vite + React project
 │   ├── package.json       # own dependencies — no npm workspaces
-│   ├── vite.config.ts     # @shared alias → ../../frontend/src
+│   ├── vite.config.ts     # @shared alias → ../../../frontend/src
 │   ├── index.html
 │   └── src/
 │       ├── App.tsx
@@ -66,10 +67,10 @@ agents/demoN/
 
 ## Key rules (from CLAUDE.md)
 
-- **Never modify demox_v1_0** (or any demox_vN_M) — they are templates. Copy them.
+- **Never modify agentx_v1_0** (or any agentx_vN_M) — they are templates. Copy them.
 - `metadata.yaml status: template` → the platform scanner skips this agent.
 - `main.py` is shared logic — do not customise it per agent.
 - Memory backend is at `agentic/memory_backend.py` and stores to `data/memory/`.
 - All data paths are relative to the agent folder — no STORAGE_PATH env var.
-- CORS in `apis/main.py` must allow `:5000` (platform) and `frontend_port`.
+- CORS in `apis/main.py` must allow `:8001` (marketplace) and `frontend_port`.
 - Frontend `.env` is written by `main.py` at startup — never hardcode VITE_API_URL.

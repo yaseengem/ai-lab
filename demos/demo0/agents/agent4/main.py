@@ -2,7 +2,7 @@
 Starts the FastAPI backend and Vite frontend for the Settlement Failure Prevention Agent.
 
 Usage (from repo root):
-    python agents/demo4/main.py
+    python agents/agent4/main.py
 """
 
 from __future__ import annotations

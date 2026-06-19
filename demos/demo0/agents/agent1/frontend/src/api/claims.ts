@@ -1,6 +1,6 @@
 /**
  * Calvin Claims API client.
- * VITE_API_URL is injected by agents/demo1/main.py before Vite starts.
+ * VITE_API_URL is injected by agents/agent1/main.py before Vite starts.
  */
 
 const API = import.meta.env.VITE_API_URL ?? 'http://localhost:3001'

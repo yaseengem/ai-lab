@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# check.sh — Report the status of all Neural services.
-# Dynamically reads config.yaml and agents/*/metadata.yaml.
+# check.sh — Report the status of all AI Lab services.
+# Dynamically reads config.yaml, demos/demo0/config.yaml and demos/demo0/agents/*/metadata.yaml.
 set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+DEMO0_DIR="$REPO_ROOT/demos/demo0"
 PID_DIR="$REPO_ROOT/scripts/pids"
 
 GRN='\033[0;32m'; RED='\033[0;31m'; YLW='\033[1;33m'; CYN='\033[0;36m'; BOLD='\033[1m'; NC='\033[0m'
@@ -41,22 +42,26 @@ check_service() {
 }
 
 echo ""
-echo "=== Neural — Service Status =============================================="
+echo "=== AI Lab — Service Status =============================================="
 echo ""
 
-# ── Platform ─────────────────────────────────────────────────────────────────
-BACKEND_PORT=$(python -c "import yaml; c=yaml.safe_load(open('$REPO_ROOT/config.yaml')); print(c['ports']['platform_backend'])" 2>/dev/null || echo "5001")
-FRONTEND_PORT=$(python -c "import yaml; c=yaml.safe_load(open('$REPO_ROOT/config.yaml')); print(c['ports']['platform_frontend'])" 2>/dev/null || echo "5000")
+# ── AI Lab launcher ───────────────────────────────────────────────────────────
+LAUNCHER_PORT=$(python -c "import yaml; print(yaml.safe_load(open('$REPO_ROOT/config.yaml'))['launcher_port'])" 2>/dev/null || echo "5000")
+check_service "AI Lab Launcher   (:${LAUNCHER_PORT})" "ai-lab-launcher" "$LAUNCHER_PORT"
 
-check_service "Platform API      (:${BACKEND_PORT})"  "platform-api"      "$BACKEND_PORT"  "http://localhost:${BACKEND_PORT}/api/health"
-check_service "Platform Frontend (:${FRONTEND_PORT})" "platform-frontend" "$FRONTEND_PORT"
+# ── AI Agents Squad (demo0) ────────────────────────────────────────────────────
+SQUAD_BACKEND_PORT=$(python -c "import yaml; print(yaml.safe_load(open('$DEMO0_DIR/config.yaml'))['ports']['platform_backend'])" 2>/dev/null || echo "8002")
+SQUAD_FRONTEND_PORT=$(python -c "import yaml; print(yaml.safe_load(open('$DEMO0_DIR/config.yaml'))['ports']['platform_frontend'])" 2>/dev/null || echo "8001")
+
+check_service "Squad API         (:${SQUAD_BACKEND_PORT})"  "squad-api"      "$SQUAD_BACKEND_PORT"  "http://localhost:${SQUAD_BACKEND_PORT}/api/health"
+check_service "Squad Marketplace (:${SQUAD_FRONTEND_PORT})" "squad-frontend" "$SQUAD_FRONTEND_PORT"
 
 # ── Agents ────────────────────────────────────────────────────────────────────
 python -c "
 import yaml
 from pathlib import Path
 
-for d in sorted(Path('$REPO_ROOT/agents').iterdir()):
+for d in sorted(Path('$DEMO0_DIR/agents').iterdir()):
     meta_file = d / 'metadata.yaml'
     if not meta_file.exists(): continue
     meta = yaml.safe_load(meta_file.read_text())

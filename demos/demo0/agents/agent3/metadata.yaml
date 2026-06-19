@@ -10,9 +10,9 @@ description: >
   compliance-ready explanation of factors considered.
 use_case: loan_processing
 domain: banking
-api_port: 3003
-frontend_port: 8003
-entry_point: "agents.demo3.apis.main:app"
+api_port: 8031
+frontend_port: 8030
+entry_point: "agents.agent3.apis.main:app"
 api_version: "1.0.0"
 status: stub
 version: "0.1.0"

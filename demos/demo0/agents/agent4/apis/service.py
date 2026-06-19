@@ -31,7 +31,7 @@ from commons.logger import get_logger  # noqa: E402
 
 logger = get_logger(__name__)
 
-_AGENT_DIR = Path(__file__).parent.parent  # agents/demo4/
+_AGENT_DIR = Path(__file__).parent.parent  # agents/agent4/
 _SESSIONS_DIR = _AGENT_DIR / "data" / "sessions"
 _UPLOADS_DIR = _AGENT_DIR / "data" / "uploads"
 _RUN_SEQ_DIR = _AGENT_DIR / "data" / "_run_seq"
