@@ -20,10 +20,16 @@ _MAX_PROBE_WORKERS = 16
 
 
 def _probe_ping(port: int) -> str:
-    """Return 'online', 'offline', or 'unknown'."""
+    """Return 'online' or 'offline'.
+
+    Uses 127.0.0.1 rather than 'localhost' on purpose: on Windows 'localhost'
+    resolves to both IPv4 and IPv6, so a closed port is probed twice (~2x the
+    timeout) before failing. Pinning to IPv4 keeps an offline probe bounded by
+    a single _PING_TIMEOUT_SECS.
+    """
     try:
         with urllib.request.urlopen(
-            f"http://localhost:{port}/ping", timeout=_PING_TIMEOUT_SECS
+            f"http://127.0.0.1:{port}/ping", timeout=_PING_TIMEOUT_SECS
         ):
             return "online"
     except Exception:
