@@ -18,7 +18,7 @@ cleanup() {
   echo "=== AI Lab — Shutting down ==="
   for pid in "${CHILD_PIDS[@]}"; do
     kill "$pid" 2>/dev/null || true
-    taskkill //PID "$pid" //F 2>/dev/null || true
+    taskkill //PID "$pid" //T //F 2>/dev/null || true
   done
   wait 2>/dev/null || true
   bash "$REPO_ROOT/scripts/stop.sh"

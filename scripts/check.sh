@@ -65,7 +65,7 @@ for d in sorted(Path('$DEMO0_DIR/agents').iterdir()):
     meta_file = d / 'metadata.yaml'
     if not meta_file.exists(): continue
     meta = yaml.safe_load(meta_file.read_text())
-    if meta.get('status') in ('template',): continue
+    if meta.get('status') in ('template', 'stub'): continue
     print(f\"{meta['name']}|agent-{d.name}|{meta['api_port']}|{meta['frontend_port']}\")
 " | while IFS='|' read -r name pid_name api_port frontend_port; do
   check_service "$name API         (:${api_port})"      "$pid_name" "$api_port"      "http://localhost:${api_port}/ping"

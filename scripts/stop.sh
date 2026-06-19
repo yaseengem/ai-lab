@@ -21,7 +21,7 @@ if [[ -d "$PID_DIR" ]]; then
     pid="$(cat "$pid_file")"
     if [[ -n "$pid" ]]; then
       kill "$pid" 2>/dev/null || true
-      taskkill //PID "$pid" //F 2>/dev/null && echo "  killed $local_name (PID $pid)" || true
+      taskkill //PID "$pid" //T //F 2>/dev/null && echo "  killed $local_name (PID $pid)" || true
       rm -f "$pid_file"
     fi
   done
@@ -38,7 +38,7 @@ kill_port() {
   fi
   for p in $pids; do
     [[ -z "$p" || "$p" == "0" ]] && continue
-    taskkill //PID "$p" //F 2>/dev/null && echo "  killed $label (PID $p on port $port)" || true
+    taskkill //PID "$p" //T //F 2>/dev/null && echo "  killed $label (PID $p on port $port)" || true
   done
 }
 
