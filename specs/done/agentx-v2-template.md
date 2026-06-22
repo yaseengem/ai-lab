@@ -1,6 +1,6 @@
 # Spec: Agent Template v2.0 (`agentx_v2_0`)
 
-**Status:** in-progress
+**Status:** done
 **Version:** v1
 **Date:** 2026-06-23
 **Owner:** Yaseen Mohammed
@@ -274,40 +274,40 @@ Tighten `schemas/agent-metadata.schema.json`:
 ## Implementation Checklist
 
 ### Phase 1 — Spec into repo
-- [ ] 1.1 Approve this spec; move to `specs/active/`; update `roadmap.md`.
+- [x] 1.1 Approve this spec; move to `specs/active/`; update `roadmap.md`.
 
 ### Phase 2 — Schema & standards
-- [ ] 2.1 Add `card_description` (maxLength 140), required `icon`, document semver in `schemas/agent-metadata.schema.json`.
-- [ ] 2.2 `app/services/agent_scanner.py` validates the new fields + canonical-endpoint contract check; `app/schemas/agent.py` exposes `card_description`/`icon`.
-- [ ] 2.3 `AgentCard.tsx` renders `card_description`. Regression test for length/icon + contract rules.
+- [x] 2.1 Add `card_description` (maxLength 140), required `icon`, document semver in `schemas/agent-metadata.schema.json`.
+- [x] 2.2 `app/services/agent_scanner.py` validates the new fields + canonical-endpoint contract check; `app/schemas/agent.py` exposes `card_description`/`icon`.
+- [x] 2.3 `AgentCard.tsx` renders `card_description`. Regression test for length/icon + contract rules.
 
 ### Phase 3 — Template backend
-- [ ] 3.1 Scaffold `agentx_v2_0/` from the v1.0 pattern; rewrite imports `agentx_v1_0.` → `agentx_v2_0.`; `metadata.yaml` (`template_version "2.0"`, `status template`, icon, bounded `card_description`).
-- [ ] 3.2 `agent.config.yaml` (personas, defaults, features, capabilities) + `apis/` canonical endpoints, `GET /personas`, `GET /memory`, `GET /architecture`, `POST /admin/restart`.
-- [ ] 3.3 Startup self-check feeding `/ping`; `events.jsonl` + SSE replay in `service.py`; logging configured to write to this agent's `logs/`.
-- [ ] 3.4 `test_routes.py` (`/test/scenarios`, `/test/run/{id}`) + minimal agentic skeleton + standard `approval_hook.py` (config-toggleable); operations-aware chat read-tools (sessions/events, memory, config, `/ping`).
+- [x] 3.1 Scaffold `agentx_v2_0/` from the v1.0 pattern; rewrite imports `agentx_v1_0.` → `agentx_v2_0.`; `metadata.yaml` (`template_version "2.0"`, `status template`, icon, bounded `card_description`).
+- [x] 3.2 `agent.config.yaml` (personas, defaults, features, capabilities) + `apis/` canonical endpoints, `GET /personas`, `GET /memory`, `GET /architecture`, `POST /admin/restart`.
+- [x] 3.3 Startup self-check feeding `/ping`; `events.jsonl` + SSE replay in `service.py`; logging configured to write to this agent's `logs/`.
+- [x] 3.4 `test_routes.py` (`/test/scenarios`, `/test/run/{id}`) + minimal agentic skeleton + standard `approval_hook.py` (config-toggleable); operations-aware chat read-tools (sessions/events, memory, config, `/ping`).
 
 ### Phase 4 — Template frontend
-- [ ] 4.1 Standalone Vite project; `@shared` alias; `main.py` writes `VITE_API_URL` + `VITE_AGENT_ID`.
-- [ ] 4.2 `Ribbon` (top bar + persona-filtered left nav), light theme.
-- [ ] 4.3 Persona-select gate at `/`; `config/personas.ts` fetches personas; persona stored + drives nav.
-- [ ] 4.4 Must-have pages: Command Center (readiness), Chat, Processing (resumable + HITL), Memory, Architecture (renders bundled `architecture.md` ≤1000 words + Mermaid diagram + capabilities), Test Runner (pass/fail), Agent Config (read-only). No pricing anywhere.
-- [ ] 4.5 Add a Mermaid renderer to the agent frontend (the Architecture page) and author the template's `architecture.md` (≤1000 words, one Mermaid diagram).
+- [x] 4.1 Standalone Vite project; `@shared` alias; `main.py` writes `VITE_API_URL` + `VITE_AGENT_ID`.
+- [x] 4.2 `Ribbon` (top bar + persona-filtered left nav), light theme.
+- [x] 4.3 Persona-select gate at `/`; `config/personas.ts` fetches personas; persona stored + drives nav.
+- [x] 4.4 Must-have pages: Command Center (readiness), Chat, Processing (resumable + HITL), Memory, Architecture (renders bundled `architecture.md` ≤1000 words + Mermaid diagram + capabilities), Test Runner (pass/fail), Agent Config (read-only). No pricing anywhere.
+- [x] 4.5 Add a Mermaid renderer to the agent frontend (the Architecture page) and author the template's `architecture.md` (≤1000 words, one Mermaid diagram).
 
 ### Phase 5 — Self-test data
-- [ ] 5.1 `data/test_scenarios/*.json` with `expected` blocks.
-- [ ] 5.2 `create_dummy_data.py` seed/demo generator.
+- [x] 5.1 `data/test_scenarios/*.json` with `expected` blocks.
+- [x] 5.2 `create_dummy_data.py` seed/demo generator.
 
 ### Phase 6 — Platform config page + restart
-- [ ] 6.1 `app/routers/agent_config.py` + `app/services/agent_config_service.py`: `GET`/`PUT /api/agents/{id}/config` (filelock, works while stopped) + `POST /api/agents/{id}/restart`.
-- [ ] 6.2 Restart logic: call the agent's `POST /admin/restart` if running, else (re)launch via the orchestrator; report running/stopped state.
-- [ ] 6.3 Register router in `app/main.py`.
-- [ ] 6.4 Marketplace per-agent **Config page** (on `AgentDetailPage`): config-edit options + a **Restart agent** button; usable while offline; prompt to restart after a config change.
+- [x] 6.1 `app/routers/agent_config.py` + `app/services/agent_config_service.py`: `GET`/`PUT /api/agents/{id}/config` (filelock, works while stopped) + `POST /api/agents/{id}/restart`.
+- [x] 6.2 Restart logic: call the agent's `POST /admin/restart` if running, else (re)launch via the orchestrator; report running/stopped state.
+- [x] 6.3 Register router in `app/main.py`.
+- [x] 6.4 Marketplace per-agent **Config page** (on `AgentDetailPage`): config-edit options + a **Restart agent** button; usable while offline; prompt to restart after a config change.
 
 ### Phase 7 — Docs & rule
-- [ ] 7.1 `agentx_v2_0/GUIDELINES.md` (v2.0 steps) — including: pick the next free `80N0`/`80N1` ports and add a row to `docs/ports.md`.
-- [ ] 7.2 New `docs/ports.md` port registry (launcher, demo0 platform + agents, templates, non-agent demos) with a "next free" marker and an add-an-agent checklist.
-- [ ] 7.3 `CLAUDE.md` + `docs/conventions.md`: v2.0 standard (must-have pages, ribbon, personas, self-test, API contract, config file, no pricing, self-containment, port registry) and the **"new agents always copy the latest template version"** rule. Point the root "Port conventions" table at `docs/ports.md`.
+- [x] 7.1 `agentx_v2_0/GUIDELINES.md` (v2.0 steps) — including: pick the next free `80N0`/`80N1` ports and add a row to `docs/ports.md`.
+- [x] 7.2 New `docs/ports.md` port registry (launcher, demo0 platform + agents, templates, non-agent demos) with a "next free" marker and an add-an-agent checklist.
+- [x] 7.3 `CLAUDE.md` + `docs/conventions.md`: v2.0 standard (must-have pages, ribbon, personas, self-test, API contract, config file, no pricing, self-containment, port registry) and the **"new agents always copy the latest template version"** rule. Point the root "Port conventions" table at `docs/ports.md`.
 
 ---
 

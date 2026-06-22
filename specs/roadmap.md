@@ -19,7 +19,6 @@ live inside each spec; this file is the overview only. Process: see [README.md](
 | Spec | Status |
 |------|--------|
 | [ui-professional-polish.md](active/ui-professional-polish.md) — copy, emoji, capitalization pass | in-progress |
-| [agentx-v2-template.md](active/agentx-v2-template.md) — Agent Template v2.0: must-have pages, ribbon, personas, self-test, standard API contract, config + restart | in-progress |
 
 ---
 
@@ -33,6 +32,7 @@ live inside each spec; this file is the overview only. Process: see [README.md](
 | [demo4-ui-v2-12-screens.md](done/demo4-ui-v2-12-screens.md) — Settlement agent 12-screen UI | done |
 | [marketplace-nav-and-filters.md](done/marketplace-nav-and-filters.md) — marketplace nav + advanced filters | done |
 | [runs-subsystem-and-template-versioning.md](done/runs-subsystem-and-template-versioning.md) — runs subsystem, HITL wiring, template versioning | done |
+| [agentx-v2-template.md](done/agentx-v2-template.md) — Agent Template v2.0: must-have pages, ribbon, personas, self-test, API contract, config + restart | done |
 
 ---
 
