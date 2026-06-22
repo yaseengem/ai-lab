@@ -88,9 +88,6 @@ export function ClaimStatusPage() {
                   <div style={{ fontSize: 22, fontWeight: 700, color: meta.color }}>{meta.label}</div>
                   <div style={{ fontSize: 13, color: 'var(--t2)', marginTop: 4 }}>Case ID: {claim.case_id || '—'}</div>
                 </div>
-                <div style={{ fontSize: 40 }}>
-                  {meta.label === 'Approved' ? '✅' : meta.label === 'Denied' ? '❌' : '⏳'}
-                </div>
               </div>
             </div>
           )}
@@ -142,9 +139,9 @@ export function ClaimStatusPage() {
         <aside style={{ width: 240, flexShrink: 0 }}>
           <div style={{ background: 'var(--s)', border: '1px solid var(--b)', borderRadius: 14, padding: 20, marginBottom: 16 }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--t)', marginBottom: 12 }}>Quick actions</div>
-            {[['📄', 'Submit new claim', '/submit'], ['📋', 'Review queue', '/queue'], ['🔍', 'Audit logs', '/logs']].map(([icon, label, path]) => (
+            {[['Submit new claim', '/submit'], ['Review queue', '/queue'], ['Audit logs', '/logs']].map(([label, path]) => (
               <button key={label as string} className="btn" style={{ width: '100%', marginBottom: 8, justifyContent: 'flex-start', gap: 8 }} onClick={() => navigate(path as string)}>
-                {icon} {label}
+                {label}
               </button>
             ))}
           </div>

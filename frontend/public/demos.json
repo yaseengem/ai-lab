@@ -1,6 +1,6 @@
 {
   "appName": "AI Lab",
-  "tagline": "A lab of AI demos",
+  "tagline": "Enterprise AI demonstration platform",
   "demos": [
     {
       "id": "demo0",

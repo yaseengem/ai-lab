@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 
 const INDUSTRIES = [
   { id: 'ins', label: 'Insurance', icon: '🏥', color: 'var(--acd)', text: 'var(--ac)', count: 48, tags: ['Claims Processing', 'Underwriting', 'Fraud Detection'], cls: 'tb', span: 2 },
@@ -26,7 +26,6 @@ const TRUST = [
 
 export function LandingPage() {
   const navigate = useNavigate()
-  const fiRefs = useRef<HTMLElement[]>([])
 
   useEffect(() => {
     const obs = new IntersectionObserver(
@@ -146,7 +145,7 @@ export function LandingPage() {
               <div style={{ fontSize: 11, color: 'var(--t3)' }}>{a.by}</div>
               <div style={{ fontSize: 12, color: 'var(--t2)', lineHeight: 1.65, margin: '9px 0 12px' }}>{a.desc}</div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ fontSize: 12, color: 'var(--t3)' }}>⭐ {a.rating} · {a.deploys} deployments</div>
+                <div style={{ fontSize: 12, color: 'var(--t3)' }}>{a.rating} rating · {a.deploys} deployments</div>
                 <span className={`tag ${a.tagCls}`}>{a.tag}</span>
               </div>
             </div>

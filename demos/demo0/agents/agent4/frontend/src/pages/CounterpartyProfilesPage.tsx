@@ -72,7 +72,7 @@ export function CounterpartyProfilesPage() {
     <div style={{ padding: '28px 32px', maxWidth: 1200, margin: '0 auto' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
         <div>
-          <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--t)', marginBottom: 2 }}>Counterparty Risk Profiles</h1>
+          <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--t)', marginBottom: 2 }}>Counterparty risk profiles</h1>
           <p style={{ fontSize: 13, color: 'var(--t2)' }}>All counterparties in the current monitoring cycle</p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
@@ -103,7 +103,7 @@ export function CounterpartyProfilesPage() {
           <div style={{ fontSize: 32, marginBottom: 12 }}>🏢</div>
           <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--t)', marginBottom: 6 }}>No counterparty data</div>
           <div style={{ fontSize: 13, color: 'var(--t2)', marginBottom: 16 }}>Run a pipeline to populate counterparty profiles.</div>
-          <Link to="/monitor"><button className="btn btn-p">▶ Start Pipeline</button></Link>
+          <Link to="/monitor"><button className="btn btn-p">▶ Start pipeline</button></Link>
         </div>
       ) : viewMode === 'cards' ? (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}>
@@ -125,13 +125,13 @@ export function CounterpartyProfilesPage() {
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
-                  <span style={{ color: 'var(--t3)' }}>Max Obligation</span>
+                  <span style={{ color: 'var(--t3)' }}>Max obligation</span>
                   <span style={{ color: 'var(--t)', fontWeight: 600 }}>{cp.maxObligation > 0 ? fmt(cp.maxObligation) : '—'}</span>
                 </div>
                 {cp.brief && (
                   <>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
-                      <span style={{ color: 'var(--t3)' }}>CIS Status</span>
+                      <span style={{ color: 'var(--t3)' }}>CIS status</span>
                       <span style={{
                         fontSize: 11, fontWeight: 700, padding: '1px 6px', borderRadius: 3,
                         color: cp.brief.cis_status === 'ACTIVE' ? 'var(--gn)' : cp.brief.cis_status === 'DEGRADED' ? 'var(--am)' : 'var(--rd)',
@@ -139,7 +139,7 @@ export function CounterpartyProfilesPage() {
                       }}>{cp.brief.cis_status || '—'}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
-                      <span style={{ color: 'var(--t3)' }}>Lending Balance</span>
+                      <span style={{ color: 'var(--t3)' }}>Lending balance</span>
                       <span style={{
                         color: cp.brief.lending_balance_pct !== undefined && cp.brief.lending_balance_pct < 80 ? 'var(--rd)' : 'var(--gn)',
                         fontWeight: 600,
@@ -148,17 +148,17 @@ export function CounterpartyProfilesPage() {
                       </span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
-                      <span style={{ color: 'var(--t3)' }}>Last Failure</span>
+                      <span style={{ color: 'var(--t3)' }}>Last failure</span>
                       <span style={{ color: 'var(--t)' }}>{cp.brief.last_failure_date || 'None (90d)'}</span>
                     </div>
                     {cp.brief.watchlist_status && (
                       <div style={{ fontSize: 11, color: 'var(--rd)', fontWeight: 700, marginTop: 2 }}>
-                        ⚠️ Active JSE Watchlist Entry
+                        ⚠️ Active JSE watchlist entry
                       </div>
                     )}
                     {cp.brief.root_cause && (
                       <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ fontSize: 10, color: 'var(--t3)' }}>ROOT CAUSE</span>
+                        <span style={{ fontSize: 10, color: 'var(--t3)' }}>Root cause</span>
                         <span style={{
                           fontSize: 11, fontWeight: 700, padding: '1px 7px', borderRadius: 4,
                           color: ROOT_CAUSE_COLORS[cp.brief.root_cause] || 'var(--t2)',
@@ -169,7 +169,7 @@ export function CounterpartyProfilesPage() {
                   </>
                 )}
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
-                  <span style={{ color: 'var(--t3)' }}>Open Trades</span>
+                  <span style={{ color: 'var(--t3)' }}>Open trades</span>
                   <Link to={`/watchlist?cp=${cp.id}`} style={{ color: 'var(--ac)', fontWeight: 600 }}>
                     {cp.trades.length} trade{cp.trades.length !== 1 ? 's' : ''} →
                   </Link>
@@ -183,7 +183,7 @@ export function CounterpartyProfilesPage() {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
             <thead>
               <tr style={{ background: 'var(--s2)' }}>
-                {['Counterparty', 'ID', 'Risk Tier', 'Max Obligation', 'CIS Status', 'Lending %', 'Last Failure', 'Watchlist', 'Root Cause', 'Trades'].map(h => (
+                {['Counterparty', 'ID', 'Risk tier', 'Max obligation', 'CIS status', 'Lending %', 'Last failure', 'Watchlist', 'Root cause', 'Trades'].map(h => (
                   <th key={h} style={{ padding: '8px 12px', textAlign: 'left', color: 'var(--t2)', fontWeight: 600, whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
               </tr>

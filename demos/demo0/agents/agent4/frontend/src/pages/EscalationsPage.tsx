@@ -48,14 +48,14 @@ export function EscalationsPage() {
   return (
     <div style={{ padding: '28px 32px', maxWidth: 1100, margin: '0 auto' }}>
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--t)', marginBottom: 2 }}>Human Escalations & Approvals</h1>
+        <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--t)', marginBottom: 2 }}>Human escalations & approvals</h1>
         <p style={{ fontSize: 13, color: 'var(--t2)' }}>Items requiring human judgment before execution</p>
       </div>
 
       {/* Pending approvals */}
       <div style={{ marginBottom: 28 }}>
         <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--t)', marginBottom: 14 }}>
-          Pending Approvals
+          Pending approvals
           {pendingApprovals.length > 0 && (
             <span style={{
               marginLeft: 10, fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 10,
@@ -81,7 +81,7 @@ export function EscalationsPage() {
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 }}>
                   <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--am)' }}>
-                    ⚠️ LOLR Transaction — Approval Required
+                    ⚠️ LOLR transaction — approval required
                   </span>
                   {item.timestamp && <Countdown startTime={item.timestamp} />}
                 </div>

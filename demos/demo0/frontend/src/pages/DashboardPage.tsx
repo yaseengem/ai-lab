@@ -4,32 +4,31 @@ import { fetchAgents, type PlatformAgent } from '@/api/platform'
 
 const SIDEBAR_LINKS = [
   { section: 'Workspace', items: [
-    { label: 'My agents', icon: '🤖', path: '/dashboard' },
-    { label: 'Usage', icon: '📊', path: '/dashboard/usage' },
-    { label: 'Billing', icon: '💳', path: '/dashboard/billing' },
-    { label: 'Integrations', icon: '🔗', path: '/dashboard/integrations' },
+    { label: 'My agents', path: '/dashboard' },
+    { label: 'Usage', path: '/dashboard/usage' },
+    { label: 'Billing', path: '/dashboard/billing' },
+    { label: 'Integrations', path: '/dashboard/integrations' },
   ]},
   { section: 'Account', items: [
-    { label: 'Profile', icon: '👤', path: '/dashboard/profile' },
-    { label: 'Security', icon: '🔒', path: '/dashboard/security' },
-    { label: 'Notifications', icon: '🔔', path: '/dashboard/notifications' },
+    { label: 'Profile', path: '/dashboard/profile' },
+    { label: 'Security', path: '/dashboard/security' },
+    { label: 'Notifications', path: '/dashboard/notifications' },
   ]},
 ]
 
 const ACTIVITY = [
   { id: 'CLM-2241', action: 'Auto-approved', detail: 'Appendectomy · $21,400 · 97% confidence', time: '2 min ago', type: 'gn' },
   { id: 'CLM-2240', action: 'Pending review', detail: 'Spinal surgery · $42,500 · 68% confidence', time: '8 min ago', type: 'am' },
-  { id: 'CLM-2239', action: 'Rejected — fraud', detail: 'Duplicate claim detected', time: '22 min ago', type: 'rd' },
+  { id: 'CLM-2239', action: 'Rejected: fraud indicator', detail: 'Duplicate claim detected', time: '22 min ago', type: 'rd' },
   { id: 'CLM-2238', action: 'Approved by reviewer', detail: 'Auto accident · $8,800 · manual override', time: '1h ago', type: 'gn' },
   { id: 'CLM-2237', action: 'Auto-approved', detail: 'GP consultation · $820 · 99% confidence', time: '1h 15min ago', type: 'gn' },
 ]
 
-function StatCard({ icon, label, value, sub }: { icon: string; label: string; value: string; sub?: string }) {
+function StatCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
     <div style={{ background: 'var(--s)', border: '1px solid var(--b)', borderRadius: 12, padding: '18px 20px' }}>
       <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>{label}</div>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-        <span style={{ fontSize: 22, marginRight: 4 }}>{icon}</span>
         <span style={{ fontSize: 28, fontWeight: 700, color: 'var(--t)' }}>{value}</span>
       </div>
       {sub && <div style={{ fontSize: 12, color: 'var(--t3)', marginTop: 4 }}>{sub}</div>}
@@ -44,7 +43,7 @@ function AgentCard({ agent }: { agent: PlatformAgent }) {
     <div style={{ background: 'var(--s)', border: '1px solid var(--b)', borderRadius: 14, padding: 24, marginBottom: 16 }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
         <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
-          <div style={{ width: 46, height: 46, borderRadius: 11, background: 'var(--acd)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>🤖</div>
+          <div style={{ width: 46, height: 46, borderRadius: 11, background: 'var(--acd)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 700, color: 'var(--ac)' }}>{agent.name.charAt(0).toUpperCase()}</div>
           <div>
             <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--t)' }}>{agent.name}</div>
             <div style={{ fontSize: 12, color: 'var(--t3)', marginTop: 2 }}>{agent.domain} · {agent.use_case.replace(/_/g, ' ')}</div>
@@ -115,7 +114,7 @@ export function DashboardPage() {
             {items.map((item) => (
               <button key={item.label} onClick={() => setActiveLink(item.path)}
                 style={{ width: '100%', textAlign: 'left', padding: '8px 10px', borderRadius: 7, border: 'none', cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8, background: activeLink === item.path ? 'var(--acd)' : 'transparent', color: activeLink === item.path ? 'var(--ac)' : 'var(--t2)', fontWeight: activeLink === item.path ? 600 : 400 }}>
-                <span>{item.icon}</span>{item.label}
+                {item.label}
               </button>
             ))}
           </div>
@@ -135,10 +134,10 @@ export function DashboardPage() {
 
         {/* Stats */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14, marginBottom: 28 }}>
-          <StatCard icon="🤖" label="Active agents" value={String(online)} sub={`${agents.length} total registered`} />
-          <StatCard icon="⚡" label="Platform status" value={online > 0 ? 'Online' : 'Offline'} sub="via /api/health" />
-          <StatCard icon="📦" label="Agents found" value={String(agents.length)} sub="from agents/ folder" />
-          <StatCard icon="🔗" label="API port" value="5001" sub="platform backend" />
+          <StatCard label="Active agents" value={String(online)} sub={`${agents.length} total registered`} />
+          <StatCard label="Platform status" value={online > 0 ? 'Online' : 'Offline'} sub="Live" />
+          <StatCard label="Registered agents" value={String(agents.length)} sub="Available on platform" />
+          <StatCard label="API port" value="5001" sub="Platform backend" />
         </div>
 
         {/* Agent cards */}
@@ -148,8 +147,7 @@ export function DashboardPage() {
 
         {!loading && agents.length === 0 && (
           <div style={{ background: 'var(--s)', border: '1px solid var(--b)', borderRadius: 14, padding: 40, textAlign: 'center', marginBottom: 20 }}>
-            <div style={{ fontSize: 32, marginBottom: 12 }}>📭</div>
-            <div style={{ fontSize: 14, color: 'var(--t2)', marginBottom: 16 }}>No agents found. Start the platform backend first.</div>
+            <div style={{ fontSize: 14, color: 'var(--t2)', marginBottom: 16 }}>No agents are currently running.</div>
             <button className="btn btn-p" onClick={() => navigate('/browse')}>Browse agents</button>
           </div>
         )}

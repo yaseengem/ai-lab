@@ -43,7 +43,6 @@ export function SubmitClaimPage() {
   if (done) {
     return (
       <div style={{ padding: 60, textAlign: 'center', maxWidth: 520, margin: '0 auto' }}>
-        <div style={{ fontSize: 48, marginBottom: 16 }}>✅</div>
         <h2 style={{ fontSize: 22, fontWeight: 700, color: 'var(--t)', marginBottom: 12 }}>Claim submitted</h2>
         <div style={{ background: 'var(--s2)', borderRadius: 10, padding: 16, fontSize: 12, color: 'var(--t2)', textAlign: 'left', marginBottom: 20, whiteSpace: 'pre-wrap', maxHeight: 200, overflow: 'auto' }}>{output}</div>
         <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
@@ -103,7 +102,6 @@ export function SubmitClaimPage() {
             <div>
               <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--t)', marginBottom: 16 }}>Supporting documents</h2>
               <div onClick={() => fileRef.current?.click()} style={{ border: '2px dashed var(--b2)', borderRadius: 12, padding: 36, textAlign: 'center', cursor: 'pointer', background: 'var(--s2)' }}>
-                <div style={{ fontSize: 28, marginBottom: 8 }}>📎</div>
                 <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--t)' }}>Drop files here or click to upload</div>
                 <div style={{ fontSize: 12, color: 'var(--t3)', marginTop: 4 }}>PDF, images, DOCX — max 20 MB</div>
                 <input ref={fileRef} type="file" style={{ display: 'none' }} multiple accept=".pdf,.png,.jpg,.jpeg,.docx,.txt" onChange={(e) => setFiles(Array.from(e.target.files ?? []))} />
@@ -112,7 +110,6 @@ export function SubmitClaimPage() {
                 <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {files.map((f) => (
                     <div key={f.name} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: 'var(--gnd)', borderRadius: 8 }}>
-                      <span style={{ fontSize: 16 }}>📄</span>
                       <span style={{ flex: 1, fontSize: 13, color: 'var(--t)' }}>{f.name}</span>
                       <span style={{ fontSize: 12, color: 'var(--t3)' }}>{(f.size / 1024).toFixed(0)} KB</span>
                       <button style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--rd)', fontSize: 16 }} onClick={() => setFiles((p) => p.filter((x) => x !== f))}>×</button>
@@ -136,7 +133,7 @@ export function SubmitClaimPage() {
               </div>
               {submitting && (
                 <div style={{ background: 'var(--acd)', borderRadius: 10, padding: 14, fontSize: 13, color: 'var(--ac)', marginBottom: 16 }}>
-                  🤖 Claim Processing Agent is processing your claim...
+                  Claim Processing Agent is processing your claim...
                   <div style={{ marginTop: 8, fontSize: 12, color: 'var(--t2)', whiteSpace: 'pre-wrap', maxHeight: 120, overflow: 'auto' }}>{output}</div>
                 </div>
               )}
@@ -148,7 +145,7 @@ export function SubmitClaimPage() {
             <button className="btn btn-sm" style={{ marginRight: 'auto' }}>Save draft</button>
             {step < STEPS.length - 1
               ? <button className="btn btn-p" onClick={() => setStep(step + 1)}>Continue →</button>
-              : <button className="btn btn-p" onClick={handleSubmit} disabled={submitting}>{submitting ? 'Processing...' : '🚀 Submit claim'}</button>
+              : <button className="btn btn-p" onClick={handleSubmit} disabled={submitting}>{submitting ? 'Processing...' : 'Submit claim'}</button>
             }
           </div>
         </div>

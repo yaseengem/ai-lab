@@ -137,7 +137,7 @@ export function RunsPage() {
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button className="btn btn-sm" onClick={() => setRefreshKey(k => k + 1)}>↻ Refresh</button>
-          <Link to="/monitor"><button className="btn btn-p btn-sm">▶ New Run</button></Link>
+          <Link to="/monitor"><button className="btn btn-p btn-sm">▶ New run</button></Link>
         </div>
       </div>
 
@@ -220,7 +220,7 @@ export function RunsPage() {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
             <thead>
               <tr style={{ background: 'var(--s2)' }}>
-                {['Run ID', 'Status', 'Started', 'Duration', 'Trigger', 'CRITICAL', 'Interventions', 'Systemic', ''].map(h => (
+                {['Run ID', 'Status', 'Started', 'Duration', 'Trigger', 'Critical', 'Interventions', 'Systemic', ''].map(h => (
                   <th key={h} style={{ padding: '8px 16px', textAlign: 'left', color: 'var(--t2)', fontWeight: 600 }}>{h}</th>
                 ))}
               </tr>

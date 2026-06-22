@@ -52,7 +52,7 @@ export function UserChatPage() {
         setSessionId(res.session_id)
         setCaseId(res.case_id)
       })
-      .catch(() => setSessionError('Failed to start session. Is the backend running?'))
+      .catch(() => setSessionError('Unable to start session. Please try again.'))
   }, [agentId])
 
   // After a document is uploaded, send it to the agent for processing

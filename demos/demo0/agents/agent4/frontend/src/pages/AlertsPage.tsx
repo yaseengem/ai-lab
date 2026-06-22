@@ -17,14 +17,14 @@ export function AlertsPage() {
   return (
     <div style={{ padding: '28px 32px', maxWidth: 1000, margin: '0 auto' }}>
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--t)', marginBottom: 2 }}>Alerts & Notifications</h1>
+        <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--t)', marginBottom: 2 }}>Alerts & notifications</h1>
         <p style={{ fontSize: 13, color: 'var(--t2)' }}>System alerts from the settlement failure prevention pipeline</p>
       </div>
 
       {/* Active alerts */}
       <div style={{ marginBottom: 28 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-          <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--t)' }}>Active Alerts</h2>
+          <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--t)' }}>Active alerts</h2>
           {active.length > 0 && (
             <span style={{
               fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 10,
@@ -38,7 +38,7 @@ export function AlertsPage() {
             background: 'var(--s)', border: '1px solid var(--b)', borderRadius: 10,
             padding: 32, textAlign: 'center', fontSize: 13, color: 'var(--t3)',
           }}>
-            ✓ No active alerts — all clear
+            ✓ No active alerts
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -87,7 +87,7 @@ export function AlertsPage() {
       {/* Alert history */}
       {history.length > 0 && (
         <div style={{ marginBottom: 28 }}>
-          <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--t)', marginBottom: 14 }}>Alert History</h2>
+          <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--t)', marginBottom: 14 }}>Alert history</h2>
           <div style={{ background: 'var(--s)', border: '1px solid var(--b)', borderRadius: 10, overflow: 'hidden' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
               <thead>
@@ -130,15 +130,15 @@ export function AlertsPage() {
 
       {/* Notification preferences */}
       <div style={{ background: 'var(--s)', border: '1px solid var(--b)', borderRadius: 10, padding: 24 }}>
-        <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--t)', marginBottom: 6 }}>Notification Preferences</h3>
+        <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--t)', marginBottom: 6 }}>Notification preferences</h3>
         <p style={{ fontSize: 12, color: 'var(--t2)', marginBottom: 16 }}>
           Display only — configure actual delivery channels in AWS SNS settings.
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {[
-            { label: 'In-App Alerts', sub: 'Shown in this panel', checked: prefInApp, set: setPrefInApp },
-            { label: 'Email Notifications', sub: 'via Amazon SES (ops team distribution list)', checked: prefEmail, set: setPrefEmail },
-            { label: 'SMS Alerts', sub: 'via Amazon SNS — HIGH severity only', checked: prefSMS, set: setPrefSMS },
+            { label: 'In-app alerts', sub: 'Shown in this panel', checked: prefInApp, set: setPrefInApp },
+            { label: 'Email notifications', sub: 'via Amazon SES (ops team distribution list)', checked: prefEmail, set: setPrefEmail },
+            { label: 'SMS alerts', sub: 'via Amazon SNS — HIGH severity only', checked: prefSMS, set: setPrefSMS },
           ].map(pref => (
             <label key={pref.label} style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}>
               <input

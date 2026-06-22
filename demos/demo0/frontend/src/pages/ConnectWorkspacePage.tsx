@@ -23,8 +23,7 @@ export function ConnectWorkspacePage() {
   if (done) {
     return (
       <div style={{ padding: 60, textAlign: 'center', maxWidth: 520, margin: '0 auto' }}>
-        <div style={{ fontSize: 48, marginBottom: 20 }}>🎉</div>
-        <h2 style={{ fontSize: 24, fontWeight: 700, color: 'var(--t)', marginBottom: 12 }}>Agent activated!</h2>
+        <h2 style={{ fontSize: 24, fontWeight: 700, color: 'var(--t)', marginBottom: 12 }}>Agent activated</h2>
         <p style={{ color: 'var(--t2)', marginBottom: 28 }}>{agentId} is now running and ready to process cases.</p>
         <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
           <button className="btn btn-p" onClick={() => navigate('/dashboard')}>Go to dashboard</button>
@@ -154,7 +153,7 @@ export function ConnectWorkspacePage() {
             <button className="btn btn-sm" style={{ marginRight: 'auto' }}>Save draft</button>
             {step < STEPS.length - 1
               ? <button className="btn btn-p" onClick={() => setStep(step + 1)}>Continue →</button>
-              : <button className="btn btn-p" onClick={() => setDone(true)}>🚀 Activate agent</button>
+              : <button className="btn btn-p" onClick={() => setDone(true)}>Activate agent</button>
             }
           </div>
         </div>

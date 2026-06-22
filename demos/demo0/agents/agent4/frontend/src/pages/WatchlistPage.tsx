@@ -97,7 +97,7 @@ export function WatchlistPage() {
     <div style={{ padding: '28px 32px', maxWidth: 1200, margin: '0 auto' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
         <div>
-          <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--t)', marginBottom: 2 }}>Settlement Watchlist</h1>
+          <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--t)', marginBottom: 2 }}>Settlement watchlist</h1>
           <p style={{ fontSize: 13, color: 'var(--t2)' }}>T+1 and T+2 trades — current monitoring cycle</p>
         </div>
         <span style={{ fontSize: 13, color: 'var(--t2)' }}>{filtered.length} of {riskItems.length} trades</span>
@@ -110,7 +110,7 @@ export function WatchlistPage() {
       }}>
         {/* Risk tier chips */}
         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-          <span style={{ fontSize: 11, color: 'var(--t3)', fontWeight: 600 }}>RISK</span>
+          <span style={{ fontSize: 11, color: 'var(--t3)', fontWeight: 600 }}>Risk</span>
           {(['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'] as const).map(tier => (
             <button
               key={tier}
@@ -129,7 +129,7 @@ export function WatchlistPage() {
 
         {/* Settlement window */}
         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-          <span style={{ fontSize: 11, color: 'var(--t3)', fontWeight: 600 }}>WINDOW</span>
+          <span style={{ fontSize: 11, color: 'var(--t3)', fontWeight: 600 }}>Window</span>
           {(['all', 'T+1', 'T+2'] as const).map(w => (
             <button key={w} onClick={() => setFilterWindow(w)}
               className={filterWindow === w ? 'btn btn-p btn-sm' : 'btn btn-sm'}
@@ -144,7 +144,7 @@ export function WatchlistPage() {
         {/* Intervention type */}
         {intTypes.length > 0 && (
           <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-            <span style={{ fontSize: 11, color: 'var(--t3)', fontWeight: 600 }}>ACTION</span>
+            <span style={{ fontSize: 11, color: 'var(--t3)', fontWeight: 600 }}>Action</span>
             <select
               value={filterIntType}
               onChange={e => setFilterIntType(e.target.value)}
@@ -184,7 +184,7 @@ export function WatchlistPage() {
           <div style={{ fontSize: 13, color: 'var(--t2)', marginBottom: 16 }}>
             Start a pipeline run to populate the settlement watchlist.
           </div>
-          <Link to="/monitor"><button className="btn btn-p">▶ Go to Pipeline Monitor</button></Link>
+          <Link to="/monitor"><button className="btn btn-p">▶ Go to pipeline monitor</button></Link>
         </div>
       ) : (
         <div style={{ background: 'var(--s)', border: '1px solid var(--b)', borderRadius: 10, overflow: 'hidden' }}>
@@ -197,7 +197,7 @@ export function WatchlistPage() {
                 <th style={{ padding: '8px 14px', textAlign: 'left', color: 'var(--t2)', fontWeight: 600 }}>Window</th>
                 <SortHeader label="Value (ZAR)" k="net_obligation_zar" />
                 <SortHeader label="Risk" k="classification" />
-                <th style={{ padding: '8px 14px', textAlign: 'left', color: 'var(--t2)', fontWeight: 600 }}>Rule Triggers</th>
+                <th style={{ padding: '8px 14px', textAlign: 'left', color: 'var(--t2)', fontWeight: 600 }}>Rule triggers</th>
                 <th style={{ padding: '8px 14px', textAlign: 'left', color: 'var(--t2)', fontWeight: 600 }}>Intervention</th>
               </tr>
             </thead>

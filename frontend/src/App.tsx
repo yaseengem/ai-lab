@@ -38,7 +38,7 @@ export default function App() {
           {manifest?.appName ?? 'AI Lab'}
         </h1>
         <p style={{ fontSize: 16, color: 'var(--t2)', margin: 0 }}>
-          {manifest?.tagline ?? 'A lab of AI demos'}
+          {manifest?.tagline ?? 'Enterprise AI demonstration platform'}
         </p>
       </header>
 

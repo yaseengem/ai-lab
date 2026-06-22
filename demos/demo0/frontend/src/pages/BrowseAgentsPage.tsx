@@ -40,7 +40,7 @@ function FilterGroup({
         {selected.size > 0 && (
           <button onClick={() => onChange(new Set())}
             style={{ fontSize: 10, color: 'var(--ac)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-            clear
+            Clear
           </button>
         )}
       </div>
@@ -193,8 +193,8 @@ export function BrowseAgentsPage() {
 
         {error && (
           <div style={{ background: 'var(--rdd)', border: '1px solid var(--rd)', borderRadius: 10, padding: '16px 20px', color: 'var(--rd)', marginBottom: 24 }}>
-            <strong>Could not reach platform backend</strong> — {error}
-            <div style={{ fontSize: 12, marginTop: 6, color: 'var(--t2)' }}>Make sure the platform API is running at localhost:5001</div>
+            <strong>Unable to reach the platform</strong>
+            <div style={{ fontSize: 12, marginTop: 6, color: 'var(--t2)' }}>Please try again shortly.</div>
           </div>
         )}
 

@@ -101,14 +101,14 @@ export function CommandCenterPage() {
         }}>
           <span style={{ fontSize: 20 }}>🚨</span>
           <div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--rd)' }}>Systemic Risk Flag Active</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--rd)' }}>Systemic risk flag active</div>
             <div style={{ fontSize: 13, color: 'var(--rd)' }}>
               Multiple CRITICAL counterparties detected simultaneously. Auto-execution suspended — all items escalated to human review.
             </div>
           </div>
           <Link to="/escalations" style={{ marginLeft: 'auto' }}>
             <button className="btn btn-sm" style={{ color: 'var(--rd)', borderColor: 'var(--rd)', fontWeight: 700 }}>
-              Review Escalations →
+              Review escalations →
             </button>
           </Link>
         </div>
@@ -117,8 +117,8 @@ export function CommandCenterPage() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
         <div>
-          <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--t)', marginBottom: 2 }}>Operations Command Center</h1>
-          <p style={{ fontSize: 13, color: 'var(--t2)' }}>JSE Settlement Failure Prevention — Live Status</p>
+          <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--t)', marginBottom: 2 }}>Operations command center</h1>
+          <p style={{ fontSize: 13, color: 'var(--t2)' }}>JSE settlement failure prevention — live status</p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           {ctx.running && (
@@ -129,7 +129,7 @@ export function CommandCenterPage() {
           {ctx.done && (
             <span style={{ fontSize: 13, color: 'var(--gn)', fontWeight: 600 }}>✓ Last run complete</span>
           )}
-          <Link to="/monitor"><button className="btn btn-p btn-sm">▶ New Run</button></Link>
+          <Link to="/monitor"><button className="btn btn-p btn-sm">▶ New run</button></Link>
         </div>
       </div>
 
@@ -141,7 +141,7 @@ export function CommandCenterPage() {
         <BigTile label="LOW" value={lows} color="var(--gn)" sub="No action required" to="/watchlist?classification=LOW" />
         {summary && (
           <BigTile
-            label="Value Protected"
+            label="Value protected"
             value={summary.total_settlement_value_protected_zar > 0 ? fmt_m(summary.total_settlement_value_protected_zar) : '—'}
             color="var(--tl)"
             sub="All time ZAR"
@@ -155,7 +155,7 @@ export function CommandCenterPage() {
 
         {/* Pipeline progress */}
         <div style={{ background: 'var(--s)', border: '1px solid var(--b)', borderRadius: 10, padding: 20 }}>
-          <h3 style={{ fontSize: 13, fontWeight: 700, color: 'var(--t)', marginBottom: 14 }}>Pipeline Progress</h3>
+          <h3 style={{ fontSize: 13, fontWeight: 700, color: 'var(--t)', marginBottom: 14 }}>Pipeline progress</h3>
           {ctx.running || ctx.done ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {ctx.steps.map(s => (
@@ -184,18 +184,18 @@ export function CommandCenterPage() {
 
         {/* Active interventions */}
         <div style={{ background: 'var(--s)', border: '1px solid var(--b)', borderRadius: 10, padding: 20 }}>
-          <h3 style={{ fontSize: 13, fontWeight: 700, color: 'var(--t)', marginBottom: 14 }}>Active Interventions</h3>
+          <h3 style={{ fontSize: 13, fontWeight: 700, color: 'var(--t)', marginBottom: 14 }}>Active interventions</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: 12, color: 'var(--t2)' }}>LOLR Executed</span>
+              <span style={{ fontSize: 12, color: 'var(--t2)' }}>LOLR executed</span>
               <span style={{ fontSize: 16, fontWeight: 700, color: lolrCount > 0 ? 'var(--rd)' : 'var(--t3)' }}>{lolrCount}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: 12, color: 'var(--t2)' }}>Settlement Rolls</span>
+              <span style={{ fontSize: 12, color: 'var(--t2)' }}>Settlement rolls</span>
               <span style={{ fontSize: 16, fontWeight: 700, color: rollCount > 0 ? 'var(--am)' : 'var(--t3)' }}>{rollCount}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: 12, color: 'var(--t2)' }}>Pending Approvals</span>
+              <span style={{ fontSize: 12, color: 'var(--t2)' }}>Pending approvals</span>
               <span style={{ fontSize: 16, fontWeight: 700, color: ctx.pendingApprovals.length > 0 ? 'var(--am)' : 'var(--t3)' }}>
                 {ctx.pendingApprovals.length}
               </span>
@@ -203,7 +203,7 @@ export function CommandCenterPage() {
             {ctx.pendingApprovals.length > 0 && (
               <Link to="/escalations">
                 <button className="btn btn-sm" style={{ width: '100%', marginTop: 4, color: 'var(--am)', borderColor: 'var(--am)' }}>
-                  Review Pending Approvals →
+                  Review pending approvals →
                 </button>
               </Link>
             )}
@@ -212,7 +212,7 @@ export function CommandCenterPage() {
 
         {/* System health */}
         <div style={{ background: 'var(--s)', border: '1px solid var(--b)', borderRadius: 10, padding: 20 }}>
-          <h3 style={{ fontSize: 13, fontWeight: 700, color: 'var(--t)', marginBottom: 14 }}>System Health</h3>
+          <h3 style={{ fontSize: 13, fontWeight: 700, color: 'var(--t)', marginBottom: 14 }}>System health</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <SystemHealthChip label="ECS" status={ecsOk ? 'ok' : 'unavailable'} />
             <SystemHealthChip label="CIS" status={!cisOk ? 'unavailable' : cisDegraded ? 'degraded' : 'ok'} />
@@ -230,7 +230,7 @@ export function CommandCenterPage() {
       {totalRisk > 0 && (
         <div style={{ background: 'var(--s)', border: '1px solid var(--b)', borderRadius: 10, padding: 20, marginBottom: 24 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <h3 style={{ fontSize: 13, fontWeight: 700, color: 'var(--t)' }}>Current Run Risk Distribution</h3>
+            <h3 style={{ fontSize: 13, fontWeight: 700, color: 'var(--t)' }}>Current run risk distribution</h3>
             <div style={{ display: 'flex', gap: 12 }}>
               {[
                 { color: 'var(--rd)', label: 'CRITICAL', count: criticals },
@@ -247,7 +247,7 @@ export function CommandCenterPage() {
           </div>
           <RiskBar critical={criticals} high={highs} medium={mediums} low={lows} total={totalRisk} />
           <div style={{ marginTop: 10, textAlign: 'right' }}>
-            <Link to="/watchlist" style={{ fontSize: 12, color: 'var(--ac)' }}>View Full Watchlist →</Link>
+            <Link to="/watchlist" style={{ fontSize: 12, color: 'var(--ac)' }}>View full watchlist →</Link>
           </div>
         </div>
       )}
@@ -255,7 +255,7 @@ export function CommandCenterPage() {
       {/* Recent runs table */}
       <div style={{ background: 'var(--s)', border: '1px solid var(--b)', borderRadius: 10, overflow: 'hidden' }}>
         <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--b)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3 style={{ fontSize: 13, fontWeight: 700, color: 'var(--t)' }}>Recent Pipeline Runs</h3>
+          <h3 style={{ fontSize: 13, fontWeight: 700, color: 'var(--t)' }}>Recent pipeline runs</h3>
           <button className="btn btn-sm" onClick={() => {
             setLoading(true)
             fetch(`${API}/summary`).then(r => r.json()).then(d => { setSummary(d); setLoading(false) }).catch(() => setLoading(false))
@@ -271,7 +271,7 @@ export function CommandCenterPage() {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
             <thead>
               <tr style={{ background: 'var(--s2)' }}>
-                {['Run ID', 'Timestamp', 'Mode', 'Status', 'CRITICAL', 'Interventions', 'Stress'].map(h => (
+                {['Run ID', 'Timestamp', 'Mode', 'Status', 'Critical', 'Interventions', 'Stress'].map(h => (
                   <th key={h} style={{ padding: '8px 16px', textAlign: 'left', color: 'var(--t2)', fontWeight: 600 }}>{h}</th>
                 ))}
               </tr>

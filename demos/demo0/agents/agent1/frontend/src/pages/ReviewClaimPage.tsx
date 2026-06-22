@@ -5,14 +5,14 @@ import { fetchCases, submitApprove, submitReject, type ClaimRow } from '@/api/cl
 type Decision = 'approve' | 'modify' | 'deny'
 
 const STEPS = [
-  { icon: '📥', label: 'Intake & parsing',        note: 'Member identified · ICD/CPT validated · Documents received' },
-  { icon: '📄', label: 'Document validation',     note: 'EOB complete ✓ · Surgical report ✓ · Pre-auth letter ✓' },
-  { icon: '📋', label: 'Policy & eligibility',    note: 'Member active ✓ · CPT covered ✓ · Deductible met ✓' },
-  { icon: '🩺', label: 'Medical expert review',   note: 'ICD/CPT match confirmed per CMS guidelines ✓ · Medical necessity confirmed ✓' },
-  { icon: '🛡️', label: 'Fraud & duplicate check', note: 'No duplicates ✓ · Provider clean ✓ · Fraud score: 4/100 ✓' },
-  { icon: '💰', label: 'Amount calculation',       note: 'Benefit schedule applied · Rate differential calculated' },
-  { icon: '✅', label: 'QA self-check',            note: 'All steps consistent ✓ · Confidence calculated · Review routed' },
-  { icon: '👤', label: 'Awaiting your decision',  note: 'Claim pending adjuster review' },
+  { label: 'Intake & parsing',        note: 'Member identified · ICD/CPT validated · Documents received' },
+  { label: 'Document validation',     note: 'EOB complete ✓ · Surgical report ✓ · Pre-auth letter ✓' },
+  { label: 'Policy & eligibility',    note: 'Member active ✓ · CPT covered ✓ · Deductible met ✓' },
+  { label: 'Medical expert review',   note: 'ICD/CPT match confirmed per CMS guidelines ✓ · Medical necessity confirmed ✓' },
+  { label: 'Fraud & duplicate check', note: 'No duplicates ✓ · Provider clean ✓ · Fraud score: 4/100 ✓' },
+  { label: 'Amount calculation',       note: 'Benefit schedule applied · Rate differential calculated' },
+  { label: 'QA self-check',            note: 'All steps consistent ✓ · Confidence calculated · Review routed' },
+  { label: 'Awaiting your decision',  note: 'Claim pending adjuster review' },
 ]
 
 export function ReviewClaimPage() {
@@ -60,7 +60,6 @@ export function ReviewClaimPage() {
   if (done) {
     return (
       <div style={{ padding: 60, textAlign: 'center', maxWidth: 520, margin: '0 auto' }}>
-        <div style={{ fontSize: 48, marginBottom: 16 }}>{decision === 'deny' ? '❌' : '✅'}</div>
         <h2 style={{ fontSize: 22, fontWeight: 700, color: 'var(--t)', marginBottom: 12 }}>Decision submitted</h2>
         <p style={{ fontSize: 13, color: 'var(--t2)', marginBottom: 20 }}>
           {decision === 'deny' ? 'Claim denied.' : `Claim approved. A decision letter will be sent to the claimant.`}
@@ -101,7 +100,7 @@ export function ReviewClaimPage() {
           {/* AI recommendation box */}
           <div style={{ background: 'var(--s)', border: `1px solid var(--ac)`, borderRadius: 10, padding: 16, marginBottom: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-              <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--t)', display: 'flex', alignItems: 'center', gap: 8 }}>🤖 AI recommendation</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--t)', display: 'flex', alignItems: 'center', gap: 8 }}>AI recommendation</div>
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontSize: 11, color: 'var(--t3)' }}>Confidence score</div>
                 <div style={{ fontSize: 22, fontWeight: 700, color: confColor }}>{conf}%</div>
@@ -146,7 +145,7 @@ export function ReviewClaimPage() {
                   <div key={i} style={{ display: 'flex', gap: 14 }}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                       <div style={{ width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, flexShrink: 0, border: '2px solid', borderColor: done ? 'var(--gn)' : active ? 'var(--ac)' : 'var(--b2)', background: done ? 'var(--gnd)' : active ? 'var(--acd)' : 'var(--s2)' }}>
-                        {s.icon}
+                        {done ? '✓' : i + 1}
                       </div>
                       {i < STEPS.length - 1 && <div style={{ width: 1, flex: 1, minHeight: 12, margin: '3px 0', background: done ? 'var(--gn)' : 'var(--b2)' }} />}
                     </div>
@@ -235,7 +234,7 @@ export function ReviewClaimPage() {
               ['Case ID', claim?.case_id || '—'],
               ['Member', claim?.user_id || '—'],
               ['Billed', claim?.billed_amount ? `$${claim.billed_amount.toLocaleString()}` : '—'],
-              ['AI Recommended', recommended > 0 ? `$${recommended.toLocaleString()}` : '—'],
+              ['AI recommended', recommended > 0 ? `$${recommended.toLocaleString()}` : '—'],
               ['Status', claim?.status || '—'],
               ['Date', claim?.updated_at?.slice(0, 10) || '—'],
             ].map(([k, v]) => (

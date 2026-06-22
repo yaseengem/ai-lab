@@ -14,8 +14,8 @@ function fmt(n: number) { return `ZAR ${(n / 1_000_000).toFixed(1)}M` }
 
 const INT_ORDER = ['LOLR_TRIGGER', 'SETTLEMENT_ROLL', 'ALERT_OPERATIONS', 'HUMAN_ESCALATION', 'MONITOR_ONLY']
 const INT_LABELS: Record<string, string> = {
-  LOLR_TRIGGER: 'LOLR Trigger', SETTLEMENT_ROLL: 'Settlement Roll',
-  ALERT_OPERATIONS: 'Alert Operations', HUMAN_ESCALATION: 'Human Escalation', MONITOR_ONLY: 'Monitor Only',
+  LOLR_TRIGGER: 'LOLR trigger', SETTLEMENT_ROLL: 'Settlement roll',
+  ALERT_OPERATIONS: 'Alert operations', HUMAN_ESCALATION: 'Human escalation', MONITOR_ONLY: 'Monitor only',
 }
 
 export function InterventionPlanPage() {
@@ -40,7 +40,7 @@ export function InterventionPlanPage() {
     <div style={{ padding: '28px 32px', maxWidth: 1100, margin: '0 auto' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
         <div>
-          <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--t)', marginBottom: 2 }}>Intervention Plan</h1>
+          <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--t)', marginBottom: 2 }}>Intervention plan</h1>
           <p style={{ fontSize: 13, color: 'var(--t2)' }}>Current cycle — Step 4 output</p>
         </div>
         {interventionItems.length > 0 && (
@@ -51,10 +51,10 @@ export function InterventionPlanPage() {
                 style={{ color: 'var(--rd)', borderColor: 'var(--rd)', fontWeight: 700 }}
                 onClick={handleApproveAll}
               >
-                ✓ Approve All LOLR ({pendingLolr.length})
+                ✓ Approve all LOLR ({pendingLolr.length})
               </button>
             )}
-            <Link to="/escalations"><button className="btn btn-sm">View Escalations →</button></Link>
+            <Link to="/escalations"><button className="btn btn-sm">View escalations →</button></Link>
           </div>
         )}
       </div>
@@ -69,7 +69,7 @@ export function InterventionPlanPage() {
           <div style={{ fontSize: 13, color: 'var(--t2)', marginBottom: 16 }}>
             The intervention plan is generated after Step 4 completes.
           </div>
-          <Link to="/monitor"><button className="btn btn-p">▶ Start Pipeline</button></Link>
+          <Link to="/monitor"><button className="btn btn-p">▶ Start pipeline</button></Link>
         </div>
       ) : (
         <>
@@ -90,7 +90,7 @@ export function InterventionPlanPage() {
                 padding: '14px 20px', flex: 1, minWidth: 120,
               }}>
                 <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--tl)' }}>{fmt(totalCost)}</div>
-                <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--t2)' }}>Total Est. Cost</div>
+                <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--t2)' }}>Total est. cost</div>
               </div>
             )}
           </div>
@@ -124,7 +124,7 @@ export function InterventionPlanPage() {
                     <th style={{ padding: '7px 16px', textAlign: 'left', color: 'var(--t2)', fontWeight: 600 }}>Trade ID</th>
                     <th style={{ padding: '7px 16px', textAlign: 'left', color: 'var(--t2)', fontWeight: 600 }}>Counterparty</th>
                     <th style={{ padding: '7px 16px', textAlign: 'left', color: 'var(--t2)', fontWeight: 600 }}>Rationale</th>
-                    <th style={{ padding: '7px 16px', textAlign: 'left', color: 'var(--t2)', fontWeight: 600 }}>Cost (Est.)</th>
+                    <th style={{ padding: '7px 16px', textAlign: 'left', color: 'var(--t2)', fontWeight: 600 }}>Cost (est.)</th>
                     <th style={{ padding: '7px 16px', textAlign: 'left', color: 'var(--t2)', fontWeight: 600 }}>Priority</th>
                     <th style={{ padding: '7px 16px', textAlign: 'left', color: 'var(--t2)', fontWeight: 600 }}>Approval</th>
                   </tr>

@@ -23,35 +23,35 @@ const NAV = [
   {
     section: 'MONITORING',
     items: [
-      { path: '/watchlist', label: 'Settlement Watchlist' },
-      { path: '/counterparties', label: 'Counterparty Profiles' },
+      { path: '/watchlist', label: 'Settlement watchlist' },
+      { path: '/counterparties', label: 'Counterparty profiles' },
     ],
   },
   {
     section: 'INTERVENTIONS',
     items: [
-      { path: '/intervention-plan', label: 'Intervention Plan' },
-      { path: '/lolr-execution', label: 'LOLR Execution' },
-      { path: '/settlement-rolls', label: 'Settlement Rolls' },
+      { path: '/intervention-plan', label: 'Intervention plan' },
+      { path: '/lolr-execution', label: 'LOLR execution' },
+      { path: '/settlement-rolls', label: 'Settlement rolls' },
     ],
   },
-  { section: 'APPROVALS', items: [{ path: '/escalations', label: 'Human Escalations', badge: 'approvals' as const }] },
+  { section: 'APPROVALS', items: [{ path: '/escalations', label: 'Human escalations', badge: 'approvals' as const }] },
   {
     section: 'PIPELINE',
     items: [
-      { path: '/monitor', label: 'Pipeline Monitor' },
-      { path: '/test-runner', label: 'Test Runner' },
+      { path: '/monitor', label: 'Pipeline monitor' },
+      { path: '/test-runner', label: 'Test runner' },
       { path: '/runs', label: 'Runs' },
     ],
   },
   {
     section: 'COMPLIANCE',
     items: [
-      { path: '/audit-report', label: 'FSCA Audit Report' },
-      { path: '/alerts', label: 'Alerts & Notifications', badge: 'alerts' as const },
+      { path: '/audit-report', label: 'FSCA audit report' },
+      { path: '/alerts', label: 'Alerts & notifications', badge: 'alerts' as const },
     ],
   },
-  { section: 'ADMIN', items: [{ path: '/rules', label: 'Rule Configuration' }] },
+  { section: 'ADMIN', items: [{ path: '/rules', label: 'Rule configuration' }] },
 ]
 
 function Sidebar() {

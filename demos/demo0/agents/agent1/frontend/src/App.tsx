@@ -8,8 +8,8 @@ import { RulesEnginePage }  from '@/pages/RulesEnginePage'
 import { SupervisorPage }   from '@/pages/SupervisorPage'
 
 const NAV_LINKS = [
-  { path: '/queue',      label: 'Review Queue' },
-  { path: '/logs',       label: 'Run Logs' },
+  { path: '/queue',      label: 'Review queue' },
+  { path: '/logs',       label: 'Run logs' },
   { path: '/rules',      label: 'Rules' },
   { path: '/supervisor', label: 'Supervisor' },
 ]
@@ -26,7 +26,7 @@ function CalvinShell({ children }: { children: React.ReactNode }) {
             onClick={() => navigate('/')}
             style={{ display: 'flex', alignItems: 'center', gap: 9, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
           >
-            <div style={{ width: 30, height: 30, background: 'var(--ac)', borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15 }}>🤖</div>
+            <div style={{ width: 30, height: 30, background: 'var(--ac)', borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700, color: '#fff' }}>C</div>
             <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--t)' }}>Claim Processing Agent</span>
           </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
@@ -50,18 +50,17 @@ function HomePage() {
   const navigate = useNavigate()
   return (
     <div style={{ padding: '60px 40px', maxWidth: 680, margin: '0 auto', textAlign: 'center' }}>
-      <div style={{ fontSize: 48, marginBottom: 16 }}>🤖</div>
       <h1 style={{ fontSize: 28, fontWeight: 700, color: 'var(--t)', marginBottom: 8 }}>Claim Processing Agent</h1>
       <p style={{ fontSize: 15, color: 'var(--t2)', marginBottom: 40, lineHeight: 1.7 }}>
         Multi-agent insurance claims processing with human-in-the-loop review, fraud detection, and medical necessity validation.
       </p>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, maxWidth: 520, margin: '0 auto' }}>
         {[
-          { icon: '📝', label: 'Submit a claim',     path: '/submit',     primary: true },
-          { icon: '📋', label: 'Review queue',        path: '/queue',      primary: false },
-          { icon: '🧾', label: 'Audit logs',          path: '/logs',       primary: false },
-          { icon: '⚙️', label: 'Rules engine',        path: '/rules',      primary: false },
-          { icon: '📊', label: 'Supervisor view',     path: '/supervisor', primary: false },
+          { label: 'Submit a claim',     path: '/submit',     primary: true },
+          { label: 'Review queue',        path: '/queue',      primary: false },
+          { label: 'Audit logs',          path: '/logs',       primary: false },
+          { label: 'Rules engine',        path: '/rules',      primary: false },
+          { label: 'Supervisor view',     path: '/supervisor', primary: false },
         ].map(item => (
           <button
             key={item.path}
@@ -69,7 +68,7 @@ function HomePage() {
             style={{ fontSize: 14, padding: '14px 20px', justifyContent: 'flex-start', gap: 10 }}
             onClick={() => navigate(item.path)}
           >
-            {item.icon} {item.label}
+            {item.label}
           </button>
         ))}
       </div>

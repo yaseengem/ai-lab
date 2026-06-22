@@ -7,7 +7,6 @@ type TabFilter = 'all' | RuleCat
 interface Rule {
   id: string
   cat: RuleCat
-  icon: string
   title: string
   text: string
   tags: string[]
@@ -19,63 +18,63 @@ interface Rule {
 
 const INITIAL_RULES: Rule[] = [
   {
-    id: 'R001', cat: 'approve', icon: '✅',
+    id: 'R001', cat: 'approve',
     title: 'Auto-approve low-value standard claims',
     text: 'If the total billed amount is under $500 AND the member has been continuously active for more than 12 months AND the procedure code is on the standard covered procedures list, auto-approve at the full billed amount without routing to human review.',
     tags: ['Amount', 'Member tenure', 'Standard procedure'],
     addedBy: 'Sarah K.', addedDate: 'Mar 12, 2026', matchCount: 412, enabled: true,
   },
   {
-    id: 'R002', cat: 'approve', icon: '✅',
+    id: 'R002', cat: 'approve',
     title: 'Auto-approve preventive care at 100%',
     text: 'If the procedure is classified as preventive care (annual physical CPT 99395–99397, standard immunizations CPT 90460–90461, mammogram CPT 77067, colonoscopy CPT 45378) AND the member\'s plan includes 100% preventive coverage with no co-pay, auto-approve at the full billed amount regardless of dollar value.',
     tags: ['Preventive care', 'Full coverage'],
     addedBy: 'Admin', addedDate: 'Jan 10, 2026', matchCount: 218, enabled: true,
   },
   {
-    id: 'R003', cat: 'approve', icon: '✅',
+    id: 'R003', cat: 'approve',
     title: 'Auto-approve repeat prescriptions under $200',
     text: 'If the claim is for a prescription drug refill (same NDC code as a claim approved in the past 90 days for the same member) AND the billed amount is under $200, auto-approve at the full billed amount with no human review required.',
     tags: ['Prescription', 'Repeat claim'],
     addedBy: 'Marcus T.', addedDate: 'Feb 8, 2026', matchCount: 155, enabled: true,
   },
   {
-    id: 'R004', cat: 'review', icon: '👤',
+    id: 'R004', cat: 'review',
     title: 'Mandatory review for high-value claims',
     text: 'Always route to human review if the total billed amount exceeds $2,000, regardless of confidence score or any other rule. This is a mandatory threshold rule and cannot be overridden by auto-approve rules.',
     tags: ['Amount threshold', 'Mandatory'],
     addedBy: 'Admin', addedDate: 'Jan 10, 2026', matchCount: 284, enabled: true,
   },
   {
-    id: 'R005', cat: 'review', icon: '👤',
+    id: 'R005', cat: 'review',
     title: 'Review when confidence score is below threshold',
     text: 'If the agent\'s QA confidence score is below 85%, route to the assigned claims adjuster for review. If the confidence score is below 60%, bypass the adjuster queue entirely and escalate directly to a supervisor.',
     tags: ['Confidence score', 'Escalation'],
     addedBy: 'Sarah K.', addedDate: 'Feb 22, 2026', matchCount: 98, enabled: true,
   },
   {
-    id: 'R006', cat: 'review', icon: '👤',
+    id: 'R006', cat: 'review',
     title: 'Review out-of-network surgical claims',
     text: 'If the provider is out-of-network AND the claim is for a surgical procedure (CPT range 10000–69999) AND the billed amount exceeds $5,000, always route to a human reviewer regardless of confidence score.',
     tags: ['Network status', 'Surgical'],
     addedBy: 'Marcus T.', addedDate: 'Mar 5, 2026', matchCount: 16, enabled: true,
   },
   {
-    id: 'R007', cat: 'fraud', icon: '🛡️',
+    id: 'R007', cat: 'fraud',
     title: 'Flag provider upcoding patterns',
     text: 'If the same ICD-CPT procedure combination has been billed by the same provider (NPI) more than 3 times in any 30-day window across different members, flag all new claims from that provider as potential upcoding fraud and route immediately to a supervisor for investigation.',
     tags: ['Provider pattern', 'Fraud', 'Supervisor'],
     addedBy: 'Admin', addedDate: 'Jan 10, 2026', matchCount: 2, enabled: true,
   },
   {
-    id: 'R008', cat: 'fraud', icon: '🛡️',
+    id: 'R008', cat: 'fraud',
     title: 'Flag high-frequency member claim patterns',
     text: 'If a single member submits more than 4 claims within any 30-day period, flag all subsequent claims from that member for mandatory human review until a supervisor reviews the member\'s full claim history and clears the flag.',
     tags: ['Member frequency', 'Fraud'],
     addedBy: 'Sarah K.', addedDate: 'Mar 20, 2026', matchCount: 3, enabled: true,
   },
   {
-    id: 'R009', cat: 'deny', icon: '❌',
+    id: 'R009', cat: 'deny',
     title: 'Recommend denial for missing pre-authorization',
     text: 'If the procedure requires pre-authorization per the plan\'s benefit schedule AND no valid pre-authorization record is found in the system AND the billed amount exceeds $1,000, recommend denial with the reason "Pre-authorization required but not on file." Always route to a human reviewer before finalizing the denial.',
     tags: ['Pre-auth', 'Denial', 'Human confirms'],
@@ -153,7 +152,7 @@ export function RulesEnginePage() {
       setRules(prev => prev.map(r => r.id === editRule.id ? { ...r, cat: formCat, title: formTitle, text: formText, tags: formTags.split(',').map(t => t.trim()).filter(Boolean) } : r))
     } else {
       const newId = `R${String(rules.length + 1).padStart(3, '0')}`
-      setRules(prev => [...prev, { id: newId, cat: formCat, icon: formCat === 'approve' ? '✅' : formCat === 'review' ? '👤' : formCat === 'fraud' ? '🛡️' : '❌', title: formTitle, text: formText, tags: formTags.split(',').map(t => t.trim()).filter(Boolean), addedBy: 'You', addedDate: 'Apr 2026', matchCount: 0, enabled: true }])
+      setRules(prev => [...prev, { id: newId, cat: formCat, title: formTitle, text: formText, tags: formTags.split(',').map(t => t.trim()).filter(Boolean), addedBy: 'You', addedDate: 'Apr 2026', matchCount: 0, enabled: true }])
     }
     setShowModal(false)
     setShowImpact(true)
@@ -237,7 +236,7 @@ export function RulesEnginePage() {
               >
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 10, gap: 12 }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, flex: 1 }}>
-                    <div style={{ width: 36, height: 36, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, flexShrink: 0, background: CAT_COLORS[rule.cat].bg }}>{rule.icon}</div>
+                    <div style={{ width: 36, height: 36, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 700, flexShrink: 0, background: CAT_COLORS[rule.cat].bg, color: CAT_COLORS[rule.cat].accent }}>{rule.cat.charAt(0).toUpperCase()}</div>
                     <div>
                       <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--t)', marginBottom: 3 }}>{rule.title}</div>
                       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>

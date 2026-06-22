@@ -47,7 +47,7 @@ export function SupportChatPage() {
     getApiClient(agentId as AgentId)
       .postCreateSession('support_exec', 'support')
       .then((res) => setSessionId(res.session_id))
-      .catch(() => setSessionError('Failed to start support session. Is the backend running?'))
+      .catch(() => setSessionError('Unable to start support session. Please try again.'))
   }, [agentId])
 
   // When a specific customer session is loaded, switch to it

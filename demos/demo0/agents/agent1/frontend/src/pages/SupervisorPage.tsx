@@ -5,9 +5,9 @@ import { fetchCases, type ClaimRow } from '@/api/claims'
 const MONTH_BARS = [45,52,38,60,70,42,40,65,72,58,80,55,46,43,100]
 
 const ADJUSTERS = [
-  { initials: 'SK', name: 'Sarah Kim',     role: 'Claims Adjuster', pending: 4, reviewed: 182, overrideRate: 6.2,  avgTime: 4.1, tagLabel: 'Top performer', tagColor: 'var(--gn)', tagBg: 'var(--gnd)', avatarBg: 'var(--acd)', avatarColor: 'var(--ac)' },
-  { initials: 'MT', name: 'Marcus Torres', role: 'Claims Adjuster', pending: 2, reviewed: 134, overrideRate: 9.7,  avgTime: 5.2, tagLabel: '',             tagColor: '',           tagBg: '',            avatarBg: 'var(--tld)', avatarColor: 'var(--tl)' },
-  { initials: 'JL', name: 'Jamie Lee',     role: 'Claims Adjuster', pending: 0, reviewed: 82,  overrideRate: 10.4, avgTime: 6.1, tagLabel: '',             tagColor: '',           tagBg: '',            avatarBg: 'var(--pud)', avatarColor: 'var(--pu)' },
+  { initials: 'SK', name: 'Sarah Kim',     role: 'Claims adjuster', pending: 4, reviewed: 182, overrideRate: 6.2,  avgTime: 4.1, tagLabel: 'Top performer', tagColor: 'var(--gn)', tagBg: 'var(--gnd)', avatarBg: 'var(--acd)', avatarColor: 'var(--ac)' },
+  { initials: 'MT', name: 'Marcus Torres', role: 'Claims adjuster', pending: 2, reviewed: 134, overrideRate: 9.7,  avgTime: 5.2, tagLabel: '',             tagColor: '',           tagBg: '',            avatarBg: 'var(--tld)', avatarColor: 'var(--tl)' },
+  { initials: 'JL', name: 'Jamie Lee',     role: 'Claims adjuster', pending: 0, reviewed: 82,  overrideRate: 10.4, avgTime: 6.1, tagLabel: '',             tagColor: '',           tagBg: '',            avatarBg: 'var(--pud)', avatarColor: 'var(--pu)' },
 ]
 
 const ESCALATED = [
@@ -43,8 +43,8 @@ export function SupervisorPage() {
           <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--t)' }}>Supervisor dashboard</div>
           <div style={{ fontSize: 12, color: 'var(--t2)' }}>Claim Processing Agent · April 2026</div>
         </div>
-        <button className="btn btn-sm" onClick={() => navigate('/rules')}>⚙️ Edit rules</button>
-        <button className="btn btn-sm">📊 Export report</button>
+        <button className="btn btn-sm" onClick={() => navigate('/rules')}>Edit rules</button>
+        <button className="btn btn-sm">Export report</button>
         <button className="btn btn-sm" onClick={() => navigate('/queue')}>← Queue</button>
       </div>
 
@@ -70,12 +70,12 @@ export function SupervisorPage() {
 
         {/* Alerts — full width */}
         <div style={{ gridColumn: 'span 2' }}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--t)', marginBottom: 12 }}>🚨 Needs your attention</div>
+          <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--t)', marginBottom: 12 }}>Needs your attention</div>
           {[
             { type: 'danger', icon: '⚠️', title: 'CLM-08751 — David Chen escalated to you (confidence 54%)', desc: 'Confidence score below 60% — auto-escalated to supervisor per rules. Brain MRI, $6,200, no pre-auth found. SLA: 6h remaining.', action: 'Review now', onClick: () => navigate('/review/CLM-08751') },
-            { type: 'danger', icon: '🛡️', title: 'Fraud pattern detected — Provider: Dr. A. Singh (NPI 9988776655)', desc: 'CPT 99215 billed 6 times in 14 days across 6 different members. Exceeds the 3-in-30-day threshold. All new claims from this provider are on hold.', action: 'Investigate', onClick: () => {} },
+            { type: 'danger', icon: '⚠️', title: 'Fraud pattern detected — Provider: Dr. A. Singh (NPI 9988776655)', desc: 'CPT 99215 billed 6 times in 14 days across 6 different members. Exceeds the 3-in-30-day threshold. All new claims from this provider are on hold.', action: 'Investigate', onClick: () => {} },
             { type: 'warn',   icon: '⏰', title: `${pendingCount || 2} claims approaching SLA deadline`, desc: 'Claims approaching the 24h SLA. Sarah K. has multiple claims assigned today.', action: 'View queue', onClick: () => navigate('/queue') },
-            { type: 'info',   icon: '📋', title: 'CLM-08681 (James Moore, $38,200) is unassigned', desc: 'Spinal fusion claim worth $38,200 has been in queue for 3 hours with no adjuster assigned. SLA: 24h.', action: 'Assign adjuster', onClick: () => navigate('/queue') },
+            { type: 'info',   icon: 'ℹ️', title: 'CLM-08681 (James Moore, $38,200) is unassigned', desc: 'Spinal fusion claim worth $38,200 has been in queue for 3 hours with no adjuster assigned. SLA: 24h.', action: 'Assign adjuster', onClick: () => navigate('/queue') },
           ].map((alert, i) => {
             const bg   = alert.type === 'danger' ? 'var(--rdd)'  : alert.type === 'warn' ? 'var(--amd)'  : 'var(--acd)'
             const border = alert.type === 'danger' ? 'rgba(220,38,38,.2)' : alert.type === 'warn' ? 'rgba(217,119,6,.2)' : 'rgba(37,99,235,.2)'
@@ -216,7 +216,7 @@ export function SupervisorPage() {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr>
-                {['Claim ID', 'Member', 'Procedure', 'Amount', 'AI Outcome', 'Confidence', 'Escalation reason', 'SLA', 'Action'].map(h => (
+                {['Claim ID', 'Member', 'Procedure', 'Amount', 'AI outcome', 'Confidence', 'Escalation reason', 'SLA', 'Action'].map(h => (
                   <th key={h} style={{ fontSize: 11, fontWeight: 600, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '.05em', padding: '8px 10px', textAlign: 'left', borderBottom: '1px solid var(--b)' }}>{h}</th>
                 ))}
               </tr>
@@ -288,20 +288,20 @@ export function SupervisorPage() {
           <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--t)', marginBottom: 14 }}>Quick actions</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {[
-              ['⚙️', 'Edit agent rules',                () => navigate('/rules')],
-              ['📋', 'View full review queue',          () => navigate('/queue')],
-              ['🧾', 'Full audit log',                  () => navigate('/logs')],
-              ['👥', 'Reassign claims',                 () => {}],
-              ['📧', 'Bulk claimant communications',    () => {}],
-              ['📊', 'Export compliance report (PDF)',  () => {}],
-            ].map(([icon, label, onClick]) => (
+              ['Edit agent rules',                () => navigate('/rules')],
+              ['View full review queue',          () => navigate('/queue')],
+              ['Full audit log',                  () => navigate('/logs')],
+              ['Reassign claims',                 () => {}],
+              ['Bulk claimant communications',    () => {}],
+              ['Export compliance report (PDF)',  () => {}],
+            ].map(([label, onClick]) => (
               <button
                 key={label as string}
                 className="btn"
                 style={{ width: '100%', justifyContent: 'flex-start', gap: 8 }}
                 onClick={onClick as () => void}
               >
-                {icon} {label}
+                {label as string}
               </button>
             ))}
           </div>

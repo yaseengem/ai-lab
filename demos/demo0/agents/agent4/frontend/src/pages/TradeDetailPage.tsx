@@ -57,7 +57,7 @@ export function TradeDetailPage() {
         <div style={{ fontSize: 13, color: 'var(--t2)', marginBottom: 20 }}>
           {decoded} is not in the current watchlist. Run a pipeline to populate data.
         </div>
-        <button className="btn btn-p" onClick={() => navigate('/watchlist')}>← Back to Watchlist</button>
+        <button className="btn btn-p" onClick={() => navigate('/watchlist')}>← Back to watchlist</button>
       </div>
     )
   }
@@ -91,16 +91,16 @@ export function TradeDetailPage() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
         {/* Left column */}
         <div>
-          <Card title="Trade Facts">
+          <Card title="Trade facts">
             <Field label="Trade ID" value={risk.trade_id} />
             <Field label="ISIN" value={<span style={{ fontFamily: 'monospace', fontSize: 11 }}>{risk.isin || '—'}</span>} />
             <Field label="Instrument" value={risk.instrument || '—'} />
             <Field label="Quantity" value={risk.quantity ? risk.quantity.toLocaleString() : '—'} />
             <Field label="Value" value={risk.net_obligation_zar > 0 ? fmt(risk.net_obligation_zar) : '—'} color="var(--t)" />
-            <Field label="Settlement Window" value={risk.settlement_window || '—'} />
+            <Field label="Settlement window" value={risk.settlement_window || '—'} />
           </Card>
 
-          <Card title="Risk Classification">
+          <Card title="Risk classification">
             <div style={{ marginBottom: 12 }}>
               <span style={{
                 fontSize: 13, fontWeight: 700, padding: '4px 12px', borderRadius: 6,
@@ -114,7 +114,7 @@ export function TradeDetailPage() {
             )}
             {risk.rule_triggers?.length > 0 && (
               <div>
-                <div style={{ fontSize: 11, color: 'var(--t3)', fontWeight: 600, marginBottom: 6 }}>RULE TRIGGERS</div>
+                <div style={{ fontSize: 11, color: 'var(--t3)', fontWeight: 600, marginBottom: 6 }}>Rule triggers</div>
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                   {risk.rule_triggers.map((t, i) => (
                     <span key={i} style={{
@@ -130,9 +130,9 @@ export function TradeDetailPage() {
 
         {/* Right column */}
         <div>
-          <Card title="Counterparty Profile">
+          <Card title="Counterparty profile">
             <Field label="Counterparty ID" value={risk.counterparty_id} />
-            <Field label="CIS Status" value={
+            <Field label="CIS status" value={
               brief?.cis_status ? (
                 <span style={{
                   fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 4,
@@ -141,24 +141,24 @@ export function TradeDetailPage() {
                 }}>{brief.cis_status}</span>
               ) : '—'
             } />
-            <Field label="Net Obligation" value={risk.net_obligation_zar > 0 ? fmt(risk.net_obligation_zar) : '—'} color="var(--t)" />
+            <Field label="Net obligation" value={risk.net_obligation_zar > 0 ? fmt(risk.net_obligation_zar) : '—'} color="var(--t)" />
             <Field
-              label="Lending Balance"
+              label="Lending balance"
               value={brief?.lending_balance_pct !== undefined ? `${brief.lending_balance_pct}%` : '—'}
               color={brief?.lending_balance_pct !== undefined && brief.lending_balance_pct < 80 ? 'var(--rd)' : 'var(--gn)'}
             />
-            <Field label="Last Failure" value={brief?.last_failure_date || 'None (90 days)'} />
-            <Field label="JSE Watchlist" value={
+            <Field label="Last failure" value={brief?.last_failure_date || 'None (90 days)'} />
+            <Field label="JSE watchlist" value={
               brief?.watchlist_status ? (
-                <span style={{ color: 'var(--rd)', fontWeight: 700 }}>⚠️ Active Entry</span>
+                <span style={{ color: 'var(--rd)', fontWeight: 700 }}>⚠️ Active entry</span>
               ) : 'Clear'
             } />
           </Card>
 
           {brief && (
-            <Card title="Counterparty Risk Brief">
+            <Card title="Counterparty risk brief">
               <div style={{ marginBottom: 12 }}>
-                <div style={{ fontSize: 11, color: 'var(--t3)', fontWeight: 600, marginBottom: 6 }}>ROOT CAUSE</div>
+                <div style={{ fontSize: 11, color: 'var(--t3)', fontWeight: 600, marginBottom: 6 }}>Root cause</div>
                 <span style={{
                   fontSize: 12, fontWeight: 700, padding: '3px 10px', borderRadius: 5,
                   color: ROOT_CAUSE_COLORS[brief.root_cause] || 'var(--t2)',
@@ -170,10 +170,10 @@ export function TradeDetailPage() {
                   {brief.severity_assessment}
                 </div>
               )}
-              <Field label="Intervention Urgency" value={brief.urgency} color={brief.urgency === 'IMMEDIATE' ? 'var(--rd)' : 'var(--am)'} />
+              <Field label="Intervention urgency" value={brief.urgency} color={brief.urgency === 'IMMEDIATE' ? 'var(--rd)' : 'var(--am)'} />
               {brief.securities_at_risk && brief.securities_at_risk.length > 0 && (
                 <div style={{ marginTop: 10 }}>
-                  <div style={{ fontSize: 11, color: 'var(--t3)', fontWeight: 600, marginBottom: 6 }}>SECURITIES AT RISK</div>
+                  <div style={{ fontSize: 11, color: 'var(--t3)', fontWeight: 600, marginBottom: 6 }}>Securities at risk</div>
                   {brief.securities_at_risk.map((s, i) => (
                     <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
                       <span style={{ fontFamily: 'monospace', color: 'var(--t)' }}>{s.isin}</span>
@@ -186,7 +186,7 @@ export function TradeDetailPage() {
           )}
 
           {intervention && (
-            <Card title="Assigned Intervention">
+            <Card title="Assigned intervention">
               <div style={{ marginBottom: 10 }}>
                 <span style={{
                   fontSize: 12, fontWeight: 700, padding: '3px 10px', borderRadius: 5,
@@ -196,7 +196,7 @@ export function TradeDetailPage() {
                   {intervention.intervention_type.replace(/_/g, ' ')}
                 </span>
                 {intervention.requires_human_approval && (
-                  <span style={{ marginLeft: 8, fontSize: 11, color: 'var(--am)' }}>🔒 Human Approval Required</span>
+                  <span style={{ marginLeft: 8, fontSize: 11, color: 'var(--am)' }}>🔒 Human approval required</span>
                 )}
               </div>
               {intervention.rationale && (
@@ -205,10 +205,10 @@ export function TradeDetailPage() {
                 </div>
               )}
               {intervention.estimated_cost_zar && (
-                <Field label="Estimated Cost" value={fmt(intervention.estimated_cost_zar)} color="var(--t)" />
+                <Field label="Estimated cost" value={fmt(intervention.estimated_cost_zar)} color="var(--t)" />
               )}
               {intervention.execution_priority !== undefined && (
-                <Field label="Execution Priority" value={`P${intervention.execution_priority}`} />
+                <Field label="Execution priority" value={`P${intervention.execution_priority}`} />
               )}
             </Card>
           )}

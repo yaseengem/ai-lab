@@ -29,15 +29,15 @@ export function LolrExecutionPage() {
   return (
     <div style={{ padding: '28px 32px', maxWidth: 1100, margin: '0 auto' }}>
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--t)', marginBottom: 2 }}>LOLR Execution</h1>
-        <p style={{ fontSize: 13, color: 'var(--t2)' }}>Lender-of-Last-Resort transactions — Step 5</p>
+        <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--t)', marginBottom: 2 }}>LOLR execution</h1>
+        <p style={{ fontSize: 13, color: 'var(--t2)' }}>Lender-of-last-resort transactions — Step 5</p>
       </div>
 
       {/* ZAR 500M guard */}
       <div style={{ background: 'var(--s)', border: '1px solid var(--b)', borderRadius: 10, padding: 20, marginBottom: 20 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
           <div>
-            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--t)' }}>Auto-Execution Cap</span>
+            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--t)' }}>Auto-execution cap</span>
             <span style={{ fontSize: 12, color: 'var(--t2)', marginLeft: 8 }}>ZAR 500M per cycle limit</span>
           </div>
           <div style={{ textAlign: 'right' }}>
@@ -85,7 +85,7 @@ export function LolrExecutionPage() {
           padding: 20, marginBottom: 20,
         }}>
           <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--am)', marginBottom: 14 }}>
-            ⚠️ {pendingApprovals.length} LOLR Transaction{pendingApprovals.length > 1 ? 's' : ''} Awaiting Approval
+            ⚠️ {pendingApprovals.length} LOLR transaction{pendingApprovals.length > 1 ? 's' : ''} awaiting approval
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {pendingApprovals.map(item => (
@@ -109,7 +109,7 @@ export function LolrExecutionPage() {
                     className="btn btn-sm"
                     style={{ color: 'var(--rd)', borderColor: 'var(--rd)' }}
                     onClick={() => reject(item.item_id)}
-                  >✕ Reject → Escalate</button>
+                  >✕ Reject → escalate</button>
                 </div>
               </div>
             ))}
@@ -120,7 +120,7 @@ export function LolrExecutionPage() {
       {/* Execution log */}
       <div style={{ background: 'var(--s)', border: '1px solid var(--b)', borderRadius: 10, overflow: 'hidden' }}>
         <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--b)' }}>
-          <h3 style={{ fontSize: 13, fontWeight: 700, color: 'var(--t)' }}>Execution Log</h3>
+          <h3 style={{ fontSize: 13, fontWeight: 700, color: 'var(--t)' }}>Execution log</h3>
         </div>
         {lolrItems.length === 0 ? (
           <div style={{ padding: 48, textAlign: 'center', fontSize: 13, color: 'var(--t3)' }}>
@@ -185,7 +185,7 @@ export function LolrExecutionPage() {
           padding: 16, marginTop: 16,
         }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--rd)', marginBottom: 8 }}>
-            ⚠️ {failed.length} Failed Transaction{failed.length > 1 ? 's' : ''}
+            ⚠️ {failed.length} Failed transaction{failed.length > 1 ? 's' : ''}
           </div>
           {failed.map((item, i) => (
             <div key={i} style={{ fontSize: 12, color: 'var(--rd)', marginBottom: 4 }}>

@@ -21,7 +21,7 @@ export function SettlementRollPage() {
   return (
     <div style={{ padding: '28px 32px', maxWidth: 1100, margin: '0 auto' }}>
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--t)', marginBottom: 2 }}>Settlement Rolls</h1>
+        <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--t)', marginBottom: 2 }}>Settlement rolls</h1>
         <p style={{ fontSize: 13, color: 'var(--t2)' }}>Strate roll instructions — Step 6</p>
       </div>
 
@@ -29,7 +29,7 @@ export function SettlementRollPage() {
       {rollItems.length > 0 && (
         <div style={{ display: 'flex', gap: 12, marginBottom: 24 }}>
           {[
-            { label: 'Total Rolls', count: submitted.length, color: 'var(--ac)' },
+            { label: 'Total rolls', count: submitted.length, color: 'var(--ac)' },
             { label: 'Confirmed', count: confirmed.length, color: 'var(--gn)' },
             { label: 'Failed', count: failed.length, color: 'var(--rd)' },
             { label: 'Ineligible', count: ineligible.length, color: 'var(--am)' },
@@ -48,7 +48,7 @@ export function SettlementRollPage() {
       {/* Roll log */}
       <div style={{ background: 'var(--s)', border: '1px solid var(--b)', borderRadius: 10, overflow: 'hidden', marginBottom: 20 }}>
         <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--b)' }}>
-          <h3 style={{ fontSize: 13, fontWeight: 700, color: 'var(--t)' }}>Roll Log</h3>
+          <h3 style={{ fontSize: 13, fontWeight: 700, color: 'var(--t)' }}>Roll log</h3>
         </div>
         {rollItems.length === 0 ? (
           <div style={{ padding: 48, textAlign: 'center', fontSize: 13, color: 'var(--t3)' }}>
@@ -60,7 +60,7 @@ export function SettlementRollPage() {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
             <thead>
               <tr style={{ background: 'var(--s2)' }}>
-                {['Trade ID', 'Counterparty', 'Original Date', 'New Date', 'Reason', 'Strate Ref', 'CP Notified', 'Status'].map(h => (
+                {['Trade ID', 'Counterparty', 'Original date', 'New date', 'Reason', 'Strate ref', 'CP notified', 'Status'].map(h => (
                   <th key={h} style={{ padding: '8px 14px', textAlign: 'left', color: 'var(--t2)', fontWeight: 600, whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
               </tr>
@@ -117,7 +117,7 @@ export function SettlementRollPage() {
           background: 'var(--amd)', border: '1.5px solid var(--am)', borderRadius: 10, padding: 20,
         }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--am)', marginBottom: 12 }}>
-            ⚠️ Ineligible Trades — Escalated to Human Review ({ineligible.length})
+            ⚠️ Ineligible trades — escalated to human review ({ineligible.length})
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {ineligible.map((item, i) => (
@@ -134,7 +134,7 @@ export function SettlementRollPage() {
                 </div>
                 <Link to="/escalations">
                   <button className="btn btn-sm" style={{ fontSize: 11, color: 'var(--am)', borderColor: 'var(--am)' }}>
-                    View Escalation →
+                    View escalation →
                   </button>
                 </Link>
               </div>
