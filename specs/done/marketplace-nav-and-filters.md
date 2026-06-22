@@ -1,5 +1,5 @@
 # Spec: Marketplace Nav & Advanced Filters
-**Status:** approved
+**Status:** done
 **Version:** v1
 **Date:** 2026-05-06
 

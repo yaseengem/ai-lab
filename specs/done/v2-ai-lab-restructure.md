@@ -1,5 +1,5 @@
 # Spec: AI Lab restructure — demo0 = AI Agents Squad
-**Status:** approved
+**Status:** done
 **Version:** v2
 **Date:** 2026-06-19
 **Owner:** Yaseen Mohammed

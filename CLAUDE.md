@@ -2,7 +2,17 @@
 
 ## Start here
 
-Read `specs/v2-ai-lab-restructure.md` before making any changes — it defines the current structure (AI Lab + demos). `specs/v1-platform-restructure.md` is the earlier (now historical) platform spec, kept for context.
+Read `specs/done/v2-ai-lab-restructure.md` before making any changes — it defines the current structure (AI Lab + demos). `specs/done/v1-platform-restructure.md` is the earlier (now historical) platform spec, kept for context.
+
+---
+
+## Reference docs (always current)
+
+These describe how things are *right now*; `specs/` records *why we decided* things, point-in-time. Keep facts in one place — don't duplicate across layers.
+
+@docs/tech_stack.md
+@docs/conventions.md
+@docs/architecture.md
 
 ---
 

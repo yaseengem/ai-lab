@@ -8,7 +8,7 @@
 | **demo1 — Human in the Loop** | — | Under development |
 | **demo2 — Fleet Management** | — | Under development |
 
-See [specs/v2-ai-lab-restructure.md](specs/v2-ai-lab-restructure.md) for the architecture and [docs/architecture.md](docs/architecture.md) for deeper technical design.
+See [specs/done/v2-ai-lab-restructure.md](specs/done/v2-ai-lab-restructure.md) for the architecture and [docs/architecture.md](docs/architecture.md) for deeper technical design.
 
 ---
 

@@ -1,6 +1,6 @@
 # Spec: demo4 — UI Expansion (12 Screens)
 
-**Status:** approved
+**Status:** done
 **Version:** v2
 **Date:** 2026-05-06
 

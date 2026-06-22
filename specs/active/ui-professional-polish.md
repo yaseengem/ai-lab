@@ -1,5 +1,5 @@
 # Spec: UI Professional Polish (copy, emoji, capitalization)
-**Status:** approved
+**Status:** in-progress
 **Version:** v1
 **Date:** 2026-06-22
 

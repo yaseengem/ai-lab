@@ -1,5 +1,7 @@
 # Agentic AI Platform — Architecture
 
+> **Living reference — kept current.** Decision history lives in `specs/done/`.
+
 **Stack:** React · Python FastAPI · AWS Strands SDK · AWS Bedrock AgentCore (future)
 
 **Agents (isolated — no cross-agent communication):** Claims Processing · Underwriting · Loan Processing

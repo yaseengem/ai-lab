@@ -1,6 +1,6 @@
 # Spec: demo4 — Settlement Failure Prediction & Prevention Agent (UC8)
 
-**Status:** approved
+**Status:** done
 **Version:** v1
 **Date:** 2026-05-06
 

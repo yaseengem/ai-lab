@@ -1,6 +1,6 @@
 # Spec: Runs Subsystem, Streaming Resume, HITL Wiring & Template Versioning
 
-**Status:** approved
+**Status:** done
 **Version:** v1
 **Date:** 2026-05-09
 **Owner:** Yaseen Mohammed
