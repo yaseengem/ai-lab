@@ -1,5 +1,5 @@
 # Spec: Memory backup into the repo on spec completion
-**Status:** approved
+**Status:** done
 **Version:** v1
 **Date:** 2026-06-22
 **Owner:** Yaseen Mohammed
