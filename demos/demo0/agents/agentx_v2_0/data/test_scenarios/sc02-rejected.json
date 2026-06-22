@@ -1,0 +1,18 @@
+{
+  "id": "sc02-rejected",
+  "name": "Rejected at approval gate",
+  "description": "Runs the pipeline but rejects at the human-in-the-loop gate. Validates that the gate decision propagates: the run still completes (terminal) but with a rejected outcome.",
+  "tags": ["hitl", "reject", "edge-case"],
+  "auto_decision": "reject",
+  "payload": {
+    "subject": "Sample high-value request",
+    "priority": "high",
+    "amount": 42500
+  },
+  "expected": {
+    "status": "complete",
+    "outcome": "rejected",
+    "min_events": 6,
+    "must_emit": ["human-approval-required", "approval-decision", "done"]
+  }
+}

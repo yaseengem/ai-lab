@@ -1,0 +1,52 @@
+# agent.config.yaml — human-editable runtime configuration for this agent.
+#
+# Distinct from metadata.yaml (which is identity/discovery only). The platform
+# (demo0 app/) can read and write this file even while the agent process is
+# stopped. The agent reads it at startup; apply changes with POST /admin/restart.
+#
+# Page keys used in visible_pages / default_landing:
+#   home | chat | processing | memory | architecture | test-runner | config
+
+personas:
+  - id: end_user
+    label: Customer
+    icon: "👤"
+    description: "Submit requests and track your own cases."
+    visible_pages: [home, chat, processing]
+    default_landing: chat
+  - id: support_exec
+    label: Support
+    icon: "🎧"
+    description: "Look up and explain any case or run."
+    visible_pages: [home, chat, processing, memory, test-runner]
+    default_landing: chat
+  - id: admin
+    label: Administrator
+    icon: "⚙️"
+    description: "Everything support can do, plus memory, architecture and config."
+    visible_pages: [home, chat, processing, memory, architecture, test-runner, config]
+    default_landing: chat
+
+defaults:
+  model_id: ""          # blank = inherit BEDROCK_MODEL_ID (then root config.yaml default)
+
+features:
+  hitl_approval: true
+
+capabilities:           # rendered on the Architecture page so the agent self-documents
+  tools:
+    - list_runs
+    - get_run
+    - get_memory
+    - get_config
+    - get_health
+  can:
+    - "Answer free-form questions in a persona-aware chat."
+    - "Trigger a generic processing run and stream live, resumable events."
+    - "Pause at a human-in-the-loop approval gate (when hitl_approval is on)."
+    - "Report its own runs, memory, configuration, and health on request."
+    - "Run built-in test scenarios and evaluate them against expected outcomes."
+  cannot:
+    - "Make irreversible external changes without human approval."
+    - "Access another agent's state (each agent is fully self-contained)."
+    - "Authenticate users — personas are a chosen view, not a security boundary."

@@ -20,6 +20,23 @@
 - **Platform logic** (agent list, config, health) lives in `demos/demo0/app/`.
 - A new non-agent demo is a sibling `demos/demoN/` — keep it self-contained too.
 
+## Agent template (v2.0 standard)
+
+Agents are scaffolded from a **versioned** template (`agentx_vN_M`); **new agents always copy the latest version** — today `agentx_v2_0` (`agentx_v1_0` is frozen for reference). The v2.0 template bakes in a full-stack standard so agents stay consistent:
+
+- **Must-have pages** inside a **standard ribbon**: Persona gate → **Chat** (default landing) → Command Center, Memory, Architecture, Processing, Test Runner, Config (admin-only). The `Ribbon` filters pages to the active persona; light theme only.
+- **Personas** are the entry point — declared in `agent.config.yaml` (not hardcoded), driving which pages are visible. A persona is a chosen *view*, not an auth boundary (the demo has no auth).
+- **Operations-aware chat** — Chat is the primary control/observability surface, answering about runs/cases, memory/rules, config, status/readiness, and processing outcomes, scoped to the persona.
+- **Scenario-based self-test** — `data/test_scenarios/*.json` (with `expected` blocks) + a `/test` API + a Test Runner page + `create_dummy_data.py`, so every agent runs end-to-end with zero setup.
+- **Canonical API contract** (contract-tested): `GET /ping` (carries the startup self-check), `GET /config|/personas|/architecture`, `POST /chat/{id}` (SSE), `GET /sessions[/{id}]`, `POST /run` + `GET /monitor/{id}` (SSE), `POST /approve|/reject/{id}` (always present; inert when HITL is off), `GET /memory`, the `/test/*` endpoints, and `POST /admin/restart`.
+- **Config + restart** — runtime config lives in `agent.config.yaml`, edited at the **platform level** (works while the agent is stopped); the agent exposes `POST /admin/restart` and the marketplace Config page has a **Restart agent** button to apply changes.
+- **Per-agent logs** — each agent writes only to its own `agentN/logs/`, never a shared/root folder.
+- **No pricing** — the template ships no pricing page, field, or copy; pricing is forbidden in agent UIs.
+- **Agentic code is flat** — modules live directly in `agentic/` (`agent.py`, `model.py`, `prompts.py`, `memory_backend.py`, `approval_hook.py`, `tools/`); there is **no `sub_agents/` folder**.
+- **metadata.yaml standards** — bounded `card_description` (≤140 chars), required `icon`, semver `version`, and `template_version` recording the inherited template.
+
+Steps and the full folder map are in `demos/demo0/agents/agentx_v2_0/GUIDELINES.md`; decision history in `specs/active/agentx-v2-template.md`.
+
 ## `app/` extension pattern
 
 Adding a platform feature in `demos/demo0/app/`:

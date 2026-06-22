@@ -1,0 +1,131 @@
+/* ── Light professional theme ───────────────────────────────────────────────
+ * CSS variables copied verbatim from demos/demo0/frontend/src/index.css
+ * (the marketplace, source of truth). Light theme only — never introduce dark
+ * backgrounds or override these variables. This standalone project does not run
+ * Tailwind, so the @tailwind/@layer wrappers are dropped; the tokens are plain CSS.
+ */
+:root {
+  --bg:  #F8FAFC;
+  --s:   #FFFFFF;
+  --s2:  #F1F5F9;
+  --s3:  #E2E8F0;
+  --b:   #E2E8F0;
+  --b2:  #CBD5E1;
+  --t:   #0F172A;
+  --t2:  #475569;
+  --t3:  #94A3B8;
+  --ac:  #2563EB;
+  --acd: #DBEAFE;
+  --gn:  #059669;
+  --gnd: #D1FAE5;
+  --am:  #D97706;
+  --amd: #FEF3C7;
+  --rd:  #DC2626;
+  --rdd: #FEE2E2;
+  --tl:  #0D9488;
+  --tld: #CCFBF1;
+  --pu:  #7C3AED;
+  --pud: #EDE9FE;
+  --co:  #EA580C;
+  --cod: #FFEDD5;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--t);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Shared component tokens ─────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 7px;
+  cursor: pointer;
+  border: 1px solid var(--b2);
+  background: var(--s2);
+  color: var(--t);
+  transition: all 0.15s;
+  text-decoration: none;
+}
+.btn:hover { background: var(--s3); }
+.btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.btn-p  { background: var(--ac); border-color: var(--ac); color: #fff; }
+.btn-p:hover { background: #1d4ed8; }
+.btn-sm { font-size: 12px; padding: 6px 13px; }
+.btn-lg { font-size: 15px; padding: 12px 26px; border-radius: 8px; }
+.btn-danger { background: var(--rd); border-color: var(--rd); color: #fff; }
+.btn-danger:hover { background: #b91c1c; }
+.btn-ok { background: var(--gn); border-color: var(--gn); color: #fff; }
+.btn-ok:hover { background: #047857; }
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 9px;
+  border-radius: 20px;
+}
+.tb  { background: var(--acd); color: var(--ac); }
+.tg  { background: var(--gnd); color: var(--gn); }
+.tam { background: var(--amd); color: var(--am); }
+.tr  { background: var(--rdd); color: var(--rd); }
+.tt  { background: var(--tld); color: var(--tl); }
+.tp  { background: var(--pud); color: var(--pu); }
+.tco { background: var(--cod); color: var(--co); }
+.tgr { background: var(--s3);  color: var(--t2); }
+
+.card {
+  background: var(--s);
+  border: 1px solid var(--b);
+  border-radius: 10px;
+  padding: 18px;
+}
+
+/* ── Animations ──────────────────────────────────────────────────────────── */
+.cursor-blink { animation: blink 1s step-end infinite; }
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0; }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.4; }
+}
+
+/* ── Markdown (architecture page) ────────────────────────────────────────── */
+.md h1, .md h2, .md h3 { color: var(--t); font-weight: 700; margin: 1.2em 0 0.5em; }
+.md h1 { font-size: 22px; }
+.md h2 { font-size: 18px; }
+.md h3 { font-size: 15px; }
+.md p  { color: var(--t2); margin: 0.6em 0; }
+.md ul, .md ol { color: var(--t2); padding-left: 22px; }
+.md li { margin: 0.25em 0; }
+.md code {
+  font-family: monospace; font-size: 12px;
+  background: var(--s2); padding: 1px 5px; border-radius: 4px; color: var(--pu);
+}
+.md pre {
+  background: #0d1117; color: #e6edf3; padding: 14px; border-radius: 8px;
+  overflow-x: auto; font-size: 12px;
+}
+.md pre code { background: none; color: inherit; padding: 0; }
+.md a { color: var(--ac); }
+.md table { border-collapse: collapse; width: 100%; font-size: 13px; }
+.md th, .md td { border: 1px solid var(--b); padding: 6px 10px; text-align: left; }
+.md th { background: var(--s2); color: var(--t); }

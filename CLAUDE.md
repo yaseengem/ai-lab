@@ -85,20 +85,26 @@ The table above is the *scheme*; **`docs/ports.md` is the living registry of eve
 
 - Agent folders are `agent1`, `agent2`, `agent3` — **never** named after their use case.
 - Display names come from `metadata.yaml` (`name` field).
-- The template folder is `agentx_v1_0` (current template version 1.0). Future template versions live alongside as `agentx_v2_0`, `agentx_v3_0`, etc. Underscores keep the folder name a valid Python module path so `entry_point` works after a copy.
+- Template folders are `agentx_vN_M` and are **versioned**. The **latest** is `agentx_v2_0` (template version 2.0); `agentx_v1_0` is frozen for reference. Future versions live alongside as `agentx_v3_0`, etc. Underscores keep the folder name a valid Python module path so `entry_point` works after a copy.
 - Demo folders are `demo0`, `demo1`, … `demoN` under `demos/`.
 
 ---
 
-## agentx_v1_0 — the agent template (and future versions)
+## agentx — the agent template (versioned; latest is v2.0)
 
-- `agentx_v1_0` is the v1.0 template. **Never modify it. Never start it.** Same rule for `agentx_v2_0` and any future version.
+- Templates are **versioned** (`agentx_vN_M`). The **latest is `agentx_v2_0`** — **new agents always copy the latest template version**. `agentx_v1_0` is frozen for reference.
+- **Never modify a template. Never start a template.** Applies to `agentx_v1_0`, `agentx_v2_0`, and any future version.
 - `agentx_vN_M/metadata.yaml` has `status: template` — the scanner skips ANY agent whose status is `template`, regardless of folder name. Don't rely on a folder-name check; the test in `demos/demo0/app/tests/test_scanner_template_skip.py` enforces this.
 - Every agent's `metadata.yaml` carries `template_version: "X.Y"` recording which template version it inherits from. Set it when you copy the template; don't change it later.
 - To add a new agent (run from `demos/demo0`):
-  1. `cp -r agents/agentx_v1_0 agents/agentN` (or whichever template version you want to inherit)
-  2. Update `metadata.yaml`: name, description, use_case, domain, `api_port` (`80N1`), `frontend_port` (`80N0`), set `status: stub`, set `entry_point: agents.agentN.apis.main:app`, keep `template_version`.
-  3. Find-and-replace `agents.agentx_v1_0.` → `agents.agentN.` in the new folder's Python imports.
+  1. `cp -r agents/agentx_v2_0 agents/agentN` (the latest template)
+  2. Update `metadata.yaml`: name, description, `card_description` (≤140 chars), `icon`, `version` (semver), use_case, domain, `api_port` (`80N1`), `frontend_port` (`80N0`), set `status: stub`, set `entry_point: agents.agentN.apis.main:app`, keep `template_version: "2.0"`.
+  3. Find-and-replace `agents.agentx_v2_0.` → `agents.agentN.` in the new folder's Python imports.
+  4. Pick the next free `80N0`/`80N1` ports per `docs/ports.md` and **add a row to `docs/ports.md`** in the same change.
+
+### v2.0 standard (what every new agent ships)
+
+Must-have pages (Persona gate → **Chat** default landing → Command Center, Memory, Architecture, Processing, Test Runner, Config) inside a **standard ribbon**; **personas** declared in `agent.config.yaml`; **operations-aware chat**; full **scenario-based self-test** (Test Runner + `/test` API + seed generator); the **canonical API contract** (health/identity/chat/sessions/processing/HITL/memory/test/admin); **startup self-check** via `/ping`; `events.jsonl` + SSE resumable output; **HITL approval** (config-toggleable, endpoints always present); **capabilities manifest** + bundled `architecture.md` (≤1000 words + Mermaid); **config edited at platform level** with `POST /admin/restart`; **per-agent `logs/` only**; **no pricing** anywhere. Details: `demos/demo0/agents/agentx_v2_0/GUIDELINES.md`; rationale: `specs/active/agentx-v2-template.md`.
 
 ---
 

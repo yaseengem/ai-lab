@@ -9,6 +9,11 @@ class AgentSummary(BaseModel):
     id: str
     name: str
     description: str
+    # Short marketplace-card blurb (<= 140 chars). Optional: legacy agents lack it,
+    # the card falls back to `description`.
+    card_description: Optional[str] = None
+    # Marketplace icon (emoji or icon name). Optional: legacy agents predate it.
+    icon: Optional[str] = None
     use_case: str
     domain: str
     api_port: int

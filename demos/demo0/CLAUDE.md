@@ -15,4 +15,20 @@ This keeps any agent copyable, deletable, and runnable on its own without draggi
 
 ## New agents use the latest template
 
-Create new agents from the **latest** `agentx_vN_M` template — the highest-versioned `agentx_v*` folder present. Today that is `agentx_v1_0`; `agentx_v2_0` is specced in `specs/backlog/agentx-v2-template.md` and becomes the latest once built. Never modify or start a template folder. See the root `CLAUDE.md` for the copy steps.
+Create new agents from the **latest** `agentx_vN_M` template — the highest-versioned `agentx_v*` folder present. Today that is `agentx_v2_0` (now built); `agentx_v1_0` is frozen for reference. Never modify or start a template folder. See the root `CLAUDE.md` for the copy steps.
+
+### v2.0 template standards
+
+Every agent copied from `agentx_v2_0` ships, at minimum:
+
+- **Must-have pages** — Persona gate → **Chat** (default landing) → Command Center, Memory, Architecture, Processing, Test Runner, Config.
+- **Standard ribbon** — single `Ribbon` component (top bar + persona-filtered left nav), copied per agent, light theme only.
+- **Personas** declared in `agent.config.yaml` (the entry point), driving visible pages — a chosen view, not auth.
+- **Operations-aware chat** answering about runs, memory/rules, config, status, and outcomes.
+- **Scenario-based self-test** — `data/test_scenarios/*.json` + `/test` API + Test Runner page + `create_dummy_data.py`.
+- **Canonical API contract** — health/identity/chat/sessions/processing/HITL/memory/test/admin (contract-tested).
+- **Config edited at platform level** + `POST /admin/restart` to reload `agent.config.yaml`.
+- **Per-agent `logs/` only**; `events.jsonl` + SSE resumable output; startup self-check via `/ping`.
+- **No pricing** anywhere.
+
+Full details and the create steps: `agents/agentx_v2_0/GUIDELINES.md`. Rationale: `specs/active/agentx-v2-template.md`.

@@ -5,6 +5,7 @@ to determine live_status.  Also validates that no two agents share a port.
 
 from __future__ import annotations
 
+import re
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -17,6 +18,9 @@ from app.schemas.agent import AgentDetail, AgentSummary
 
 _PING_TIMEOUT_SECS = 2
 _MAX_PROBE_WORKERS = 16
+_CARD_DESCRIPTION_MAX = 140
+# Lenient semver shape: MAJOR.MINOR.PATCH with optional pre-release/build suffix.
+_SEMVER_RE = re.compile(r"^\d+\.\d+\.\d+(?:[-+].+)?$")
 
 
 def _probe_ping(port: int) -> str:
@@ -64,6 +68,51 @@ def validate_port_conflicts(agents: list[AgentSummary]) -> list[str]:
     return conflicts
 
 
+def validate_metadata_standards(meta: dict[str, Any]) -> list[str]:
+    """Return a list of soft-warning messages for a single agent's metadata.
+
+    These are *standards* checks (not hard schema validation): the platform should
+    keep working even when an agent is non-conforming, so callers log these rather
+    than reject the agent. Checks:
+      - card_description missing, or longer than 140 chars
+      - icon missing
+      - version not semver-shaped (MAJOR.MINOR.PATCH)
+    """
+    warnings: list[str] = []
+
+    card = (meta.get("card_description") or "").strip()
+    if not card:
+        warnings.append("card_description missing")
+    elif len(card) > _CARD_DESCRIPTION_MAX:
+        warnings.append(
+            f"card_description too long ({len(card)} > {_CARD_DESCRIPTION_MAX} chars)"
+        )
+
+    if not (meta.get("icon") or "").strip():
+        warnings.append("icon missing")
+
+    version = (meta.get("version") or "").strip()
+    if not _SEMVER_RE.match(version):
+        warnings.append(f"version not semver-shaped: {version!r}")
+
+    return warnings
+
+
+def collect_metadata_warnings() -> dict[str, list[str]]:
+    """Run validate_metadata_standards over every non-template agent on disk.
+
+    Returns {agent_id: [warning, ...]} only for agents that have at least one
+    warning. Used at startup to surface non-conforming metadata without failing.
+    """
+    settings = get_settings()
+    result: dict[str, list[str]] = {}
+    for agent_id, meta in _iter_agent_metadata(settings):
+        warnings = validate_metadata_standards(meta)
+        if warnings:
+            result[agent_id] = warnings
+    return result
+
+
 def _iter_agent_metadata(settings) -> list[tuple[str, dict[str, Any]]]:
     """Return (agent_id, metadata) for every non-template agent on disk."""
     result: list[tuple[str, dict[str, Any]]] = []
@@ -101,6 +150,8 @@ def scan_agents(probe_live: bool = True) -> list[AgentSummary]:
             id=agent_id,
             name=meta["name"],
             description=meta.get("description", "").strip(),
+            card_description=(meta.get("card_description") or "").strip() or None,
+            icon=(meta.get("icon") or "").strip() or None,
             use_case=meta.get("use_case", ""),
             domain=meta.get("domain", ""),
             api_port=meta["api_port"],
@@ -143,6 +194,8 @@ def get_agent_detail(agent_id: str, probe_live: bool = True) -> AgentDetail | No
         id=agent_id,
         name=meta["name"],
         description=meta.get("description", "").strip(),
+        card_description=(meta.get("card_description") or "").strip() or None,
+        icon=(meta.get("icon") or "").strip() or None,
         use_case=meta.get("use_case", ""),
         domain=meta.get("domain", ""),
         api_port=meta["api_port"],

@@ -1,0 +1,37 @@
+# yaml-language-server: $schema=../../schemas/agent-metadata.schema.json
+name: DemoX v2.0
+# DESCRIPTION GUIDELINES (replace this block when creating a real agent):
+# Write 4-6 sentences that cover:
+#   1. The industry vertical and type of organisation this serves.
+#   2. Who the end users are (e.g. underwriters, loan officers, policyholders).
+#   3. What input they provide and what the agent does with it step by step.
+#   4. Any human-in-the-loop escalation points.
+#   5. The output or decision produced, and any compliance/audit requirements.
+# Be specific — avoid phrases like "processes documents" or "handles workflows".
+# Example:
+#   "Automates new-business underwriting for health insurance carriers.
+#    Underwriters submit applicant data and medical history; the agent scores
+#    risk against configurable rule sets, flags edge cases for human review,
+#    and produces a recommended premium or decline decision with an audit trail."
+description: >
+  Full-stack agent template (v2.0) — the standard starting point for every new
+  AI Lab agent. It ships a persona-aware, operations-aware assistant: an end
+  user, a support executive, and an administrator each see a tailored set of
+  pages and capabilities. Users trigger a generic processing run that emits
+  live, resumable pipeline events over SSE, optionally pausing at a
+  human-in-the-loop approval gate before completing. The chat interface can
+  answer operational questions about its own runs, memory, configuration, and
+  health by reading the agent's on-disk state. A built-in scenario harness
+  with expected-outcome assertions makes the agent self-demonstrable end to
+  end, and every action is recorded to an append-only event log for audit.
+card_description: "Full-stack v2.0 agent template — persona-aware chat, resumable runs, HITL approval, self-test harness."
+icon: "🧩"
+use_case: template
+domain: template
+api_port: 3098
+frontend_port: 8098
+entry_point: "agents.agentx_v2_0.apis.main:app"
+api_version: "2.0.0"
+status: template
+version: "0.1.0"
+template_version: "2.0"

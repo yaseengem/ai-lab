@@ -1,0 +1,18 @@
+{
+  "id": "sc03-low-priority",
+  "name": "Low-priority request — approved",
+  "description": "A minimal low-priority request that flows through every pipeline step and is approved. Validates the baseline event count and that the finalize step emits.",
+  "tags": ["happy-path", "approve", "baseline"],
+  "auto_decision": "approve",
+  "payload": {
+    "subject": "Sample low-priority request",
+    "priority": "low",
+    "amount": 820
+  },
+  "expected": {
+    "status": "complete",
+    "outcome": "approved",
+    "min_events": 5,
+    "must_emit": ["run-started", "pipeline-step", "done"]
+  }
+}

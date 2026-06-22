@@ -64,6 +64,10 @@ function FilterGroup({
 
 function AgentCard({ agent, onClick }: { agent: PlatformAgent; onClick: () => void }) {
   const meta = DOMAIN_META[agent.domain] ?? { icon: '🤖', tagCls: 'tgr', bg: 'var(--s3)' }
+  // Prefer the agent's own icon when present, else fall back to the domain icon.
+  const icon = agent.icon || meta.icon
+  // Card blurb prefers the short card_description, falling back to the full description.
+  const cardText = agent.card_description || agent.description
   return (
     <div onClick={onClick}
       style={{ background: 'var(--s)', border: '1px solid var(--b)', borderRadius: 12, padding: 20, cursor: 'pointer', transition: 'all .2s' }}
@@ -71,7 +75,7 @@ function AgentCard({ agent, onClick }: { agent: PlatformAgent; onClick: () => vo
       onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = ''; (e.currentTarget as HTMLElement).style.boxShadow = '' }}
     >
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 11 }}>
-        <div style={{ width: 44, height: 44, borderRadius: 11, background: meta.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>{meta.icon}</div>
+        <div style={{ width: 44, height: 44, borderRadius: 11, background: meta.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>{icon}</div>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
           <span className={`tag ${meta.tagCls}`}>{agent.domain}</span>
           <span style={{ fontSize: 11, color: STATUS_COLORS[agent.live_status] ?? 'var(--t3)' }}>
@@ -81,7 +85,7 @@ function AgentCard({ agent, onClick }: { agent: PlatformAgent; onClick: () => vo
       </div>
       <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--t)', marginBottom: 3 }}>{agent.name}</div>
       <div style={{ fontSize: 11, color: 'var(--t3)', marginBottom: 8 }}>v{agent.version} · {agent.use_case.replace(/_/g, ' ')}</div>
-      <div style={{ fontSize: 12, color: 'var(--t2)', lineHeight: 1.65, marginBottom: 14 }}>{agent.description}</div>
+      <div style={{ fontSize: 12, color: 'var(--t2)', lineHeight: 1.65, marginBottom: 14 }}>{cardText}</div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <span className={`tag ${agent.status === 'active' ? 'tg' : 'tgr'}`}>{agent.status}</span>
         <button className="btn btn-sm btn-p">View details →</button>

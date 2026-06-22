@@ -18,8 +18,12 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from commons.logger import setup_logging
 from app.config import get_settings
-from app.routers import agents, config, health
-from app.services.agent_scanner import scan_agents, validate_port_conflicts
+from app.routers import agent_config, agents, config, health
+from app.services.agent_scanner import (
+    collect_metadata_warnings,
+    scan_agents,
+    validate_port_conflicts,
+)
 
 setup_logging()
 _log = logging.getLogger(__name__)
@@ -45,6 +49,7 @@ app.add_middleware(
 app.include_router(agents.router)
 app.include_router(health.router)
 app.include_router(config.router)
+app.include_router(agent_config.router)
 
 
 @app.on_event("startup")
@@ -56,3 +61,9 @@ async def _startup() -> None:
             _log.warning("PORT CONFLICT: %s", msg)
     else:
         _log.info("Platform started — %d agent(s) discovered, no port conflicts", len(found))
+
+    # Soft metadata-standards check — log warnings, never hard-fail startup.
+    meta_warnings = collect_metadata_warnings()
+    for agent_id, warnings in meta_warnings.items():
+        for msg in warnings:
+            _log.warning("METADATA STANDARD: %s — %s", agent_id, msg)

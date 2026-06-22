@@ -1,0 +1,9 @@
+logs/
+data/cases/
+data/sessions/
+frontend/.env
+frontend/node_modules/
+frontend/dist/
+frontend/*.tsbuildinfo
+__pycache__/
+*.pyc

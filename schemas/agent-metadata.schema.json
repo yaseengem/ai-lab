@@ -8,6 +8,16 @@
   "properties": {
     "name": { "type": "string", "minLength": 1 },
     "description": { "type": "string" },
+    "card_description": {
+      "type": "string",
+      "maxLength": 140,
+      "description": "Short marketplace-card blurb (<= 140 chars). Optional for legacy agents; falls back to description when absent."
+    },
+    "icon": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Marketplace icon for the agent (e.g. an emoji or icon name). Optional for legacy agents that predate this field."
+    },
     "use_case": { "type": "string" },
     "domain": { "type": "string" },
     "api_port": { "type": "integer", "minimum": 1, "maximum": 65535 },
@@ -15,7 +25,7 @@
     "entry_point": { "type": "string", "description": "Python dotted path to the FastAPI app, e.g. agents.agent1.apis.main:app" },
     "api_version": { "type": "string" },
     "status": { "type": "string", "enum": ["active", "stub", "template"] },
-    "version": { "type": "string", "description": "This agent's own version" },
+    "version": { "type": "string", "description": "This agent's own version, semver-shaped (MAJOR.MINOR.PATCH, e.g. 1.0.0)" },
     "template_version": {
       "type": "string",
       "description": "Which agentx_vN_M template version this agent was spawned from (e.g. \"1.0\"). Optional for legacy agents; required for new ones."

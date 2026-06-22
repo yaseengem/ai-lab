@@ -38,6 +38,7 @@ Agent ports are declared in each agent's `metadata.yaml` (`frontend_port`, `api_
 | Template | Frontend | Backend |
 |----------|----------|---------|
 | agentx_v1_0 | 8099 | 3099 |
+| agentx_v2_0 (latest) | 8098 | 3098 |
 
 Templates use placeholder ports outside the live agent sequence so they never collide with real agents.
 

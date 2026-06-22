@@ -11,7 +11,6 @@ live inside each spec; this file is the overview only. Process: see [README.md](
 | Spec | Status |
 |------|--------|
 | [ep6-deployment.md](backlog/ep6-deployment.md) — EC2 deployment behind Nginx + systemd | draft |
-| [agentx-v2-template.md](backlog/agentx-v2-template.md) — Agent Template v2.0: must-have pages, ribbon, personas, self-test harness, standard API contract, config-while-stopped | draft |
 
 ---
 
@@ -20,6 +19,7 @@ live inside each spec; this file is the overview only. Process: see [README.md](
 | Spec | Status |
 |------|--------|
 | [ui-professional-polish.md](active/ui-professional-polish.md) — copy, emoji, capitalization pass | in-progress |
+| [agentx-v2-template.md](active/agentx-v2-template.md) — Agent Template v2.0: must-have pages, ribbon, personas, self-test, standard API contract, config + restart | in-progress |
 
 ---
 

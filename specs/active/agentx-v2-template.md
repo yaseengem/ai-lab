@@ -1,6 +1,6 @@
 # Spec: Agent Template v2.0 (`agentx_v2_0`)
 
-**Status:** draft
+**Status:** in-progress
 **Version:** v1
 **Date:** 2026-06-23
 **Owner:** Yaseen Mohammed
