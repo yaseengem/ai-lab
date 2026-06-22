@@ -77,6 +77,8 @@ ai-lab/
 
 Agent ports are declared in each agent's `metadata.yaml` (`api_port`, `frontend_port`). Squad/launcher ports live in `demos/demo0/config.yaml` and the root `config.yaml`.
 
+The table above is the *scheme*; **`docs/ports.md` is the living registry of every port actually assigned**. When adding an agent or demo, pick the next free ports per the scheme and add a row to `docs/ports.md` in the same change.
+
 ---
 
 ## Naming conventions
