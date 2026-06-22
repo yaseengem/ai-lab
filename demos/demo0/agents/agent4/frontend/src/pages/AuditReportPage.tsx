@@ -295,7 +295,7 @@ export function AuditReportPage() {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
             <thead>
               <tr style={{ background: 'var(--s2)' }}>
-                {['Run ID', 'Timestamp', 'Status', 'CRITICAL', 'Interventions'].map(h => (
+                {['Run ID', 'Timestamp', 'Status', 'Critical', 'Interventions'].map(h => (
                   <th key={h} style={{ padding: '7px 14px', textAlign: 'left', color: 'var(--t2)', fontWeight: 600 }}>{h}</th>
                 ))}
               </tr>

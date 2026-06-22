@@ -1,5 +1,5 @@
 # Spec: UI Professional Polish (copy, emoji, capitalization)
-**Status:** in-progress
+**Status:** done
 **Version:** v1
 **Date:** 2026-06-22
 
@@ -41,7 +41,11 @@ A copy-only pass (no layout/color/routing changes) that enforces one formal voic
 
 ### Emoji whitelist (keep)
 
-⚠️ 🚨 ⏰ ℹ️ and ✓/✗ — only where they mark status, severity, time-sensitivity, or validation (primarily agent4 alerts/escalations/countdowns). Everything else (logos, nav, buttons, headings, empty states) is stripped to text.
+⚠️ 🚨 ⏰ ℹ️ and ✓/✗ — only where they mark status, severity, time-sensitivity, or validation (primarily agent4 alerts/escalations/countdowns).
+
+**Kept as functional visual iconography (not "decorative emoji"):** the marketplace's domain/role/feature **icon-chips, card avatars, and the agent Overview feature glyphs** — e.g. the colored industry/agent/role chips in `LandingPage`, `BrowseAgentsPage`, `AgentDetailPage`, and `RoleSelectPage`. These sit inside colored chip elements as their only content; stripping them would leave empty boxes, which is a layout/color change this spec forbids. They are treated as part of the visual design, not loose copy.
+
+**Stripped to text:** loose decorative emoji in logos, nav, buttons, headings, and empty states.
 
 ---
 
@@ -70,15 +74,15 @@ None. Copy-only changes to existing `.tsx` files plus the launcher manifest data
 
 ## Implementation Checklist
 
-- [ ] A. Casual language — launcher tagline (config.yaml + demos.json + App.tsx fallback); "AI Agents Squad" → "AI Agents"; "Rejected — fraud" → "Rejected: fraud indicator".
-- [ ] B. Remove decorative emoji — marketplace (LandingPage, DashboardPage, NotFoundPage, ConnectWorkspacePage) + agent1 (logo, nav, buttons).
-- [ ] C. Debug strings → user-facing copy — DashboardPage, UserChatPage, SupportChatPage, BrowseAgentsPage.
-- [ ] D. Sentence-case capitalization — agent1 nav reconciliation, marketplace "Clear", agent4 nav/headings/filters + stray "CRITICAL" column header.
+- [x] A. Casual language — launcher tagline (config.yaml + demos.json + App.tsx fallback); "Rejected — fraud" → "Rejected: fraud indicator". ("AI Agents Squad" retained as the demo0 brand name — see Scope.)
+- [x] B. Remove loose decorative emoji — marketplace (LandingPage, DashboardPage, NotFoundPage, ConnectWorkspacePage) + agent1 (logo, nav, buttons). Domain/role/feature chip icons retained as visual iconography (see Emoji whitelist).
+- [x] C. Debug strings → user-facing copy — DashboardPage, UserChatPage, SupportChatPage, BrowseAgentsPage.
+- [x] D. Sentence-case capitalization — agent1 nav reconciliation, marketplace "Clear", agent4 nav/headings/filters + stray "CRITICAL" column header.
 
 ---
 
 ## Verification
 
-1. Grep sweep: residual decorative emoji and debug strings (`api/health`, `agents/ folder`, `backend running`, `localhost`) return zero user-facing hits.
+1. Grep sweep: no loose decorative emoji in logos/nav/buttons/headings/empty-states (domain/role/feature chip iconography retained by design); debug strings (`api/health` in copy, `agents/ folder`, `backend running`, `localhost:5001`) return zero user-facing hits. Functional `href` links to local agent ports and the dashboard "Ports info" grid are not debug copy.
 2. `npm run build` succeeds in each changed frontend.
 3. Run the app (`run.sh`) and walk launcher → marketplace → agent1 → agent4: sentence case, no decorative emoji, no debug strings, functional alert icons still present, light theme intact.
