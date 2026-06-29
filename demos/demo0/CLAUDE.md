@@ -25,10 +25,12 @@ Every agent copied from `agentx_v2_0` ships, at minimum:
 - **Standard ribbon** — single `Ribbon` component (top bar + persona-filtered left nav), copied per agent, light theme only.
 - **Personas** declared in `agent.config.yaml` (the entry point), driving visible pages — a chosen view, not auth.
 - **Operations-aware chat** answering about runs, memory/rules, config, status, and outcomes.
-- **Scenario-based self-test** — `data/test_scenarios/*.json` + `/test` API + Test Runner page + `create_dummy_data.py`.
+- **Scenario-based self-test** — `seeds/test_scenarios/*.json` (INPUT data, fed via API) + `/test` API + Test Runner page + `create_dummy_data.py`.
 - **Canonical API contract** — health/identity/chat/sessions/processing/HITL/memory/test/admin (contract-tested).
-- **Config edited at platform level** via GUI fields (model, HITL toggle, connected `integrations` — no raw JSON) + `POST /admin/restart` to reload `agent.config.yaml`.
-- **Per-agent `logs/` only**; `events.jsonl` + SSE resumable output; startup self-check via `/ping`.
+- **State layout** — all mutable data under `state/` (gitignored): `config/setup.yaml`, `memory/` (rules/facts/episodes), `sessions/`, `data/`, `runs/`, `secrets/`, `index/`, `logs/`. `agentic/paths.py` is the single source of truth. Backup/restore via `scripts/agent_state.py`. See `specs/active/per-agent-state-layout.md`.
+- **Config split + restart** — `agent.config.yaml` (git) = definition + defaults; operator overrides → `state/config/setup.yaml`, edited at the platform level via GUI fields (model, HITL toggle, connected `integrations` — no raw JSON). No `setup.yaml` ⇒ `awaiting_setup` (up, refuses to process). `POST /admin/setup` writes it; `POST /admin/restart` applies it.
+- **Per-agent `state/logs/` only**; per-session `events.jsonl` + SSE resumable output; startup self-check via `/ping` (`awaiting_setup | ok | degraded`).
+- **Durable HITL** — approval gate state in `state/runs/` survives a restart (paused runs resume).
 - **No pricing** anywhere.
 
 Full details and the create steps: `agents/agentx_v2_0/GUIDELINES.md`. Rationale: `specs/active/agentx-v2-template.md`.

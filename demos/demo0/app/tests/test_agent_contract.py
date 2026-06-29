@@ -50,6 +50,7 @@ POST_ROUTE_TEMPLATES = [
     "/run",
     "/approve/{id}",
     "/reject/{id}",
+    "/admin/setup",
     "/admin/restart",
 ]
 

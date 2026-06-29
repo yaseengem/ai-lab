@@ -1,13 +1,20 @@
 """
-Local memory backend for the v2.0 template agent.
+Agent memory layer for the v2.0 template.
 
-File-backed key/value store persisting to data/memory/agent_memory.json
-(agent-relative). Holds the agent's rules / preferences / long-term memory.
-A factory reads the MEMORY_BACKEND env var so swapping to AgentCore Memory
-later requires only changing one environment variable — no code changes.
+Memory is what the agent *learns and remembers* — distinct from raw chat history
+(state/sessions/) and from operator config (state/config/setup.yaml). It is split
+into three files by memory type, each with its own writer, so a chat-driven rule
+edit and a workflow-appended episode never contend on the same lock:
 
-Thread safety: FileLock (cross-process) + threading.RLock (in-process).
-Atomic writes: write to .tmp then os.replace() so readers never see partial JSON.
+  state/memory/rules.json       PROCEDURAL — admin-authored rules, injected into
+                                the system prompt on every invocation.
+  state/memory/facts.json       SEMANTIC   — learned key→{value, source, ts}.
+  state/memory/episodes.jsonl   EPISODIC   — append-only one-line run/case summaries.
+
+All changes are LIVE — they take effect on the next agent invocation with no
+restart (unlike config). Thread/process safety: filelock (cross-process) +
+threading.RLock (in-process). Atomic writes: temp file + os.replace so readers
+never see partial JSON.
 """
 
 from __future__ import annotations
@@ -15,124 +22,154 @@ from __future__ import annotations
 import json
 import os
 import threading
-from pathlib import Path
+import uuid
+from datetime import datetime, timezone
 from typing import Any
 
 from filelock import FileLock
 
-# Default memory dir: <agent_folder>/data/memory/
-_AGENT_DIR = Path(__file__).parent.parent
-_DEFAULT_MEMORY_DIR = _AGENT_DIR / "data" / "memory"
-
-# All agent state lives in one JSON file: data/memory/agent_memory.json
-_MEMORY_FILE_STEM = "agent"
+from .paths import EPISODES_FILE, FACTS_FILE, MEMORY_DIR, RULES_FILE
 
 
-class LocalMemoryStore:
-    """File-backed key-value store persisted to data/memory/{name}_memory.json."""
+def _now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
 
-    def __init__(self, agent_name: str = _MEMORY_FILE_STEM, memory_dir: Path | None = None) -> None:
-        mem_dir = memory_dir or _DEFAULT_MEMORY_DIR
-        mem_dir.mkdir(parents=True, exist_ok=True)
 
-        self._path = mem_dir / f"{agent_name}_memory.json"
-        self._lock_path = str(self._path) + ".lock"
+class MemoryStore:
+    """File-backed agent memory: procedural rules, semantic facts, episodic log."""
+
+    def __init__(self) -> None:
+        MEMORY_DIR.mkdir(parents=True, exist_ok=True)
         self._rlock = threading.RLock()
+        self._rules_lock = FileLock(str(RULES_FILE) + ".lock")
+        self._facts_lock = FileLock(str(FACTS_FILE) + ".lock")
+        self._episodes_lock = FileLock(str(EPISODES_FILE) + ".lock")
 
-        if not self._path.exists():
-            self._write_raw({})
+    # ── procedural: rules ─────────────────────────────────────────────────────
 
-    # ── public API ──────────────────────────────────────────────────────────
+    def get_rules(self) -> list[dict]:
+        with self._rlock, self._rules_lock:
+            return list(self._read_json(RULES_FILE, default=[]))
 
-    def get(self, key: str) -> Any | None:
-        with self._rlock:
-            with FileLock(self._lock_path):
-                return self._read_raw().get(key)
+    def set_rules(self, rules: list[dict | str]) -> list[dict]:
+        """Replace the whole ruleset. Bare strings are wrapped into rule objects."""
+        normalised = [self._as_rule(r) for r in rules]
+        with self._rlock, self._rules_lock:
+            self._write_json(RULES_FILE, normalised)
+        return normalised
 
-    def set(self, key: str, value: Any) -> None:
-        with self._rlock:
-            with FileLock(self._lock_path):
-                data = self._read_raw()
-                data[key] = value
-                self._write_raw(data)
+    def add_rule(self, text: str) -> dict:
+        rule = self._as_rule(text)
+        with self._rlock, self._rules_lock:
+            rules = list(self._read_json(RULES_FILE, default=[]))
+            rules.append(rule)
+            self._write_json(RULES_FILE, rules)
+        return rule
 
-    def delete(self, key: str) -> None:
-        with self._rlock:
-            with FileLock(self._lock_path):
-                data = self._read_raw()
-                data.pop(key, None)
-                self._write_raw(data)
+    def remove_rule(self, rule_id: str) -> bool:
+        with self._rlock, self._rules_lock:
+            rules = list(self._read_json(RULES_FILE, default=[]))
+            kept = [r for r in rules if r.get("id") != rule_id]
+            if len(kept) == len(rules):
+                return False
+            self._write_json(RULES_FILE, kept)
+            return True
 
-    def all(self) -> dict:
-        """Return a snapshot of the entire memory store."""
-        with self._rlock:
-            with FileLock(self._lock_path):
-                return dict(self._read_raw())
+    # ── semantic: facts ───────────────────────────────────────────────────────
 
-    def list_keys(self) -> list[str]:
-        with self._rlock:
-            with FileLock(self._lock_path):
-                return list(self._read_raw().keys())
+    def get_facts(self) -> dict[str, Any]:
+        with self._rlock, self._facts_lock:
+            return dict(self._read_json(FACTS_FILE, default={}))
 
-    # ── internal helpers ────────────────────────────────────────────────────
+    def get_fact(self, key: str) -> Any | None:
+        return self.get_facts().get(key)
 
-    def _read_raw(self) -> dict:
+    def set_fact(self, key: str, value: Any, source: str | None = None) -> None:
+        with self._rlock, self._facts_lock:
+            facts = dict(self._read_json(FACTS_FILE, default={}))
+            facts[key] = {"value": value, "source": source, "ts": _now_iso()}
+            self._write_json(FACTS_FILE, facts)
+
+    def delete_fact(self, key: str) -> None:
+        with self._rlock, self._facts_lock:
+            facts = dict(self._read_json(FACTS_FILE, default={}))
+            facts.pop(key, None)
+            self._write_json(FACTS_FILE, facts)
+
+    # ── episodic: append-only log ─────────────────────────────────────────────
+
+    def add_episode(self, episode: dict) -> dict:
+        record = {"ts": _now_iso(), **episode}
+        with self._rlock, self._episodes_lock:
+            with open(EPISODES_FILE, "a", encoding="utf-8") as f:
+                f.write(json.dumps(record, ensure_ascii=False) + "\n")
+        return record
+
+    def recent_episodes(self, limit: int = 20) -> list[dict]:
+        with self._rlock, self._episodes_lock:
+            if not EPISODES_FILE.exists():
+                return []
+            episodes: list[dict] = []
+            with open(EPISODES_FILE, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        episodes.append(json.loads(line))
+                    except json.JSONDecodeError:
+                        continue
+        return episodes[-limit:] if limit else episodes
+
+    # ── snapshot (feeds GET /memory and the get_memory chat tool) ─────────────
+
+    def snapshot(self, episode_limit: int = 20) -> dict:
+        return {
+            "rules": self.get_rules(),
+            "facts": self.get_facts(),
+            "episodes": self.recent_episodes(episode_limit),
+        }
+
+    # ── internal helpers ──────────────────────────────────────────────────────
+
+    @staticmethod
+    def _as_rule(rule: dict | str) -> dict:
+        if isinstance(rule, dict):
+            return {
+                "id": rule.get("id") or uuid.uuid4().hex[:12],
+                "text": rule.get("text", ""),
+                "created_at": rule.get("created_at") or _now_iso(),
+            }
+        return {"id": uuid.uuid4().hex[:12], "text": str(rule), "created_at": _now_iso()}
+
+    @staticmethod
+    def _read_json(path, default):
         try:
-            with open(self._path, "r", encoding="utf-8") as f:
+            with open(path, "r", encoding="utf-8") as f:
                 return json.load(f)
         except (FileNotFoundError, json.JSONDecodeError):
-            return {}
+            return default
 
-    def _write_raw(self, data: dict) -> None:
-        tmp = str(self._path) + ".tmp"
+    @staticmethod
+    def _write_json(path, data) -> None:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = str(path) + ".tmp"
         with open(tmp, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
-        os.replace(tmp, self._path)
+        os.replace(tmp, str(path))
 
 
-class StubAgentCoreMemory:
-    """
-    Placeholder for a future AgentCore Memory backend.
-
-    Every method raises NotImplementedError with migration instructions so the
-    failure is loud rather than silently dropping data.
-    """
-
-    def __init__(self, agent_name: str = _MEMORY_FILE_STEM) -> None:
-        self._agent_name = agent_name
-
-    def _not_implemented(self) -> None:
-        raise NotImplementedError(
-            "AgentCore Memory backend is not yet implemented. Set MEMORY_BACKEND=local."
-        )
-
-    def get(self, key: str) -> Any | None:
-        self._not_implemented()
-
-    def set(self, key: str, value: Any) -> None:
-        self._not_implemented()
-
-    def delete(self, key: str) -> None:
-        self._not_implemented()
-
-    def all(self) -> dict:
-        self._not_implemented()
-
-    def list_keys(self) -> list[str]:
-        self._not_implemented()
+_store: MemoryStore | None = None
 
 
-def create_memory_backend(agent_name: str = _MEMORY_FILE_STEM) -> LocalMemoryStore | StubAgentCoreMemory:
-    """
-    Factory returning the correct memory backend based on MEMORY_BACKEND:
-      - "local" (default) → LocalMemoryStore
-      - "agentcore"       → StubAgentCoreMemory (raises on use)
-    """
-    backend = os.getenv("MEMORY_BACKEND", "local").strip().lower()
-    if backend == "local":
-        return LocalMemoryStore(agent_name)
-    if backend == "agentcore":
-        return StubAgentCoreMemory(agent_name)
-    raise ValueError(
-        f"Unknown MEMORY_BACKEND value: '{backend}'. Accepted: 'local', 'agentcore'."
-    )
+def get_memory_store() -> MemoryStore:
+    """Return the process-wide memory store (created on first use)."""
+    global _store
+    if _store is None:
+        _store = MemoryStore()
+    return _store
+
+
+# Back-compat alias for callers that used the old factory name.
+def create_memory_backend(*_args, **_kwargs) -> MemoryStore:
+    return get_memory_store()

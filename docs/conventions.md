@@ -16,6 +16,7 @@
 ## File layout
 
 - **Each agent is self-contained** in `demos/demo0/agents/agentN/` — no agent code lives outside its folder. Memory backend lives in the agent's `agentic/memory_backend.py`.
+- **Definition vs state.** An agent folder splits into git-tracked **definition + code** (`metadata.yaml`, `agent.config.yaml`, code, `seeds/` test inputs) and a gitignored **`state/`** root holding ALL mutable data (config/setup, memory, sessions, data, runs, secrets, index, logs). `agentic/paths.py` is the single source of truth for paths. See [per-agent-state-layout](../specs/active/per-agent-state-layout.md) and the agent's GUIDELINES.
 - **`demos/demo0/commons/` holds only `logger.py`.** Everything else is agent-owned.
 - **Platform logic** (agent list, config, health) lives in `demos/demo0/app/`.
 - A new non-agent demo is a sibling `demos/demoN/` — keep it self-contained too.
@@ -27,15 +28,17 @@ Agents are scaffolded from a **versioned** template (`agentx_vN_M`); **new agent
 - **Must-have pages** inside a **standard ribbon**: Persona gate → **Chat** (default landing) → Command Center, Memory, Architecture, Processing, Test Runner, Config (admin-only). The `Ribbon` filters pages to the active persona; light theme only.
 - **Personas** are the entry point — declared in `agent.config.yaml` (not hardcoded), driving which pages are visible. A persona is a chosen *view*, not an auth boundary (the demo has no auth).
 - **Operations-aware chat** — Chat is the primary control/observability surface, answering about runs/cases, memory/rules, config, status/readiness, and processing outcomes, scoped to the persona.
-- **Scenario-based self-test** — `data/test_scenarios/*.json` (with `expected` blocks) + a `/test` API + a Test Runner page + `create_dummy_data.py`, so every agent runs end-to-end with zero setup.
-- **Canonical API contract** (contract-tested): `GET /ping` (carries the startup self-check), `GET /config|/personas|/architecture`, `POST /chat/{id}` (SSE), `GET /sessions[/{id}]`, `POST /run` + `GET /monitor/{id}` (SSE), `POST /approve|/reject/{id}` (always present; inert when HITL is off), `GET /memory`, the `/test/*` endpoints, and `POST /admin/restart`.
-- **Config + restart** — runtime config lives in `agent.config.yaml`, edited at the **platform level** through **GUI fields** (model, HITL toggle, connected systems — no raw JSON; works while the agent is stopped); the agent exposes `POST /admin/restart` and the marketplace Config page has a **Restart agent** button to apply changes. Connected systems are declared under `integrations` — each renders a Connect button that opens its OAuth page when `auth_url` is set, else a mock toggle.
-- **Per-agent logs** — each agent writes only to its own `agentN/logs/`, never a shared/root folder.
+- **Scenario-based self-test** — `seeds/test_scenarios/*.json` (with `expected` blocks) + a `/test` API + a Test Runner page + `create_dummy_data.py`, so every agent runs end-to-end with zero setup. Scenarios are INPUT data fed through the APIs; their artifacts land in `state/`.
+- **Canonical API contract** (contract-tested): `GET /ping` (startup self-check — `awaiting_setup | ok | degraded`), `GET /config|/personas|/architecture`, `POST /chat/{id}` (SSE), `GET /sessions[/{id}]`, `POST /run` + `GET /monitor/{id}` (SSE), `POST /approve|/reject/{id}` (always present; inert when HITL is off; gate state durable across restart), `GET /memory`, the `/test/*` endpoints, and `POST /admin/setup` + `POST /admin/restart`.
+- **Config split + restart** — `agent.config.yaml` (git) is the definition + defaults; operator **overrides** live in `state/config/setup.yaml`, edited at the **platform level** through **GUI fields** (model, HITL toggle, connected systems — no raw JSON; works while the agent is stopped). Effective config = defaults ⊕ setup. Until setup is saved the agent is **`awaiting_setup`** (up, but refuses to process). The agent exposes `POST /admin/setup` + `POST /admin/restart`; the marketplace Config page has a **Restart agent** button. Connected systems are declared under `integrations` — each renders a Connect button that opens its OAuth page when `auth_url` is set, else a mock toggle.
+- **Memory** — three live (no-restart) files under `state/memory/`: `rules.json` (procedural), `facts.json` (semantic), `episodes.jsonl` (episodic).
+- **Backup / restore** — `scripts/agent_state.py` snapshots `state/` (minus rebuildable `index/`) with a manifest, and restores it (validate `VERSION`, rebuild `index/`). Restore = `git pull` then lay `state/` back down.
+- **Per-agent logs** — each agent writes only to its own `state/logs/`, never a shared/root folder.
 - **No pricing** — the template ships no pricing page, field, or copy; pricing is forbidden in agent UIs.
 - **Agentic code is flat** — modules live directly in `agentic/` (`agent.py`, `model.py`, `prompts.py`, `memory_backend.py`, `approval_hook.py`, `tools/`); there is **no `sub_agents/` folder**.
 - **metadata.yaml standards** — bounded `card_description` (≤140 chars), required `icon`, semver `version`, and `template_version` recording the inherited template.
 
-Steps and the full folder map are in `demos/demo0/agents/agentx_v2_0/GUIDELINES.md`; decision history in `specs/active/agentx-v2-template.md`.
+Steps and the full folder map are in `demos/demo0/agents/agentx_v2_0/GUIDELINES.md`; decision history in `specs/done/agentx-v2-template.md` and `specs/active/per-agent-state-layout.md` (state layout, memory, backup/restore).
 
 ## `app/` extension pattern
 

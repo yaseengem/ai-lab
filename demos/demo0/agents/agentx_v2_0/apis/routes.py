@@ -21,13 +21,24 @@ from fastapi.responses import StreamingResponse
 
 from commons.logger import get_logger
 
+from agents.agentx_v2_0.agentic.paths import is_configured
+
 from .schemas import ChatRequest, RunRequest
-from .service import Service, load_config
+from .service import Service, load_config, save_setup
 
 logger = get_logger(__name__)
 
 router = APIRouter()
 service = Service()
+
+
+def _require_configured() -> None:
+    """Block processing endpoints until the operator has configured the agent."""
+    if not is_configured():
+        raise HTTPException(
+            status_code=409,
+            detail="Agent is awaiting setup — configure it from the marketplace before processing.",
+        )
 
 _AGENT_DIR = Path(__file__).parent.parent
 _ARCHITECTURE_FILE = _AGENT_DIR / "architecture.md"
@@ -56,13 +67,17 @@ def ping():
 
 @router.get("/config")
 def get_config():
-    """Return the full agent.config.yaml parsed as a JSON object."""
+    """
+    Return the effective config: the git-tracked definition (personas,
+    capabilities, integration catalog) merged with operator setup overrides.
+    Carries `configured` so the marketplace can render the form pre-setup.
+    """
     return load_config()
 
 
 @router.get("/personas")
 def get_personas():
-    """Return the persona definitions from agent.config.yaml."""
+    """Return the persona definitions from the agent definition."""
     cfg = load_config()
     return {"personas": cfg.get("personas", [])}
 
@@ -81,10 +96,9 @@ def get_architecture():
 
 @router.get("/memory")
 def get_memory():
-    """Return the agent's memory (rules / preferences / LTM) from the LocalMemoryStore."""
-    from agents.agentx_v2_0.agentic.memory_backend import create_memory_backend
-    store = create_memory_backend()
-    return {"memory": store.all()}
+    """Return the agent's memory — procedural rules, semantic facts, episodic log."""
+    from agents.agentx_v2_0.agentic.memory_backend import get_memory_store
+    return {"memory": get_memory_store().snapshot()}
 
 
 # ── Chat (SSE) ────────────────────────────────────────────────────────────────
@@ -95,6 +109,7 @@ async def chat(session_id: str, req: ChatRequest):
     Operations-aware, persona-aware streaming chat (SSE).
     Creates the session if it does not yet exist.
     """
+    _require_configured()
     if service.get_session(session_id) is None:
         # Lightweight chat session — reuse the meta shape via create_session is
         # heavier than needed, so persist a minimal chat meta directly.
@@ -148,6 +163,7 @@ async def run(req: RunRequest):
     launches run_pipeline as a detached asyncio task (survives client disconnect).
     Connect to GET /monitor/{session_id} for the SSE stream.
     """
+    _require_configured()
     meta = service.create_session(persona=req.persona, trigger_mode="api",
                                   scenario_id=req.scenario_id)
     session_id = meta["session_id"]
@@ -246,12 +262,24 @@ async def reject(session_id: str):
     return {"status": "rejected"}
 
 
-# ── Admin (self-restart) ──────────────────────────────────────────────────────
+# ── Admin (setup + self-restart) ──────────────────────────────────────────────
+
+@router.post("/admin/setup")
+async def admin_setup(setup: dict):
+    """
+    Persist operator setup to state/config/setup.yaml (model_id, hitl_approval,
+    integration connections). Marketplace-equivalent write — also creatable by the
+    platform writing the file directly while the agent is stopped. Restart-required:
+    call POST /admin/restart afterwards to apply. Returns the new effective config.
+    """
+    logger.info("[ROUTE] admin_setup  keys=%s", sorted(setup.keys()))
+    return {"status": "saved", "config": save_setup(setup)}
+
 
 @router.post("/admin/restart")
 async def admin_restart():
     """
-    Gracefully self-restart the agent process so it re-reads agent.config.yaml.
+    Gracefully self-restart the agent so it re-reads its definition + setup.yaml.
 
     Re-execs the current process (sys.executable + sys.argv) after returning the
     response. Guarded so it only ever restarts — no other side effects.

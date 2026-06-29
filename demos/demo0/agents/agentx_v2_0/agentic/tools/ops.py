@@ -14,16 +14,10 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any
 
-import yaml
 from strands import tool
 
-# agents/agentx_v2_0/agentic/tools/ops.py → agents/agentx_v2_0/
-_AGENT_DIR = Path(__file__).parent.parent.parent
-_SESSIONS_DIR = _AGENT_DIR / "data" / "sessions"
-_MEMORY_FILE = _AGENT_DIR / "data" / "memory" / "agent_memory.json"
-_CONFIG_FILE = _AGENT_DIR / "agent.config.yaml"
+from ..paths import SESSIONS_DIR as _SESSIONS_DIR
 
 
 # ── low-level readers (shared with service self-check) ────────────────────────
@@ -33,13 +27,6 @@ def _read_json(path: Path) -> dict | None:
         return json.loads(path.read_text(encoding="utf-8"))
     except (FileNotFoundError, json.JSONDecodeError):
         return None
-
-
-def _load_config() -> dict:
-    try:
-        return yaml.safe_load(_CONFIG_FILE.read_text(encoding="utf-8")) or {}
-    except (FileNotFoundError, yaml.YAMLError):
-        return {}
 
 
 def _read_events(session_id: str, limit: int = 50) -> list[dict]:
@@ -125,27 +112,29 @@ def get_run(run_id: str) -> str:
 @tool
 def get_memory() -> str:
     """
-    Return everything the agent has stored in its memory (rules / preferences / LTM).
+    Return the agent's memory: procedural rules, semantic facts, and recent episodes.
 
     Returns:
-        JSON string of the full memory store, or "{}" if empty.
+        JSON string {"memory": {"rules": [...], "facts": {...}, "episodes": [...]}}.
     """
-    data = _read_json(_MEMORY_FILE) or {}
-    return json.dumps({"memory": data})
+    from ..memory_backend import get_memory_store
+    return json.dumps({"memory": get_memory_store().snapshot()})
 
 
 @tool
 def get_config() -> str:
     """
-    Return the agent's runtime configuration (personas, features, defaults, capabilities).
+    Return the agent's effective runtime configuration (personas, features, defaults,
+    capabilities) — the definition merged with operator setup.
 
     Use this to answer questions like "which model is this agent using?" or
     "is human-in-the-loop approval enabled?".
 
     Returns:
-        JSON string of the parsed agent.config.yaml.
+        JSON string of the effective config.
     """
-    return json.dumps(_load_config())
+    from agents.agentx_v2_0.apis.service import effective_config
+    return json.dumps(effective_config())
 
 
 @tool

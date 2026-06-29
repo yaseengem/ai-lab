@@ -104,7 +104,7 @@ The table above is the *scheme*; **`docs/ports.md` is the living registry of eve
 
 ### v2.0 standard (what every new agent ships)
 
-Must-have pages (Persona gate → **Chat** default landing → Command Center, Memory, Architecture, Processing, Test Runner, Config) inside a **standard ribbon**; **personas** declared in `agent.config.yaml`; **operations-aware chat**; full **scenario-based self-test** (Test Runner + `/test` API + seed generator); the **canonical API contract** (health/identity/chat/sessions/processing/HITL/memory/test/admin); **startup self-check** via `/ping`; `events.jsonl` + SSE resumable output; **HITL approval** (config-toggleable, endpoints always present); **capabilities manifest** + bundled `architecture.md` (≤1000 words + Mermaid); **config edited at platform level** via GUI fields (model, HITL toggle, connected `integrations`) with `POST /admin/restart`; **per-agent `logs/` only**; **no pricing** anywhere. Details: `demos/demo0/agents/agentx_v2_0/GUIDELINES.md`; rationale: `specs/active/agentx-v2-template.md`.
+Must-have pages (Persona gate → **Chat** default landing → Command Center, Memory, Architecture, Processing, Test Runner, Config) inside a **standard ribbon**; **personas** declared in `agent.config.yaml`; **operations-aware chat**; full **scenario-based self-test** (Test Runner + `/test` API + seed generator); the **canonical API contract** (health/identity/chat/sessions/processing/HITL/memory/test/admin); **startup self-check** via `/ping`; `events.jsonl` + SSE resumable output; **HITL approval** (config-toggleable, endpoints always present); **capabilities manifest** + bundled `architecture.md` (≤1000 words + Mermaid); **config split** (`agent.config.yaml` = git-tracked definition + defaults; operator overrides → `state/config/setup.yaml`, edited at platform level via GUI fields — model, HITL toggle, connected `integrations`) with `POST /admin/setup` + `POST /admin/restart`, and **`awaiting_setup`** when no setup yet; **all mutable state under `state/`** (gitignored, backup-eligible via `scripts/agent_state.py`) incl. **per-agent `state/logs/` only**; **durable HITL** (paused runs survive restart); **no pricing** anywhere. Details: `demos/demo0/agents/agentx_v2_0/GUIDELINES.md`; rationale: `specs/done/agentx-v2-template.md` + `specs/active/per-agent-state-layout.md`.
 
 ---
 
@@ -139,4 +139,4 @@ Adding a new platform feature (in `demos/demo0/app/`):
 
 - Root `run.sh` starts the AI Lab launcher (:5000), then the demo0 backend (:8002) and marketplace (:8001), then scans `demos/demo0/agents/*/metadata.yaml`, skips `status: template`/`stub`, and calls each agent's `main.py` with working directory `demos/demo0`.
 - `run.sh` validates for port conflicts before launching anything.
-- Log files go to `demos/demo0/agents/{name}/logs/` — never to a root `logs/` folder.
+- Log files go to `demos/demo0/agents/{name}/state/logs/` — never to a root `logs/` folder.

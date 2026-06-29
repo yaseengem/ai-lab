@@ -23,7 +23,12 @@ env/
 .env.local
 .env.*.local
 
-# Per-agent runtime data is owned by each agent's own .gitignore at
+# Per-agent mutable state — config/setup, memory, sessions, data, runs, secrets,
+# index, logs. ALL of it lives under each agent's state/ folder and is
+# backup-eligible, never committed. Definition + code + seed inputs stay tracked.
+demos/demo0/agents/*/state/
+
+# Per-agent runtime data is also owned by each agent's own .gitignore at
 # demos/demo0/agents/{agentN}/.gitignore — each agent generates different files.
 # This file only lists what is shared (logs and the Vite .env).
 **/logs/

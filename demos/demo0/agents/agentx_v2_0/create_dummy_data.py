@@ -1,9 +1,10 @@
 """
 Generate seed/demo data for the v2.0 template agent.
 
-Writes a few simple JSON + CSV records into data/dummy/ so a freshly copied
-agent has something to show on first run. No heavy dependencies — standard
-library only.
+Writes a few simple JSON + CSV records into seeds/dummy/. This is INPUT data — it
+is committed to git and stays in seeds/; it is NOT runtime state. To exercise the
+agent, feed these (or seeds/test_scenarios/*.json) through the APIs — the resulting
+case artifacts then land in state/data/ like any real run.
 
 Run once from the repo root:
     python agents/agentx_v2_0/create_dummy_data.py
@@ -15,7 +16,7 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
-OUT = Path(__file__).parent / "data" / "dummy"
+OUT = Path(__file__).parent / "seeds" / "dummy"
 OUT.mkdir(parents=True, exist_ok=True)
 
 

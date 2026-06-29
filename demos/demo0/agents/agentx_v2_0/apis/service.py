@@ -1,16 +1,20 @@
 """
 Run engine + state for the v2.0 template agent.
 
-Manages run lifecycle, the append-only event log (events.jsonl), per-session
-live SSE queues, the HITL approval gate, a startup crash-recovery sweep, and a
-boot-time self-check.
+Manages run lifecycle, the append-only per-session event log, live SSE queues,
+the DURABLE HITL approval gate, a startup recovery pass (resume paused runs,
+interrupt mid-compute ones), and the boot-time self-check.
 
-IMPORTANT (single-worker invariant): HITL approval futures live in a
-process-local registry (the ApprovalHook). The pipeline task awaiting approval
-and the /approve route handler that resolves it must run in the same process.
-The agent runs with a single uvicorn worker — do NOT add `--workers N` without
-first replacing the in-memory future registry with a cross-process resume
-mechanism (e.g. file + filesystem watcher, or Redis pub/sub).
+Config model: agent.config.yaml is the git-tracked DEFINITION + defaults
+(personas, capabilities, integration catalog). state/config/setup.yaml holds the
+operator OVERRIDES written from the marketplace. Effective config = defaults ⊕
+setup. When setup.yaml is absent the agent is `awaiting_setup` — it stays up so
+the marketplace can configure it, but refuses to process.
+
+IMPORTANT (single-worker invariant): the pipeline task awaiting approval and the
+/approve handler resolving it run in the same uvicorn worker. Gate state is now
+durable on disk (state/runs/), so it survives a restart — but the in-process wake
+still assumes one worker. Do NOT add `--workers N` without a cross-process wake.
 """
 
 from __future__ import annotations
@@ -32,23 +36,26 @@ if _REPO_ROOT not in sys.path:
 
 from commons.logger import get_logger  # noqa: E402
 from agents.agentx_v2_0.agentic.approval_hook import ApprovalHook, APPROVE  # noqa: E402
+from agents.agentx_v2_0.agentic.memory_backend import get_memory_store  # noqa: E402
 from agents.agentx_v2_0.agentic.model import resolve_model_id  # noqa: E402
+from agents.agentx_v2_0.agentic.paths import (  # noqa: E402
+    CONFIG_DEF_FILE, RUN_SEQ_DIR, SESSIONS_DIR, SETUP_FILE,
+    ensure_state_dirs, is_configured,
+)
 
 logger = get_logger(__name__)
 
-_AGENT_DIR = Path(__file__).parent.parent          # agents/agentx_v2_0/
-_SESSIONS_DIR = _AGENT_DIR / "data" / "sessions"
-_RUN_SEQ_DIR = _AGENT_DIR / "data" / "_run_seq"
-_CONFIG_FILE = _AGENT_DIR / "agent.config.yaml"
-
 # Canonical run statuses
-_RUN_STATUS_NON_TERMINAL = {"queued", "running", "awaiting_approval"}
+_RUN_STATUS_RESUMABLE = {"awaiting_approval"}
+_RUN_STATUS_INTERRUPTIBLE = {"queued", "running"}
 _RUN_STATUS_TERMINAL = {"complete", "failed", "interrupted", "cancelled"}
 
 _run_seq_lock = threading.Lock()
 
 # The single approval item id the template pipeline gates on.
 _GATE_ITEM_ID = "primary"
+# Number of pre-gate pipeline steps (so resume can number the finalize step).
+_STEP_COUNT = 3
 
 
 def _now_iso() -> str:
@@ -73,14 +80,14 @@ def _read_json(path: Path) -> dict | None:
 def mint_run_id(now: datetime | None = None) -> str:
     """
     Mint a server-side run id of the form RUN-YYYYMMDD-HHMMSS-NNNN.
-    NNNN is a per-day counter persisted at data/_run_seq/YYYYMMDD.txt under a
+    NNNN is a per-day counter persisted at state/_run_seq/YYYYMMDD.txt under a
     threading lock, so meta.run_id is set before /run returns to the client.
     """
     now = now or datetime.now(timezone.utc)
     day = now.strftime("%Y%m%d")
-    seq_path = _RUN_SEQ_DIR / f"{day}.txt"
+    seq_path = RUN_SEQ_DIR / f"{day}.txt"
     with _run_seq_lock:
-        _RUN_SEQ_DIR.mkdir(parents=True, exist_ok=True)
+        RUN_SEQ_DIR.mkdir(parents=True, exist_ok=True)
         try:
             current = int(seq_path.read_text(encoding="utf-8").strip())
         except (FileNotFoundError, ValueError):
@@ -90,16 +97,78 @@ def mint_run_id(now: datetime | None = None) -> str:
     return f"RUN-{day}-{now.strftime('%H%M%S')}-{nxt:04d}"
 
 
-def load_config() -> dict:
-    """Parse agent.config.yaml (returns {} on parse failure)."""
+# ── Config: definition (git) ⊕ operator setup (state) ─────────────────────────
+
+def load_definition() -> dict:
+    """Parse agent.config.yaml — the git-tracked definition + defaults."""
     try:
-        return yaml.safe_load(_CONFIG_FILE.read_text(encoding="utf-8")) or {}
+        return yaml.safe_load(CONFIG_DEF_FILE.read_text(encoding="utf-8")) or {}
     except (FileNotFoundError, yaml.YAMLError):
         return {}
 
 
+def load_setup() -> dict | None:
+    """Parse state/config/setup.yaml — operator overrides. None when not yet configured."""
+    if not SETUP_FILE.exists():
+        return None
+    try:
+        return yaml.safe_load(SETUP_FILE.read_text(encoding="utf-8")) or {}
+    except yaml.YAMLError:
+        return {}
+
+
+def effective_config() -> dict:
+    """
+    Merge the definition with operator setup into the effective runtime config.
+    Operator-editable keys: model_id, hitl_approval, per-integration `connected`.
+    Always reports `configured` (whether setup.yaml exists yet).
+    """
+    defn = load_definition()
+    setup = load_setup() or {}
+    cfg = dict(defn)
+
+    defaults = dict(defn.get("defaults") or {})
+    features = dict(defn.get("features") or {})
+    cfg["defaults"] = {**defaults, "model_id": setup.get("model_id", defaults.get("model_id", ""))}
+    hitl_default = features.get("hitl_approval", defaults.get("hitl_approval", False))
+    cfg["features"] = {**features, "hitl_approval": bool(setup.get("hitl_approval", hitl_default))}
+
+    setup_integ = setup.get("integrations") or {}
+    integrations = []
+    for item in (defn.get("integrations") or []):
+        item = dict(item)
+        override = setup_integ.get(item.get("id")) or {}
+        if "connected" in override:
+            item["connected"] = bool(override["connected"])
+        integrations.append(item)
+    if integrations:
+        cfg["integrations"] = integrations
+
+    cfg["configured"] = is_configured()
+    return cfg
+
+
+# Back-compat: callers that read "the config" want the effective view.
+load_config = effective_config
+
+
+def save_setup(setup: dict) -> dict:
+    """Persist operator setup to state/config/setup.yaml (used by POST /admin/setup)."""
+    ensure_state_dirs()
+    tmp = str(SETUP_FILE) + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        yaml.safe_dump(setup, f, sort_keys=False, allow_unicode=True)
+    os.replace(tmp, str(SETUP_FILE))
+    logger.info("[SERVICE] setup_saved  keys=%s", sorted(setup.keys()))
+    return effective_config()
+
+
+def hitl_enabled() -> bool:
+    return bool((effective_config().get("features") or {}).get("hitl_approval"))
+
+
 class Service:
-    """Run lifecycle, event log, SSE queues, HITL gate, and self-check."""
+    """Run lifecycle, event log, SSE queues, durable HITL gate, and self-check."""
 
     def __init__(self) -> None:
         self._sessions: dict[str, dict] = {}
@@ -131,7 +200,7 @@ class Service:
             "event_count": 0,
         }
         self._sessions[session_id] = meta
-        _write_json(_SESSIONS_DIR / f"{session_id}_meta.json", meta)
+        _write_json(SESSIONS_DIR / f"{session_id}_meta.json", meta)
         logger.info("[SERVICE] create_session  session_id=%s run_id=%s mode=%s",
                     session_id, run_id, trigger_mode)
         return meta
@@ -139,15 +208,15 @@ class Service:
     def get_session(self, session_id: str) -> dict | None:
         if session_id in self._sessions:
             return self._sessions[session_id]
-        data = _read_json(_SESSIONS_DIR / f"{session_id}_meta.json")
+        data = _read_json(SESSIONS_DIR / f"{session_id}_meta.json")
         if data:
             self._sessions[session_id] = data
         return data
 
     def list_sessions(self) -> list[dict]:
-        _SESSIONS_DIR.mkdir(parents=True, exist_ok=True)
+        SESSIONS_DIR.mkdir(parents=True, exist_ok=True)
         sessions = []
-        for f in sorted(_SESSIONS_DIR.glob("*_meta.json"),
+        for f in sorted(SESSIONS_DIR.glob("*_meta.json"),
                         key=lambda p: p.stat().st_mtime, reverse=True):
             data = _read_json(f)
             if data:
@@ -158,13 +227,13 @@ class Service:
         meta = self.get_session(session_id) or {}
         meta.update(kwargs)
         self._sessions[session_id] = meta
-        _write_json(_SESSIONS_DIR / f"{session_id}_meta.json", meta)
+        _write_json(SESSIONS_DIR / f"{session_id}_meta.json", meta)
 
     def set_status(self, session_id: str, status: str, **extra: Any) -> None:
         """Update meta.status (+ optional fields) and persist atomically."""
         self.update_session(session_id, status=status, **extra)
 
-    # ── SSE queue + event log (events.jsonl, monotonic id) ────────────────────
+    # ── SSE queue + event log (per-session events.jsonl, monotonic id) ────────
 
     def get_or_create_queue(self, session_id: str) -> asyncio.Queue:
         if session_id not in self._queues:
@@ -176,11 +245,11 @@ class Service:
         n = int(meta.get("event_count", 0)) + 1
         meta["event_count"] = n
         self._sessions[session_id] = meta
-        _write_json(_SESSIONS_DIR / f"{session_id}_meta.json", meta)
+        _write_json(SESSIONS_DIR / f"{session_id}_meta.json", meta)
         return n
 
     def _append_event_jsonl(self, session_id: str, record: dict) -> None:
-        path = _SESSIONS_DIR / f"{session_id}.events.jsonl"
+        path = SESSIONS_DIR / f"{session_id}.events.jsonl"
         path.parent.mkdir(parents=True, exist_ok=True)
         with open(path, "a", encoding="utf-8") as f:
             f.write(json.dumps(record, ensure_ascii=False) + "\n")
@@ -200,7 +269,7 @@ class Service:
     def get_event_log(self, session_id: str, after_id: int = 0) -> list:
         """Return persisted events for a session, filtered to id > after_id."""
         events: list[dict] = []
-        path = _SESSIONS_DIR / f"{session_id}.events.jsonl"
+        path = SESSIONS_DIR / f"{session_id}.events.jsonl"
         if not path.exists():
             return events
         with open(path, "r", encoding="utf-8") as f:
@@ -227,20 +296,15 @@ class Service:
     async def run_pipeline(self, session_id: str) -> None:
         """
         Execute the generic template pipeline:
-          emit a few `pipeline-step` events → (optional) HITL approval gate →
-          `done` event, status `complete`.
-
-        This is a domain-free skeleton — a real agent replaces the step bodies
-        with its own work while keeping the event shapes and the gate intact.
+          emit a few `pipeline-step` events → (optional) durable HITL gate →
+          finalize. A real agent replaces the step bodies while keeping the event
+          shapes and the gate intact.
         """
-        async def emit(event: dict) -> None:
-            await self.emit(session_id, event)
-
         meta = self.get_session(session_id) or {}
         scenario_id = meta.get("scenario_id")
 
         self.set_status(session_id, "running", started_at=_now_iso())
-        await emit({"type": "run-started", "scenario_id": scenario_id})
+        await self.emit(session_id, {"type": "run-started", "scenario_id": scenario_id})
 
         steps = [
             ("ingest", "Collecting and validating input"),
@@ -249,99 +313,149 @@ class Service:
         ]
         try:
             for i, (name, desc) in enumerate(steps, start=1):
-                await emit({"type": "pipeline-step", "step": i, "name": name,
-                            "status": "running", "detail": desc})
+                await self.emit(session_id, {"type": "pipeline-step", "step": i, "name": name,
+                                             "status": "running", "detail": desc})
                 await asyncio.sleep(0)  # cooperative yield; real work goes here
-                await emit({"type": "pipeline-step", "step": i, "name": name,
-                            "status": "complete"})
+                await self.emit(session_id, {"type": "pipeline-step", "step": i, "name": name,
+                                             "status": "complete"})
 
-            # ── Optional HITL approval gate ──────────────────────────────────
-            hitl_on = bool((load_config().get("features") or {}).get("hitl_approval"))
-            decision = APPROVE
+            hitl_on = hitl_enabled()
             if hitl_on:
+                self._approval.open_gate(session_id, _GATE_ITEM_ID)
                 self.set_status(session_id, "awaiting_approval")
-                await emit({
+                await self.emit(session_id, {
                     "type": "human-approval-required",
                     "item_id": _GATE_ITEM_ID,
                     "reason": "Recommendation requires human approval before completion.",
                 })
-                await emit({"type": "status-change", "status": "awaiting_approval"})
+                await self.emit(session_id, {"type": "status-change", "status": "awaiting_approval"})
                 logger.info("[SERVICE] awaiting_approval  session_id=%s", session_id)
-
                 decision = await self._approval.wait(session_id, _GATE_ITEM_ID, timeout=1200)
+            else:
+                decision = APPROVE
+
+            await self._finalize(session_id, decision, hitl_on)
+        except Exception as e:
+            await self._fail(session_id, e)
+
+    async def _finalize(self, session_id: str, decision: str, hitl_on: bool) -> None:
+        """Post-gate completion — shared by first run and post-restart resume."""
+        meta = self.get_session(session_id) or {}
+        try:
+            if hitl_on:
                 self.set_status(session_id, "running")
-                await emit({"type": "status-change", "status": "running"})
-                await emit({"type": "approval-decision",
-                            "decision": "approved" if decision == APPROVE else "rejected"})
+                await self.emit(session_id, {"type": "status-change", "status": "running"})
+                await self.emit(session_id, {"type": "approval-decision",
+                                             "decision": "approved" if decision == APPROVE else "rejected"})
 
             outcome = "approved" if decision == APPROVE else "rejected"
-            await emit({"type": "pipeline-step", "step": len(steps) + 1, "name": "finalize",
-                        "status": "complete", "outcome": outcome})
-
-            self.set_status(session_id, "complete",
-                            completed_at=_now_iso(), outcome=outcome)
-            await emit({"type": "done", "run_id": meta.get("run_id"), "outcome": outcome})
+            await self.emit(session_id, {"type": "pipeline-step", "step": _STEP_COUNT + 1,
+                                         "name": "finalize", "status": "complete", "outcome": outcome})
+            self.set_status(session_id, "complete", completed_at=_now_iso(), outcome=outcome)
+            await self.emit(session_id, {"type": "done", "run_id": meta.get("run_id"), "outcome": outcome})
+            self._record_episode(meta, outcome)
             logger.info("[SERVICE] pipeline_complete  session_id=%s outcome=%s", session_id, outcome)
         except Exception as e:
-            logger.error("[SERVICE] pipeline_failed  session_id=%s error=%s", session_id, e)
-            self.set_status(session_id, "failed", completed_at=_now_iso(), error=str(e))
-            await emit({"type": "error", "message": str(e)})
-            await emit({"type": "done", "run_id": meta.get("run_id"), "outcome": "failed"})
+            await self._fail(session_id, e)
 
-    # ── Crash-recovery sweep (called from FastAPI startup) ────────────────────
+    async def _fail(self, session_id: str, error: Exception) -> None:
+        meta = self.get_session(session_id) or {}
+        logger.error("[SERVICE] pipeline_failed  session_id=%s error=%s", session_id, error)
+        self.set_status(session_id, "failed", completed_at=_now_iso(), error=str(error))
+        await self.emit(session_id, {"type": "error", "message": str(error)})
+        await self.emit(session_id, {"type": "done", "run_id": meta.get("run_id"), "outcome": "failed"})
 
-    def startup_sweep(self) -> int:
+    def _record_episode(self, meta: dict, outcome: str) -> None:
+        """Append a one-line episodic memory of the finished run (best-effort)."""
+        try:
+            get_memory_store().add_episode({
+                "run_id": meta.get("run_id"),
+                "session_id": meta.get("session_id"),
+                "scenario_id": meta.get("scenario_id"),
+                "outcome": outcome,
+            })
+        except Exception as e:  # pragma: no cover - memory must never break a run
+            logger.warning("[SERVICE] episode_write_failed  error=%s", e)
+
+    # ── Startup recovery (called from FastAPI startup) ────────────────────────
+
+    async def recover_on_startup(self) -> dict:
         """
-        Mark any run whose status is non-terminal as 'interrupted'. Single-worker
-        invariant: no other process owns these runs, so we can rewrite them.
-        Returns the number of runs swept.
+        Reconcile runs left non-terminal by a stop/crash:
+          • awaiting_approval → RESUME — re-arm a waiter so a pending approval is
+            honoured (or finalize now if it was decided while the process was down).
+          • queued / running  → INTERRUPT — mid-compute work can't be safely resumed.
+        Returns {"resumed": n, "interrupted": m}.
         """
-        _SESSIONS_DIR.mkdir(parents=True, exist_ok=True)
-        swept = 0
+        SESSIONS_DIR.mkdir(parents=True, exist_ok=True)
+        resumed = interrupted = 0
         now = _now_iso()
-        for meta_path in _SESSIONS_DIR.glob("*_meta.json"):
+        for meta_path in SESSIONS_DIR.glob("*_meta.json"):
             meta = _read_json(meta_path)
             if not meta:
                 continue
-            current = meta.get("status")
-            if current in _RUN_STATUS_NON_TERMINAL:
+            status = meta.get("status")
+            session_id = meta.get("session_id", "")
+            if status in _RUN_STATUS_RESUMABLE and self._approval.is_open(session_id):
+                self._sessions[session_id] = meta
+                asyncio.create_task(self._resume_pending(session_id))
+                resumed += 1
+                logger.info("[SERVICE] run_resumed_on_startup  session_id=%s", session_id)
+            elif status in _RUN_STATUS_INTERRUPTIBLE or (
+                status in _RUN_STATUS_RESUMABLE and not self._approval.is_open(session_id)
+            ):
                 eid = int(meta.get("event_count", 0)) + 1
-                meta["status"] = "interrupted"
-                meta["completed_at"] = now
-                meta["event_count"] = eid
+                meta.update(status="interrupted", completed_at=now, event_count=eid)
                 _write_json(meta_path, meta)
-                self._sessions[meta.get("session_id", "")] = meta
-                self._append_event_jsonl(meta["session_id"], {
+                self._sessions[session_id] = meta
+                self._append_event_jsonl(session_id, {
                     "id": eid, "ts": now, "type": "run-interrupted",
-                    "reason": "process_died_before_completion", "prior_status": current,
+                    "reason": "process_died_before_completion", "prior_status": status,
                 })
-                swept += 1
+                interrupted += 1
                 logger.warning("[SERVICE] run_interrupted_on_startup  session_id=%s prior=%s",
-                               meta.get("session_id"), current)
-        if swept:
-            logger.info("[SERVICE] startup_sweep  swept=%d", swept)
-        return swept
+                               session_id, status)
+        if resumed or interrupted:
+            logger.info("[SERVICE] startup_recovery  resumed=%d interrupted=%d", resumed, interrupted)
+        return {"resumed": resumed, "interrupted": interrupted}
+
+    async def _resume_pending(self, session_id: str) -> None:
+        """Re-arm the durable gate for a paused run and finalize when it resolves."""
+        await self.emit(session_id, {"type": "run-resumed",
+                                     "detail": "Reattached to a pending approval after restart."})
+        decision = await self._approval.wait(session_id, _GATE_ITEM_ID, timeout=1200)
+        await self._finalize(session_id, decision, hitl_on=True)
 
     # ── Startup self-check (feeds GET /ping) ──────────────────────────────────
 
     @staticmethod
     def self_check() -> dict:
         """
-        Validate config/env on boot and on demand. Returns:
-          {"status": "ok"|"degraded", "checks": [{name, ok, detail}, ...]}
+        Validate readiness on boot and on demand. Returns:
+          {"status": "awaiting_setup"|"ok"|"degraded", "checks": [{name, ok, detail}, ...]}
         """
+        if not is_configured():
+            return {
+                "status": "awaiting_setup",
+                "checks": [{
+                    "name": "setup",
+                    "ok": False,
+                    "detail": "No state/config/setup.yaml — configure this agent from the marketplace.",
+                }],
+            }
+
         checks: list[dict] = []
 
-        # 1) agent.config.yaml parses and has the expected top-level keys.
-        cfg = load_config()
-        cfg_ok = bool(cfg) and "personas" in cfg and "features" in cfg
+        # 1) Definition parses and declares personas.
+        cfg = effective_config()
+        cfg_ok = bool(cfg.get("personas"))
         checks.append({
             "name": "agent_config",
             "ok": cfg_ok,
-            "detail": "parsed OK" if cfg_ok else "agent.config.yaml missing/invalid or missing keys",
+            "detail": "parsed OK" if cfg_ok else "agent.config.yaml missing/invalid or has no personas",
         })
 
-        # 2) A model id resolves (agent.config.yaml → env → root config default).
+        # 2) A model id resolves (setup → agent.config.yaml → env → root default).
         try:
             model_id = resolve_model_id()
             model_ok = bool(model_id)

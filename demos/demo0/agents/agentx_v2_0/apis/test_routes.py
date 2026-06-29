@@ -1,28 +1,28 @@
 """
 Test runner routes — scenario-based self-test/demo harness.
 
-Loads JSON scenarios from data/test_scenarios/, runs the real pipeline for a
-chosen scenario, evaluates its `expected` block, and emits a `test-result`
-event with pass/fail. Modeled on agent4/apis/test_routes.py.
+Loads JSON scenario INPUTS from the git-tracked test/test_scenarios/ folder, runs
+the real pipeline for a chosen scenario, evaluates its `expected` block, and emits
+a `test-result` event with pass/fail. Scenario artifacts land in state/ like any
+real run.
 """
 
 from __future__ import annotations
 
 import asyncio
 import json
-from pathlib import Path
 
 from fastapi import APIRouter, HTTPException
 
 from commons.logger import get_logger
+
+from agents.agentx_v2_0.agentic.paths import TEST_SCENARIOS_DIR as _SCENARIOS_DIR
 
 from .service import Service
 
 logger = get_logger(__name__)
 
 router = APIRouter(prefix="/test")
-
-_SCENARIOS_DIR = Path(__file__).parent.parent / "data" / "test_scenarios"
 
 # Shared service instance — wired from apis.main at startup so the Test Runner
 # and the main routes operate on the same in-memory state.

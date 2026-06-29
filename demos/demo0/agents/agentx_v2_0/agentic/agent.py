@@ -26,12 +26,11 @@ from strands import Agent  # noqa: E402
 
 from commons.logger import get_logger  # noqa: E402
 from .model import get_model  # noqa: E402
+from .paths import SESSIONS_DIR as _HISTORY_DIR  # noqa: E402
 from .prompts import SYSTEM_PROMPT, persona_instruction  # noqa: E402
 from .tools.ops import list_runs, get_run, get_memory, get_config, get_health  # noqa: E402
 
 logger = get_logger(__name__)
-
-_HISTORY_DIR = Path(__file__).parent.parent / "data" / "sessions"
 
 # Operations-awareness tools — read-only access to the agent's own state.
 _ALL_TOOLS = [list_runs, get_run, get_memory, get_config, get_health]

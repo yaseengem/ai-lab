@@ -1,8 +1,15 @@
-# agent.config.yaml — human-editable runtime configuration for this agent.
+# agent.config.yaml — this agent's DEFINITION + DEFAULTS (git-tracked).
 #
-# Distinct from metadata.yaml (which is identity/discovery only). The platform
-# (demo0 app/) can read and write this file even while the agent process is
-# stopped. The agent reads it at startup; apply changes with POST /admin/restart.
+# This file is part of the agent's definition, like metadata.yaml: it ships in
+# git and is never written at runtime. It declares the fixed parts (personas,
+# integration catalog, capabilities) plus DEFAULT values for the operator-editable
+# settings (defaults.model_id, features.hitl_approval, integrations[].connected).
+#
+# Operator OVERRIDES live separately in state/config/setup.yaml, written from the
+# marketplace Config page (model, HITL toggle, integration connections). The agent
+# runs the EFFECTIVE config = these defaults ⊕ setup.yaml. Until setup.yaml exists
+# the agent is `awaiting_setup` (up, but refuses to process). Apply setup changes
+# with POST /admin/restart.
 #
 # Page keys used in visible_pages / default_landing:
 #   home | chat | processing | memory | architecture | test-runner | config

@@ -13,7 +13,6 @@ from __future__ import annotations
 import logging
 import os
 import sys
-from pathlib import Path
 
 import yaml
 
@@ -26,16 +25,17 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from commons.logger import setup_logging, get_logger
 
+from agents.agentx_v2_0.agentic.paths import AGENT_DIR as _AGENT_DIR, LOGS_DIR as _LOGS_DIR, ensure_state_dirs
+
 from .routes import router, service
 from . import test_routes
 
 setup_logging()
 
-_AGENT_DIR = Path(__file__).parent.parent
-_LOGS_DIR = _AGENT_DIR / "logs"
+# Scaffold the state/ tree (logs, memory, sessions, …) before anything writes to it.
+ensure_state_dirs()
 
-# Also write logs to this agent's own logs/ dir (never a shared/root logs folder).
-_LOGS_DIR.mkdir(parents=True, exist_ok=True)
+# Also write logs to this agent's own state/logs/ dir (never a shared/root folder).
 _file_handler = logging.FileHandler(_LOGS_DIR / "agent.log", encoding="utf-8")
 _file_handler.setFormatter(logging.Formatter(
     "%(asctime)s.%(msecs)03d [%(levelname)-5s] %(name)s - %(message)s", datefmt="%H:%M:%S"))
@@ -76,16 +76,20 @@ app.include_router(test_routes.router)
 
 @app.on_event("startup")
 async def _on_startup() -> None:
-    """Run the startup self-check (log degraded reasons) and a crash-recovery sweep."""
+    """Run the startup self-check and reconcile runs left non-terminal by a stop/crash."""
     check = service.self_check()
-    if check["status"] != "ok":
+    if check["status"] == "ok":
+        logger.info("[STARTUP] self_check=ok")
+    elif check["status"] == "awaiting_setup":
+        logger.warning("[STARTUP] self_check=awaiting_setup  "
+                       "no state/config/setup.yaml — configure from the marketplace")
+    else:
         reasons = [f"{c['name']}: {c['detail']}" for c in check["checks"] if not c["ok"]]
         logger.warning("[STARTUP] self_check=degraded  reasons=%s", "; ".join(reasons))
-    else:
-        logger.info("[STARTUP] self_check=ok")
 
-    swept = service.startup_sweep()
-    logger.info("[STARTUP] crash_recovery_sweep  interrupted_runs=%d", swept)
+    recovery = await service.recover_on_startup()
+    logger.info("[STARTUP] recovery  resumed=%d interrupted=%d",
+                recovery["resumed"], recovery["interrupted"])
 
 
 if __name__ == "__main__":

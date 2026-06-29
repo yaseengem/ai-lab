@@ -26,59 +26,63 @@ Run from `demos/demo0`:
 3. Update Python module strings inside the new folder: any `agents.agentx_v2_0.*` → `agents.agentN.*`
 4. Write a spec in `specs/` first (see `specs/_template.md`) — no code without an approved spec.
 5. **Ports**: pick the next free `80N0`/`80N1` pair from `docs/ports.md` and **add a row to `docs/ports.md`** in the same change, advancing the "next free" marker. `scripts/run.sh` validates port conflicts at launch.
-6. Fill in `agent.config.yaml` (personas, defaults, features, `integrations`, capabilities) for your agent. List each external system under `integrations` (id, name, category, description, `auth_type`, `auth_url`, `connected`) — leave `auth_url` blank for a mock Connect button, or set it to make the button open a real OAuth page.
-7. Implement agentic logic inside `agentic/`, wire the FastAPI app in `apis/`, build the must-have pages in `frontend/`, and write your `data/test_scenarios/*.json`.
+6. Fill in `agent.config.yaml` — this is the git-tracked **definition + defaults** (personas, capabilities, the `integrations` catalog, and `defaults: {model_id, hitl_approval}`). List each external system under `integrations` (id, name, category, description, `auth_type`, `auth_url`, `connected`) — leave `auth_url` blank for a mock Connect button, or set it to make the button open a real OAuth page. Operator **overrides** (chosen model, HITL toggle, integration connections) are written separately to `state/config/setup.yaml` from the marketplace — don't put them here.
+7. Implement agentic logic inside `agentic/` (import all paths from `agentic/paths.py`), wire the FastAPI app in `apis/`, build the must-have pages in `frontend/`, and write your `seeds/test_scenarios/*.json`.
 8. Write `architecture.md` (≤ 1000 words, with a Mermaid diagram).
 
 ## Folder map
 
+The agent folder splits into two halves — **definition + code** (git-tracked) and
+**state** (gitignored, backup-eligible). See "State & lifecycle" below.
+
 ```
-agents/agentN/
+agents/agentN/                  ── DEFINITION + CODE (git-tracked) ──
 ├── metadata.yaml          # identity/discovery — read by platform scanner and main.py
-│                          #   adds card_description (≤140) + icon over v1.0
-├── agent.config.yaml      # runtime config — personas, defaults, features, capabilities
+├── agent.config.yaml      # DEFINITION + DEFAULTS — personas, capabilities, integration
+│                          #   catalog, defaults:{model_id, hitl_approval}. NOT written at runtime.
 ├── main.py                # starts API + frontend (copy from template, unchanged)
 ├── GUIDELINES.md          # (remove from your copy once read)
 ├── architecture.md        # one-page architecture (≤1000 words + Mermaid) — served by GET /architecture
-├── create_dummy_data.py   # seed/demo data generator (pattern from agent1)
+├── create_dummy_data.py   # writes INPUT data into seeds/dummy/ (committed, fed via API)
 │
 ├── agentic/               # all AI/agent code as FLAT modules — NO sub_agents/ folder
+│   ├── paths.py           # SINGLE SOURCE OF TRUTH for the on-disk layout — import paths from here
 │   ├── agent.py           # top-level Strands agent: build the Agent, expose run_chat()
-│   ├── model.py           # Bedrock model client
+│   ├── model.py           # Bedrock model client (effective model id: setup ⊕ defaults)
 │   ├── prompts.py         # system prompt strings
-│   ├── memory_backend.py  # LocalMemoryStore — agent-relative path, do not move
-│   ├── approval_hook.py   # standard HITL approval hook (config-toggleable)
+│   ├── memory_backend.py  # MemoryStore — rules/facts/episodes (see "Memory layer")
+│   ├── approval_hook.py   # DURABLE HITL gate (state/runs/) — survives restart
 │   └── tools/             # @tool-decorated functions
 │                          # specialist sub-agents go here as sibling modules
 │                          # (e.g. agentic/fraud_agent.py) — never a sub_agents/ subfolder
 │
 ├── apis/                  # FastAPI application
-│   ├── main.py            # FastAPI app, CORS (allow :8001 + own frontend_port)
+│   ├── main.py            # FastAPI app, CORS; scaffolds state/ + startup recovery
 │   ├── routes.py          # canonical endpoints; /ping carries the startup self-check
 │   ├── test_routes.py     # /test/scenarios, /test/scenarios/{id}/data, /test/run/{id}
-│   ├── service.py         # run lifecycle + events.jsonl + SSE queue
+│   ├── service.py         # run lifecycle, effective config, durable HITL, per-session events
 │   └── schemas.py         # Pydantic request/response models
 │
-├── frontend/              # standalone Vite + React + TS project
-│   ├── package.json       # own dependencies — no npm workspaces
-│   ├── vite.config.ts     # @shared alias → ../../../frontend/src
-│   ├── index.html
-│   └── src/
-│       ├── App.tsx        # ribbon shell + persona gate + routes
-│       ├── components/Ribbon.tsx
-│       ├── config/personas.ts
-│       └── pages/         # the must-have pages (see below)
+├── frontend/              # standalone Vite + React + TS project (App.tsx, Ribbon, pages/…)
 │
-├── data/
-│   ├── dummy/             # seed/demo data (read-only at runtime)
+├── seeds/                 # git-tracked INPUT data (NOT runtime state)
 │   ├── test_scenarios/    # *.json scenarios with `expected` blocks for self-test
-│   ├── cases/             # per-case folders created at runtime
-│   ├── sessions/          # session metadata JSON files
-│   └── memory/            # LocalMemoryStore JSON files
+│   └── dummy/             # sample records from create_dummy_data.py
+├── tests/                 # pytest test files (distinct from seeds/ on purpose)
+│   └── __init__.py
 │
-├── logs/                  # THIS agent's logs only — sibling of agentic/, never a shared/root logs dir (gitignored)
-└── tests/                 # pytest test files
-    └── __init__.py
+└── state/                 ── STATE (gitignored, backup-eligible; created on boot) ──
+    ├── VERSION            # schema marker for restore-across-versions
+    ├── config/setup.yaml  # operator OVERRIDES from the marketplace (restart-required).
+    │                      #   ABSENT ⇒ agent is `awaiting_setup` (up, but refuses to process)
+    ├── memory/            # rules.json · facts.json · episodes.jsonl  (LIVE — no restart)
+    ├── sessions/          # {id}_meta.json · {id}.events.jsonl · {id}_{persona}_history.json
+    ├── data/{case_id}/    # runtime cases (product of real API runs only)
+    ├── runs/              # durable HITL gate state ({session_id}.json)
+    ├── secrets/           # .env / OAuth tokens
+    ├── index/             # rebuildable caches — EXCLUDED from backup
+    ├── logs/              # THIS agent's logs only — never a shared/root logs dir
+    └── _run_seq/          # per-day run-id counter
 ```
 
 **No `sub_agents/` folder.** Strands agent code lives as flat modules in `agentic/`:
@@ -94,7 +98,7 @@ agents/agentN/
 | Persona Select | `/` (gate) | **Start point.** No page is reachable until a persona is chosen; choosing one routes to its `default_landing` (Chat by default). |
 | Chat | `/chat` | **Default landing after persona select.** SSE streaming, persona-aware, **operations-aware** (see below). |
 | Command Center | `/home` | Dashboard — status tiles, recent runs, startup self-check / readiness, quick actions. Reached from the ribbon, not the default landing. |
-| Memory | `/memory` | View what the agent stored (rules / preferences / LTM). |
+| Memory | `/memory` | View what the agent learned — procedural rules, semantic facts, episodic run log. |
 | Architecture | `/architecture` | Renders bundled `architecture.md` (≤1000 words + Mermaid) plus the capabilities manifest. |
 | Processing | `/processing` | Trigger + watch a run; resumable live output (survives refresh); HITL approval surface. |
 | Test Runner | `/test-runner` | Lists demo/test scenarios; runs any live; shows pass/fail vs `expected`. |
@@ -106,37 +110,43 @@ agents/agentN/
 
 **Operations-aware chat** — Chat is the primary control/observability surface. Scoped to the active persona, it answers questions about all agent operations: runs/cases ("status of RUN-…?", "list recent runs"), memory/rules ("what rules are active?"), config ("which model is this agent using?", "is HITL on?"), status/readiness (surfacing the startup self-check), and processing outcomes (explain a decision + audit trail). Implemented with read-access tools over the agent's own state (sessions/`events.jsonl`, memory backend, `agent.config.yaml`, `/ping`) — all agent-owned. Write actions stay gated to admin-type personas.
 
-**Full scenario-based self-test** (agent4-grade) — `data/test_scenarios/*.json` with `id`, `name`, `description`, `tags`, mock input, and an `expected` block; `apis/test_routes.py` (`GET /test/scenarios`, `GET /test/scenarios/{id}/data`, `POST /test/run/{id}` — injects mock data and starts a **real** run); a Test Runner page that streams live output and shows pass/fail vs `expected`; and `create_dummy_data.py` to seed data. Every agent must be runnable end-to-end with zero external setup.
+**Full scenario-based self-test** (agent4-grade) — `seeds/test_scenarios/*.json` with `id`, `name`, `description`, `tags`, mock input, and an `expected` block; `apis/test_routes.py` (`GET /test/scenarios`, `GET /test/scenarios/{id}/data`, `POST /test/run/{id}` — injects mock data and starts a **real** run, whose artifacts land in `state/`); a Test Runner page that streams live output and shows pass/fail vs `expected`; and `create_dummy_data.py` to write sample INPUT data into `seeds/dummy/`. Every agent must be runnable end-to-end with zero external setup.
 
 **Canonical API contract** — every agent exposes this set (verified by a platform contract test):
 
 | Group | Endpoints |
 |-------|-----------|
-| Health | `GET /ping` — `{status, agent, version}`; `status` = startup self-check (`ok \| degraded` + reasons). |
-| Identity | `GET /config`, `GET /personas`, `GET /architecture`. |
-| Chat | `POST /chat/{session_id}` (SSE). |
+| Health | `GET /ping` — `{status, agent, version}`; `status` = startup self-check (`awaiting_setup \| ok \| degraded` + reasons). |
+| Identity | `GET /config` (effective config + `configured` flag), `GET /personas`, `GET /architecture`. |
+| Chat | `POST /chat/{session_id}` (SSE) — 409 while `awaiting_setup`. |
 | Sessions | `GET /sessions`, `GET /sessions/{id}`. |
-| Processing | `POST /run`, `GET /monitor/{id}` (SSE) — no `/process` alias. |
-| HITL | `POST /approve/{id}`, `POST /reject/{id}` — **always present**; return a clear "approvals disabled" response when `features.hitl_approval` is false. |
-| Memory | `GET /memory`. |
+| Processing | `POST /run` (409 while `awaiting_setup`), `GET /monitor/{id}` (SSE) — no `/process` alias. |
+| HITL | `POST /approve/{id}`, `POST /reject/{id}` — **always present**; return a clear "approvals disabled" response when HITL is off. Gate state is durable (`state/runs/`) and survives restart. |
+| Memory | `GET /memory` — `{rules, facts, episodes}`. |
 | Test | `GET /test/scenarios`, `GET /test/scenarios/{id}/data`, `POST /test/run/{id}`. |
-| Admin | `POST /admin/restart` — graceful self-restart to reload `agent.config.yaml`. |
+| Admin | `POST /admin/setup` — persist operator setup to `state/config/setup.yaml`; `POST /admin/restart` — graceful self-restart to reload config + setup. |
 
-**Startup self-check** — on boot the agent validates its config/env (Bedrock creds, resolved model id, `agent.config.yaml` parse) and reports readiness via `/ping` (`ok | degraded` + reasons). The Command Center renders the reason so a misconfigured agent explains *why* instead of failing silently.
+**Startup self-check** — on boot the agent reports readiness via `/ping`. If no `state/config/setup.yaml` exists it reports **`awaiting_setup`** (up, listable, configurable — but processing endpoints return 409). Once configured it validates config/env (resolved model id, definition parse) and reports `ok | degraded` + reasons. The Command Center renders the reason so an unconfigured/misconfigured agent explains *why* instead of failing silently.
 
-**Resumable live output** — runs append to `events.jsonl`; the Processing page replays from the cursor (`Last-Event-ID`) over SSE then continues live, so it survives a refresh.
+**Resumable live output** — runs append to a per-session `state/sessions/{id}.events.jsonl`; the Processing page replays from the cursor (`Last-Event-ID`) over SSE then continues live, so it survives a refresh.
 
-**HITL approval** — a standard `approval_hook.py`, toggled by `features.hitl_approval` in `agent.config.yaml`. The `/approve` and `/reject` endpoints are **always present** (inert when the toggle is off) to keep the contract uniform.
+**HITL approval (durable)** — a standard `approval_hook.py`, toggled by the effective `hitl_approval` setting. Gate state is the source of truth on disk at `state/runs/{session_id}.json`, so a run paused for approval **survives a restart**: on boot the engine resumes any still-open gate (and finalizes immediately if it was decided while the process was down). The `/approve` and `/reject` endpoints are **always present** (inert when the toggle is off) to keep the contract uniform.
 
 **Capabilities manifest** — `capabilities` (`tools` / `can` / `cannot`) in `agent.config.yaml` renders on the Architecture page so the agent self-documents.
 
 **architecture.md** — bundled per-agent, ≤ 1000 words, **must include a Mermaid diagram**; served by `GET /architecture` and rendered on the Architecture page.
 
-**Per-agent logs only** — write to this agent's own `logs/` (sibling of `agentic/`), never a shared/root log folder.
+**Per-agent logs only** — write to this agent's own `state/logs/`, never a shared/root log folder.
 
 **No pricing** — the template ships **no** pricing page, tile, field, or copy. Pricing is forbidden in agent UIs.
 
-**Config edited at platform level + Restart** — `agent.config.yaml` is read at startup, so applying a change needs a restart. The agent exposes `POST /admin/restart`; the marketplace per-agent Config page edits config via **GUI fields** — model, the HITL toggle, and connected systems (Connect buttons), no raw JSON — works even while the agent is stopped (served by `app/`) and has a **Restart agent** button to apply it.
+**Config split + edited at platform level + Restart** — `agent.config.yaml` (git) is the definition + defaults; operator **overrides** live in `state/config/setup.yaml`. Both are read at startup (effective = defaults ⊕ setup), so applying a change needs a restart. The marketplace per-agent Config page edits the overrides via **GUI fields** — model, the HITL toggle, and connected systems (Connect buttons), no raw JSON — by writing `setup.yaml` (directly while stopped, or via `POST /admin/setup`), then a **Restart agent** button (`POST /admin/restart`) to apply. Until the operator saves once, the agent stays `awaiting_setup`.
+
+**State & lifecycle** — ALL mutable data lives under `state/` (gitignored), so the git boundary and these operations are mechanical:
+- **Restart** — re-read `state/config/`, reload memory/sessions/data, resume any paused HITL run from `state/runs/`.
+- **Backup** — `python scripts/agent_state.py backup demos/demo0/agents/agentN` snapshots `state/` minus `index/` (secrets included) with a manifest (versions, timestamp, per-file sha256).
+- **Restore** — `git pull` (definition + code) → `python scripts/agent_state.py restore demos/demo0/agents/agentN <backup.zip>` → validates the schema `VERSION`, rebuilds `index/`, restart.
+- **Fresh clone, no backup** — boots `awaiting_setup`; configure from the marketplace to go live.
 
 ## Key rules
 
@@ -144,9 +154,10 @@ agents/agentN/
 - `metadata.yaml status: template` → the platform scanner skips this agent.
 - **New agents always copy the latest template version** (highest `agentx_v*` present).
 - `main.py` is shared launcher logic — do not customise it per agent.
-- Memory backend is at `agentic/memory_backend.py` and stores to `data/memory/`.
+- Memory backend is at `agentic/memory_backend.py` and stores to `state/memory/` (rules/facts/episodes).
 - Strands agent code lives as flat modules in `agentic/` — **no `sub_agents/` folder**.
-- All data paths are relative to the agent folder — no `STORAGE_PATH` env var.
+- All paths come from `agentic/paths.py` (agent-relative; ALL mutable state under `state/`) — no `STORAGE_PATH` env var, no hardcoded paths in other modules.
+- `agent.config.yaml` (definition + defaults) is git-tracked; `state/` (incl. `setup.yaml`, secrets) is gitignored and backup-eligible; `seeds/` (test inputs) is git-tracked.
 - CORS in `apis/main.py` must allow `:8001` (marketplace) and `frontend_port`.
 - Frontend `.env` is written by `main.py` at startup — never hardcode `VITE_API_URL` or `VITE_AGENT_ID`.
 - The agent owns **all** its code — tools, sub-agents, prompts, the `Ribbon`, scenarios. No common/shared tool modules; `commons/` holds only `logger.py`.
