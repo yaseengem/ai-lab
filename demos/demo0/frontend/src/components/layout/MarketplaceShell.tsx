@@ -1,8 +1,6 @@
-import { Link, useNavigate, Outlet } from 'react-router-dom'
+import { Link, Outlet } from 'react-router-dom'
 
 export function MarketplaceShell() {
-  const navigate = useNavigate()
-
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--t)' }}>
       {/* Fixed nav */}
@@ -23,17 +21,14 @@ export function MarketplaceShell() {
             </Link>
           ))}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <button className="btn btn-sm btn-p" onClick={() => navigate('/browse')}>Get started</button>
-        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} />
       </nav>
 
       {/* Page content */}
       <Outlet />
 
       {/* Footer */}
-      <footer style={{ padding: '20px 40px', borderTop: '1px solid var(--b)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--s)' }}>
-        <span style={{ fontSize: 12, color: 'var(--t3)' }}>© 2026 AI Lab. All rights reserved.</span>
+      <footer style={{ padding: '20px 40px', borderTop: '1px solid var(--b)', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', background: 'var(--s)' }}>
         <div style={{ display: 'flex', gap: 20 }}>
           {['Privacy', 'Terms', 'Security', 'Docs', 'Status'].map((l) => (
             <a key={l} href="#" style={{ fontSize: 12, color: 'var(--t3)', textDecoration: 'none' }}>{l}</a>

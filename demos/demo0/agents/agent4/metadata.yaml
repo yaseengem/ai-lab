@@ -1,14 +1,6 @@
 # yaml-language-server: $schema=../../schemas/agent-metadata.schema.json
 name: Settlement Failure Prevention Agent
-description: >
-  Real-time settlement failure prediction and prevention system for JSE (Johannesburg
-  Stock Exchange). Monitors T+1 and T+2 clearing positions from ECS, counterparty health
-  from CIS, and open trades from TIS to predict settlement failures 24-48 hours in advance.
-  Applies deterministic rule engine combined with LLM reasoning to classify risk as
-  CRITICAL/HIGH/MEDIUM/LOW, then autonomously executes interventions: triggering JSE's
-  Lender-of-Last-Resort (LOLR) facility, delivering Strate settlement roll instructions,
-  and escalating regulatory-flagged items to human review. Produces FSCA-compliant audit
-  reports for every pipeline run.
+description: "Predicts and prevents JSE settlement failures 24-48 hours ahead — classifies risk, autonomously triggers LOLR interventions, and escalates flagged items with FSCA-compliant audit."
 use_case: settlement_failure_prevention
 domain: capital_markets
 api_port: 8041

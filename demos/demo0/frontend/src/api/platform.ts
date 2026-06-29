@@ -17,6 +17,9 @@ export interface PlatformAgent {
   frontend_port: number
   status: 'active' | 'stub' | 'template'
   version: string
+  template_version?: string | null
+  /** True when the agent has an agent.config.yaml with personas. */
+  configured?: boolean
   live_status: 'online' | 'offline' | 'unknown'
 }
 

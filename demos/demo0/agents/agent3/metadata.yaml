@@ -1,13 +1,6 @@
 # yaml-language-server: $schema=../../schemas/agent-metadata.schema.json
 name: Loan Processing Agent
-description: >
-  Automates retail and small-business loan origination for banks and
-  credit unions. Applicants submit financial documents and personal
-  data; the agent pulls credit bureau scores, calculates debt-to-income
-  ratios, applies institution-specific lending policy rules, and routes
-  borderline applications to a loan officer for final review — returning
-  an approve, conditional-approve, or decline decision with a
-  compliance-ready explanation of factors considered.
+description: "Automates retail and small-business loan origination — pulls credit scores, computes debt-to-income, applies lending policy, and routes borderline applications to a loan officer for decision."
 use_case: loan_processing
 domain: banking
 api_port: 8031

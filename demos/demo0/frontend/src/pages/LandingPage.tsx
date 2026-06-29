@@ -11,9 +11,9 @@ const INDUSTRIES = [
 ]
 
 const FEATURED = [
-  { icon: '🔍', bg: 'var(--acd)', name: 'Claims Processing Agent', by: 'InsureTech Labs · Insurance', price: '$199/mo', rating: '4.9', deploys: '340', desc: 'End-to-end health claim intake, document validation, fraud check and adjudication with human-in-the-loop approval workflow.', tag: 'Health Insurance', tagCls: 'tb' },
-  { icon: '📋', bg: 'var(--gnd)', name: 'Group Underwriting Agent', by: 'RiskAI Corp · Insurance', price: '$149/mo', rating: '4.7', deploys: '210', desc: 'Automated risk scoring, member eligibility review and premium calculation for group health insurance plans.', tag: 'Underwriting', tagCls: 'tg' },
-  { icon: '🏠', bg: 'var(--amd)', name: 'Loan Onboarding Agent', by: 'PropFlow AI · Real Estate', price: '$179/mo', rating: '4.8', deploys: '180', desc: 'Automates real estate loan application intake, document verification, title checks and compliance screening.', tag: 'Real Estate', tagCls: 'tam' },
+  { icon: '🔍', bg: 'var(--acd)', name: 'Claims Processing Agent', by: 'InsureTech Labs · Insurance', rating: '4.9', deploys: '340', desc: 'End-to-end health claim intake, document validation, fraud check and adjudication with human-in-the-loop approval workflow.', tag: 'Health Insurance', tagCls: 'tb' },
+  { icon: '📋', bg: 'var(--gnd)', name: 'Group Underwriting Agent', by: 'RiskAI Corp · Insurance', rating: '4.7', deploys: '210', desc: 'Automated risk scoring, member eligibility review and premium calculation for group health insurance plans.', tag: 'Underwriting', tagCls: 'tg' },
+  { icon: '🏠', bg: 'var(--amd)', name: 'Loan Onboarding Agent', by: 'PropFlow AI · Real Estate', rating: '4.8', deploys: '180', desc: 'Automates real estate loan application intake, document verification, title checks and compliance screening.', tag: 'Real Estate', tagCls: 'tam' },
 ]
 
 const TRUST = [
@@ -139,7 +139,6 @@ export function LandingPage() {
             >
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 11 }}>
                 <div style={{ width: 42, height: 42, borderRadius: 10, background: a.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>{a.icon}</div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--gn)' }}>{a.price}</div>
               </div>
               <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--t)', marginBottom: 3 }}>{a.name}</div>
               <div style={{ fontSize: 11, color: 'var(--t3)' }}>{a.by}</div>

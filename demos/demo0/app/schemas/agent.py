@@ -23,6 +23,9 @@ class AgentSummary(BaseModel):
     # Records which demox_vN_M template version this agent inherits from.
     # Optional so legacy agents without the field don't 500.
     template_version: Optional[str] = None
+    # True when the agent has an agent.config.yaml with a non-empty personas list.
+    # Drives the "Click to configure Agent" prompts in the marketplace.
+    configured: bool = False
     live_status: Literal["online", "offline", "unknown"]
 
 

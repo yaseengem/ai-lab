@@ -18,6 +18,18 @@ const STATUS_COLORS: Record<string, string> = {
   unknown: 'var(--t3)',
 }
 
+// Hover-tooltip text explaining what each status means.
+const LIVE_STATUS_MEANING: Record<string, string> = {
+  online:  'The agent service is running and reachable.',
+  offline: 'The agent service is not running or cannot be reached.',
+  unknown: 'The platform has not yet determined whether the agent is reachable.',
+}
+const STATUS_MEANING: Record<string, string> = {
+  active:   'The agent is fully implemented and operational.',
+  stub:     'The agent is scaffolded but not yet fully implemented.',
+  template: 'A reusable template — not a runnable agent.',
+}
+
 function FilterGroup({
   label, options, selected, onChange,
 }: {
@@ -53,7 +65,7 @@ function FilterGroup({
               <span style={{ width: 14, height: 14, borderRadius: 3, border: `1.5px solid ${checked ? 'var(--ac)' : 'var(--b2)'}`, background: checked ? 'var(--ac)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all .15s' }}>
                 {checked && <span style={{ color: '#fff', fontSize: 9, lineHeight: 1, fontWeight: 700 }}>✓</span>}
               </span>
-              <span style={{ fontWeight: checked ? 600 : 400 }}>{opt.replace(/_/g, ' ')}</span>
+              <span style={{ fontWeight: checked ? 600 : 400, textTransform: 'capitalize' }}>{opt.replace(/_/g, ' ')}</span>
             </button>
           )
         })}
@@ -77,18 +89,23 @@ function AgentCard({ agent, onClick }: { agent: PlatformAgent; onClick: () => vo
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 11 }}>
         <div style={{ width: 44, height: 44, borderRadius: 11, background: meta.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>{icon}</div>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
-          <span className={`tag ${meta.tagCls}`}>{agent.domain}</span>
-          <span style={{ fontSize: 11, color: STATUS_COLORS[agent.live_status] ?? 'var(--t3)' }}>
-            {agent.live_status === 'online' ? '● online' : agent.live_status === 'offline' ? '● offline' : '○ unknown'}
+          <span className={`tag ${meta.tagCls}`} style={{ textTransform: 'capitalize' }}>{agent.domain}</span>
+          <span
+            title={LIVE_STATUS_MEANING[agent.live_status] ?? LIVE_STATUS_MEANING.unknown}
+            style={{ fontSize: 11, color: STATUS_COLORS[agent.live_status] ?? 'var(--t3)', textTransform: 'capitalize', cursor: 'help' }}>
+            {agent.live_status === 'online' ? '● Online' : agent.live_status === 'offline' ? '● Offline' : '○ Unknown'}
           </span>
         </div>
       </div>
       <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--t)', marginBottom: 3 }}>{agent.name}</div>
       <div style={{ fontSize: 11, color: 'var(--t3)', marginBottom: 8 }}>v{agent.version} · {agent.use_case.replace(/_/g, ' ')}</div>
-      <div style={{ fontSize: 12, color: 'var(--t2)', lineHeight: 1.65, marginBottom: 14 }}>{cardText}</div>
+      <div style={{ fontSize: 12, color: 'var(--t2)', lineHeight: 1.65, marginBottom: 14, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden', maxHeight: 'calc(1.65em * 3)' }}>{cardText}</div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span className={`tag ${agent.status === 'active' ? 'tg' : 'tgr'}`}>{agent.status}</span>
-        <button className="btn btn-sm btn-p">View details →</button>
+        <span
+          className={`tag ${agent.status === 'active' ? 'tg' : 'tgr'}`}
+          title={STATUS_MEANING[agent.status] ?? ''}
+          style={{ textTransform: 'capitalize', cursor: 'help' }}>{agent.status}</span>
+        <button className="btn btn-sm btn-p">{agent.configured === false ? 'Click to configure Agent' : 'View details →'}</button>
       </div>
     </div>
   )
@@ -108,7 +125,6 @@ export function BrowseAgentsPage() {
     return s ? new Set([s]) : new Set()
   })
   const [liveStatusFilter, setLiveStatusFilter] = useState<Set<string>>(new Set())
-  const [useCaseFilter, setUseCaseFilter] = useState<Set<string>>(new Set())
   const [versionFilter, setVersionFilter] = useState<Set<string>>(new Set())
 
   useEffect(() => {
@@ -145,24 +161,24 @@ export function BrowseAgentsPage() {
     if (domainFilter.size > 0 && !domainFilter.has(a.domain)) return false
     if (statusFilter.size > 0 && !statusFilter.has(a.status)) return false
     if (liveStatusFilter.size > 0 && !liveStatusFilter.has(a.live_status)) return false
-    if (useCaseFilter.size > 0 && !useCaseFilter.has(a.use_case)) return false
-    if (versionFilter.size > 0 && !versionFilter.has(a.version)) return false
+    if (versionFilter.size > 0 && !versionFilter.has(a.template_version ?? '')) return false
     return true
   })
 
-  const anyFilter = !!(search || domainFilter.size || statusFilter.size || liveStatusFilter.size || useCaseFilter.size || versionFilter.size)
+  const anyFilter = !!(search || domainFilter.size || statusFilter.size || liveStatusFilter.size || versionFilter.size)
   const clearAll = () => {
     setSearch('')
     setDomainFilter(new Set())
     setStatusFilter(new Set())
     setLiveStatusFilter(new Set())
-    setUseCaseFilter(new Set())
     setVersionFilter(new Set())
   }
 
   const domainOptions   = [...new Set(agents.map((a) => a.domain))]
-  const useCaseOptions  = [...new Set(agents.map((a) => a.use_case))]
-  const versionOptions  = [...new Set(agents.map((a) => a.version))].sort()
+  // Version filter lists the template version each agent was built from (1.0, 2.0, …),
+  // not the agent's own semver. "1.0" and "2.0" always appear so both template
+  // generations are filterable even when no agent currently ships from one of them.
+  const versionOptions  = [...new Set([...agents.map((a) => a.template_version).filter(Boolean) as string[], '1.0', '2.0'])].sort()
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)' }}>
@@ -181,8 +197,7 @@ export function BrowseAgentsPage() {
         <FilterGroup label="Domain"      options={domainOptions}  selected={domainFilter}      onChange={setDomainFilter} />
         <FilterGroup label="Status"      options={['active', 'stub']} selected={statusFilter}  onChange={setStatusFilter} />
         <FilterGroup label="Live status" options={['online', 'offline', 'unknown']} selected={liveStatusFilter} onChange={setLiveStatusFilter} />
-        <FilterGroup label="Use case"    options={useCaseOptions} selected={useCaseFilter}     onChange={setUseCaseFilter} />
-        <FilterGroup label="Version"     options={versionOptions} selected={versionFilter}     onChange={setVersionFilter} />
+        <FilterGroup label="Template version" options={versionOptions} selected={versionFilter} onChange={setVersionFilter} />
       </aside>
 
       {/* Main */}

@@ -17,7 +17,7 @@ const DOMAIN_META: Record<string, { icon: string; bg: string }> = {
   hr:         { icon: '👥', bg: 'var(--cod)' },
 }
 
-const TABS = ['Overview', 'Pricing', 'Integrations', 'Configuration']
+const TABS = ['Overview', 'Integrations', 'Configuration']
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, [string, string]> = {
@@ -36,10 +36,23 @@ function StatusBadge({ status }: { status: string }) {
  * Config editing works even when the agent is offline (the backend reads/writes
  * the file straight from disk); only the restart behaviour differs by live status.
  */
+// Starter config shown when an agent has no agent.config.yaml yet, so the user
+// has something editable to fill in and Save.
+const CONFIG_SCAFFOLD = JSON.stringify(
+  {
+    personas: [
+      { id: 'user', label: 'User', icon: '👤', description: '', visible_pages: ['chat'], default_landing: 'chat' },
+    ],
+  },
+  null,
+  2,
+)
+
 function ConfigurationTab({ agent }: { agent: PlatformAgent }) {
   const [text, setText] = useState('')
   const [loading, setLoading] = useState(true)
-  const [loadErr, setLoadErr] = useState<string | null>(null)
+  // No agent.config.yaml on disk yet — show a friendly "configure" prompt + scaffold.
+  const [notConfigured, setNotConfigured] = useState(false)
   const [saving, setSaving] = useState(false)
   const [restarting, setRestarting] = useState(false)
   const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null)
@@ -49,13 +62,14 @@ function ConfigurationTab({ agent }: { agent: PlatformAgent }) {
   useEffect(() => {
     let cancelled = false
     setLoading(true)
-    setLoadErr(null)
     fetchAgentConfig(agent.id)
       .then((cfg) => {
-        if (!cancelled) setText(JSON.stringify(cfg, null, 2))
+        if (!cancelled) { setText(JSON.stringify(cfg, null, 2)); setNotConfigured(false) }
       })
-      .catch((e) => {
-        if (!cancelled) setLoadErr(e.message)
+      .catch(() => {
+        // The expected failure is a missing config (404) — treat it as "not configured"
+        // and seed the editor with a scaffold rather than blocking with an error.
+        if (!cancelled) { setNotConfigured(true); setText(CONFIG_SCAFFOLD) }
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
@@ -76,6 +90,7 @@ function ConfigurationTab({ agent }: { agent: PlatformAgent }) {
     try {
       await saveAgentConfig(agent.id, parsed)
       setNeedsRestart(true)
+      setNotConfigured(false)
       setMsg({ kind: 'ok', text: 'Configuration saved. Restart the agent to apply changes.' })
     } catch (e) {
       setMsg({ kind: 'err', text: (e as Error).message })
@@ -113,14 +128,16 @@ function ConfigurationTab({ agent }: { agent: PlatformAgent }) {
 
       {loading && <div style={{ color: 'var(--t2)', padding: 20 }}>Loading configuration...</div>}
 
-      {loadErr && (
-        <div style={{ background: 'var(--rdd)', border: '1px solid var(--rd)', borderRadius: 10, padding: '14px 18px', color: 'var(--rd)', marginBottom: 16 }}>
-          <strong>No configuration found</strong>
-          <div style={{ fontSize: 12, marginTop: 6, color: 'var(--t2)' }}>{loadErr}</div>
+      {!loading && notConfigured && (
+        <div style={{ background: 'var(--acd)', border: '1px solid var(--ac)', borderRadius: 10, padding: '14px 18px', color: 'var(--ac)', marginBottom: 16 }}>
+          <strong>Click to configure Agent</strong>
+          <div style={{ fontSize: 12, marginTop: 6, color: 'var(--t2)' }}>
+            This agent isn't configured yet. Add its personas below and Save to configure it, then restart the agent.
+          </div>
         </div>
       )}
 
-      {!loading && !loadErr && (
+      {!loading && (
         <>
           <textarea
             value={text}
@@ -180,7 +197,11 @@ export function AgentDetailPage() {
   useEffect(() => {
     if (!agentId) return
     fetchAgent(agentId)
-      .then(setAgent)
+      .then((a) => {
+        setAgent(a)
+        // An unconfigured agent lands straight on Configuration so the user can set it up.
+        if (a.configured === false) setTab(TABS.indexOf('Configuration'))
+      })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false))
   }, [agentId])
@@ -271,34 +292,6 @@ export function AgentDetailPage() {
 
         {tab === 1 && (
           <div>
-            <h2 style={{ fontSize: 20, fontWeight: 600, color: 'var(--t)', marginBottom: 20 }}>Pricing</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16 }}>
-              {[
-                { name: 'Starter', price: '$99/mo', features: ['Up to 500 claims/mo', 'Basic audit log', 'Email support', 'API access'] },
-                { name: 'Professional', price: '$199/mo', features: ['Up to 2,000 claims/mo', 'Full audit trail', 'Human-in-the-loop', 'Priority support', 'Custom thresholds'], highlight: true },
-                { name: 'Enterprise', price: 'Custom', features: ['Unlimited volume', 'Dedicated instance', 'SLA guarantee', 'Custom integrations', 'On-call support'] },
-              ].map((plan) => (
-                <div key={plan.name} style={{ background: plan.highlight ? 'var(--ac)' : 'var(--s)', border: `1px solid ${plan.highlight ? 'var(--ac)' : 'var(--b)'}`, borderRadius: 14, padding: 24 }}>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: plan.highlight ? '#fff' : 'var(--t)', marginBottom: 4 }}>{plan.name}</div>
-                  <div style={{ fontSize: 24, fontWeight: 700, color: plan.highlight ? '#fff' : 'var(--t)', marginBottom: 16 }}>{plan.price}</div>
-                  <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    {plan.features.map((f) => (
-                      <li key={f} style={{ fontSize: 13, color: plan.highlight ? 'rgba(255,255,255,0.9)' : 'var(--t2)', display: 'flex', gap: 6 }}>
-                        <span style={{ color: plan.highlight ? '#fff' : 'var(--gn)' }}>✓</span>{f}
-                      </li>
-                    ))}
-                  </ul>
-                  <button className={`btn ${plan.highlight ? '' : 'btn-p'}`} style={{ marginTop: 20, width: '100%', background: plan.highlight ? '#fff' : undefined, color: plan.highlight ? 'var(--ac)' : undefined }}>
-                    Get started
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {tab === 2 && (
-          <div>
             <h2 style={{ fontSize: 20, fontWeight: 600, color: 'var(--t)', marginBottom: 20 }}>Integrations</h2>
             {[
               ['Core systems', ['Guidewire ClaimCenter', 'Epic EHR', 'Salesforce', 'SAP']],
@@ -316,7 +309,7 @@ export function AgentDetailPage() {
           </div>
         )}
 
-        {tab === 3 && <ConfigurationTab agent={agent} />}
+        {tab === 2 && <ConfigurationTab agent={agent} />}
       </div>
     </div>
   )

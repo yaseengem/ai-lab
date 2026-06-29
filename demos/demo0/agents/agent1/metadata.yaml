@@ -1,12 +1,6 @@
 # yaml-language-server: $schema=../../schemas/agent-metadata.schema.json
 name: Claim Processing Agent
-description: >
-  Automates end-to-end health insurance claims processing for carriers and
-  third-party administrators. Policyholders or provider billing teams submit
-  medical claims; the agent validates coverage eligibility, runs automated
-  fraud and duplicate-claim detection, routes complex cases to a medical
-  reviewer, and escalates high-value or disputed claims to a human supervisor
-  before issuing a pay, deny, or pend decision with a full audit trail.
+description: "Automates end-to-end health insurance claims processing — validates coverage, runs fraud and duplicate detection, and escalates high-value or disputed claims for human approval."
 use_case: claims_processing
 domain: insurance
 api_port: 8011

@@ -1,13 +1,6 @@
 # yaml-language-server: $schema=../../schemas/agent-metadata.schema.json
 name: Underwriting Agent
-description: >
-  Automates new-business underwriting for health insurance carriers.
-  Underwriters submit applicant data, medical history, and supporting
-  documents; the agent scores risk against configurable clinical and
-  actuarial rule sets, flags pre-existing conditions or data gaps for
-  human review, and produces a recommended coverage tier, premium
-  adjustment, or decline decision — complete with a regulatory-ready
-  audit trail for each case.
+description: "Automates new-business health insurance underwriting — scores applicant risk against clinical and actuarial rules, flags gaps for review, and recommends coverage tier, premium, or decline."
 use_case: underwriting
 domain: insurance
 api_port: 8021

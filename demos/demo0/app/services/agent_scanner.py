@@ -50,6 +50,26 @@ def _load_metadata(agent_dir: Path) -> dict[str, Any] | None:
         return None
 
 
+def _is_configured(agent_dir: Path) -> bool:
+    """True when the agent has an agent.config.yaml carrying a non-empty personas list.
+
+    Personas are the entry point an agent needs to be usable, so their presence is
+    the platform's definition of "configured". Mirrors agent_config_service's view.
+    """
+    cfg_file = agent_dir / "agent.config.yaml"
+    if not cfg_file.exists():
+        return False
+    try:
+        data = yaml.safe_load(cfg_file.read_text(encoding="utf-8"))
+    except Exception:
+        return False
+    return (
+        isinstance(data, dict)
+        and isinstance(data.get("personas"), list)
+        and len(data["personas"]) > 0
+    )
+
+
 def validate_port_conflicts(agents: list[AgentSummary]) -> list[str]:
     """Return a list of human-readable conflict messages (empty = no conflicts)."""
     seen: dict[int, str] = {}
@@ -159,6 +179,7 @@ def scan_agents(probe_live: bool = True) -> list[AgentSummary]:
             status=meta.get("status", "stub"),
             version=meta.get("version", "0.0.0"),
             template_version=meta.get("template_version"),
+            configured=_is_configured(settings.agents_dir / agent_id),
             live_status=statuses.get(agent_id, "unknown"),
         )
         for agent_id, meta in entries
@@ -203,6 +224,7 @@ def get_agent_detail(agent_id: str, probe_live: bool = True) -> AgentDetail | No
         status=meta.get("status", "stub"),
         version=meta.get("version", "0.0.0"),
         template_version=meta.get("template_version"),
+        configured=_is_configured(agent_dir),
         live_status=live_status,
         entry_point=meta.get("entry_point", ""),
         api_version=meta.get("api_version", ""),

@@ -14,7 +14,8 @@ Run from `demos/demo0`:
 
 1. Copy this folder: `cp -r agents/agentx_v2_0 agents/agentN`
 2. Update `metadata.yaml`:
-   - set `name`, `description`, `use_case`, `domain`
+   - set `name`, `use_case`, `domain`
+   - set `description` — **fewer than 25 words**, one sentence: what the agent automates and where a human steps in. Keep it tight so detail-page and card widgets render at a uniform, bounded height
    - set `card_description` — marketplace card text, **≤ 140 chars** (≈ 24 words) so all cards render at uniform height
    - set `icon` — emoji or icon key (required)
    - set `version` — **semver** (`MAJOR.MINOR.PATCH`)
