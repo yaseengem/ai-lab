@@ -1,6 +1,6 @@
 # Spec: Per-Agent State Layout, Memory Layer & Backup/Restore
 
-**Status:** approved
+**Status:** done
 **Version:** v1
 **Date:** 2026-06-29
 
