@@ -126,8 +126,8 @@ sha256), and restores it, validating the schema version and rebuilding `index/`.
 - [x] Routes: awaiting_setup guards on `/run` + `/chat`, `/admin/setup`, memory snapshot.
 - [x] Move scenarios to `seeds/`; remove `data/` + `logs/`; update `create_dummy_data.py`.
 - [x] `.gitignore` `state/` (agent + root); `scripts/agent_state.py` backup/restore.
-- [ ] Update `GUIDELINES.md` + `docs/` (architecture/conventions) to the new layout.
-- [ ] pytest tests; full suite green; `git status` shows nothing under `agents/*/state/`.
+- [x] Update `GUIDELINES.md` + `docs/conventions.md` + root/demo0 `CLAUDE.md` to the new layout.
+- [x] pytest tests (`tests/test_state_layout.py`); platform + template suites green (22 passed); `git ls-files` shows nothing under `agents/*/state/`.
 
 ---
 
