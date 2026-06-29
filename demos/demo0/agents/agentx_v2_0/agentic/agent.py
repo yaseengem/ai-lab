@@ -6,8 +6,9 @@ Provides:
   run_chat(session_id, persona, user_id, message)      → async SSE generator
 
 The agent is persona-aware and operations-aware: it carries read-only ops tools
-(list_runs / get_run / get_memory / get_config / get_health) so chat can answer
-questions about the agent's own runs, memory, configuration, and health.
+(list_runs / get_run / list_cases / get_case / get_memory / get_config /
+get_health / list_pending_approvals) so chat can answer questions about the
+agent's own runs, cases, memory, configuration, health, and pending approvals.
 """
 
 from __future__ import annotations
@@ -28,12 +29,18 @@ from commons.logger import get_logger  # noqa: E402
 from .model import get_model  # noqa: E402
 from .paths import SESSIONS_DIR as _HISTORY_DIR  # noqa: E402
 from .prompts import SYSTEM_PROMPT, persona_instruction  # noqa: E402
-from .tools.ops import list_runs, get_run, get_memory, get_config, get_health  # noqa: E402
+from .tools.ops import (  # noqa: E402
+    list_runs, get_run, list_cases, get_case, get_memory,
+    get_config, get_health, list_pending_approvals,
+)
 
 logger = get_logger(__name__)
 
 # Operations-awareness tools — read-only access to the agent's own state.
-_ALL_TOOLS = [list_runs, get_run, get_memory, get_config, get_health]
+_ALL_TOOLS = [
+    list_runs, get_run, list_cases, get_case, get_memory,
+    get_config, get_health, list_pending_approvals,
+]
 
 
 # ── conversation history persistence ─────────────────────────────────────────

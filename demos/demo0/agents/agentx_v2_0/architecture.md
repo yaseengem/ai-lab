@@ -17,9 +17,10 @@ Two flows dominate:
 
 1. **Chat** — `POST /chat/{session_id}` streams an SSE response. The Strands
    agent is persona-aware and **operations-aware**: it carries read-only tools
-   (`list_runs`, `get_run`, `get_memory`, `get_config`, `get_health`) so it can
-   answer questions about the agent's own runs, memory, configuration, and
-   health by reading on-disk state.
+   (`list_runs`, `get_run`, `list_cases`, `get_case`, `get_memory`, `get_config`,
+   `get_health`, `list_pending_approvals`) so it can answer questions about the
+   agent's own runs, cases, memory, configuration, health, and pending approvals
+   by reading on-disk state.
 2. **Processing** — `POST /run` mints a `run_id`, persists session metadata, and
    launches a generic pipeline coroutine as a detached `asyncio` task. The
    pipeline emits `pipeline-step` events, optionally pauses at a HITL approval
@@ -46,7 +47,7 @@ flowchart TD
 
     subgraph AGENTIC["agentic/"]
         AGENT["agent.py — Strands Agent + run_chat()"]
-        TOOLS["tools/ops.py — list_runs / get_run / get_memory / get_config / get_health"]
+        TOOLS["tools/ops.py — list_runs / get_run / list_cases / get_case / get_memory / get_config / get_health / list_pending_approvals"]
         HOOK["approval_hook.py — asyncio.Event pause/resume"]
         MEM["memory_backend.py — LocalMemoryStore"]
         MODEL["model.py — BedrockModel"]
