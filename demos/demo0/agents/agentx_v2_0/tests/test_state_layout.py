@@ -23,12 +23,13 @@ from agents.agentx_v2_0.apis.service import (
 
 @pytest.fixture(autouse=True)
 def clean_state():
-    if paths.STATE_DIR.exists():
-        shutil.rmtree(paths.STATE_DIR)
+    # ignore_errors: the template app (imported by the contract test) keeps an open
+    # handle on state/logs/agent.log, which Windows won't let us unlink. Logs aren't
+    # under test, so a best-effort wipe of the rest is fine.
+    shutil.rmtree(paths.STATE_DIR, ignore_errors=True)
     paths.ensure_state_dirs()
     yield
-    if paths.STATE_DIR.exists():
-        shutil.rmtree(paths.STATE_DIR)
+    shutil.rmtree(paths.STATE_DIR, ignore_errors=True)
 
 
 # ── layout ────────────────────────────────────────────────────────────────────
@@ -150,20 +151,38 @@ def _load_agent_state_module():
 
 
 def test_backup_restore_roundtrip(tmp_path):
-    save_setup({"model_id": "m1"})
-    get_memory_store().add_rule("keep me")
-    (paths.INDEX_DIR / "cache.bin").write_text("rebuildable", encoding="utf-8")
+    # Isolated synthetic agent dir so this is independent of the live agent's state
+    # (and of the log handle the contract test holds open on the real state/logs).
+    import json
+    import zipfile
 
     mod = _load_agent_state_module()
-    out = tmp_path / "backup.zip"
-    assert mod.backup(paths.AGENT_DIR, out) == 0
+    agent = tmp_path / "agentT"
+    state = agent / "state"
+    (state / "config").mkdir(parents=True)
+    (state / "memory").mkdir(parents=True)
+    (state / "index").mkdir(parents=True)
+    (state / "VERSION").write_text("1", encoding="utf-8")
+    (state / "config" / "setup.yaml").write_text("model_id: m1\n", encoding="utf-8")
+    (state / "memory" / "rules.json").write_text('[{"id": "r1", "text": "keep me"}]', encoding="utf-8")
+    (state / "index" / "cache.bin").write_text("rebuildable", encoding="utf-8")
+    (agent / "metadata.yaml").write_text('version: "9.9.9"\n', encoding="utf-8")
 
-    shutil.rmtree(paths.STATE_DIR)
-    assert mod.restore(paths.AGENT_DIR, out, force=True) == 0
+    out = tmp_path / "backup.zip"
+    assert mod.backup(agent, out) == 0
+
+    shutil.rmtree(state)
+    assert mod.restore(agent, out, force=True) == 0
 
     # state restored; index/ rebuilt empty (excluded from backup)
-    rules = get_memory_store().get_rules()
-    assert any(r["text"] == "keep me" for r in rules)
-    assert effective_config()["defaults"]["model_id"] == "m1"
-    assert paths.INDEX_DIR.is_dir()
-    assert not (paths.INDEX_DIR / "cache.bin").exists()
+    assert "keep me" in (state / "memory" / "rules.json").read_text(encoding="utf-8")
+    assert (state / "config" / "setup.yaml").exists()
+    assert state.joinpath("index").is_dir()
+    assert not (state / "index" / "cache.bin").exists()
+
+    # manifest records versions and excludes index/
+    with zipfile.ZipFile(out) as zf:
+        manifest = json.loads(zf.read("manifest.json"))
+    assert manifest["agent_version"] == "9.9.9"
+    assert manifest["state_schema_version"] == "1"
+    assert all(not k.startswith("index/") for k in manifest["files"])
