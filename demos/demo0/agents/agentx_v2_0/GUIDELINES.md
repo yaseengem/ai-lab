@@ -26,7 +26,7 @@ Run from `demos/demo0`:
 3. Update Python module strings inside the new folder: any `agents.agentx_v2_0.*` → `agents.agentN.*`
 4. Write a spec in `specs/` first (see `specs/_template.md`) — no code without an approved spec.
 5. **Ports**: pick the next free `80N0`/`80N1` pair from `docs/ports.md` and **add a row to `docs/ports.md`** in the same change, advancing the "next free" marker. `scripts/run.sh` validates port conflicts at launch.
-6. Fill in `agent.config.yaml` (personas, defaults, features, capabilities) for your agent.
+6. Fill in `agent.config.yaml` (personas, defaults, features, `integrations`, capabilities) for your agent. List each external system under `integrations` (id, name, category, description, `auth_type`, `auth_url`, `connected`) — leave `auth_url` blank for a mock Connect button, or set it to make the button open a real OAuth page.
 7. Implement agentic logic inside `agentic/`, wire the FastAPI app in `apis/`, build the must-have pages in `frontend/`, and write your `data/test_scenarios/*.json`.
 8. Write `architecture.md` (≤ 1000 words, with a Mermaid diagram).
 
@@ -98,7 +98,7 @@ agents/agentN/
 | Architecture | `/architecture` | Renders bundled `architecture.md` (≤1000 words + Mermaid) plus the capabilities manifest. |
 | Processing | `/processing` | Trigger + watch a run; resumable live output (survives refresh); HITL approval surface. |
 | Test Runner | `/test-runner` | Lists demo/test scenarios; runs any live; shows pass/fail vs `expected`. |
-| Agent Config | `/config` | View `agent.config.yaml` (read-only in the agent UI; authoritative edit is at platform level). Admin-type personas only. |
+| Agent Config | `/config` | View `agent.config.yaml` as friendly fields incl. connected systems (read-only in the agent UI; authoritative edit is at platform level). Admin-type personas only. |
 
 **Standard ribbon** — a single `Ribbon` component (top bar + left nav), copied into the agent and kept visually identical. Top bar: agent icon + name + version, current persona + "switch persona" (returns to the gate), a live status dot. Left nav: the must-have pages filtered to the active persona's `visible_pages`. Light theme only (shared CSS variables from `demos/demo0/frontend/src/index.css`).
 
@@ -136,7 +136,7 @@ agents/agentN/
 
 **No pricing** — the template ships **no** pricing page, tile, field, or copy. Pricing is forbidden in agent UIs.
 
-**Config edited at platform level + Restart** — `agent.config.yaml` is read at startup, so applying a change needs a restart. The agent exposes `POST /admin/restart`; the marketplace per-agent Config page edits config (works even while the agent is stopped, served by `app/`) and has a **Restart agent** button to apply it.
+**Config edited at platform level + Restart** — `agent.config.yaml` is read at startup, so applying a change needs a restart. The agent exposes `POST /admin/restart`; the marketplace per-agent Config page edits config via **GUI fields** — model, the HITL toggle, and connected systems (Connect buttons), no raw JSON — works even while the agent is stopped (served by `app/`) and has a **Restart agent** button to apply it.
 
 ## Key rules
 

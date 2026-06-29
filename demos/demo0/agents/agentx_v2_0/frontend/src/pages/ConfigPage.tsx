@@ -1,6 +1,14 @@
 import { useEffect, useState } from 'react'
 import { getConfig, type AgentConfig, type Capability } from '../api/client'
 
+// Render a config value as friendly text (no raw JSON for the common cases).
+function prettyValue(v: unknown): string {
+  if (v === '' || v === null || v === undefined) return '—'
+  if (typeof v === 'boolean') return v ? 'On' : 'Off'
+  if (typeof v === 'object') return JSON.stringify(v)
+  return String(v)
+}
+
 /**
  * '/config' — read-only view of GET /config (personas / defaults / features /
  * capabilities). Editing happens at the platform level, not here.
@@ -30,7 +38,7 @@ function KeyValueCard({ title, data }: { title: string; data: Record<string, unk
             <div key={k} style={{ display: 'flex', gap: 12, fontSize: 13 }}>
               <span style={{ fontWeight: 600, color: 'var(--t)', minWidth: 180 }}>{k}</span>
               <span style={{ color: 'var(--t2)', wordBreak: 'break-word' }}>
-                {typeof v === 'object' ? <code style={{ fontSize: 12 }}>{JSON.stringify(v)}</code> : String(v)}
+                {prettyValue(v)}
               </span>
             </div>
           ))}
@@ -119,6 +127,32 @@ export function ConfigPage() {
 
           <KeyValueCard title="Defaults" data={config.defaults} />
           <KeyValueCard title="Features" data={config.features} />
+
+          {/* Connected systems (read-only; connect/disconnect happens at platform level) */}
+          <div className="card" style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--t3)', letterSpacing: '0.05em', marginBottom: 10, textTransform: 'uppercase' }}>
+              Connected systems
+            </div>
+            {!config.integrations || config.integrations.length === 0 ? (
+              <div style={{ fontSize: 13, color: 'var(--t3)' }}>None declared.</div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {config.integrations.map(it => (
+                  <div key={it.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{
+                      width: 8, height: 8, borderRadius: '50%',
+                      background: it.connected ? 'var(--gn)' : 'var(--t3)',
+                    }} />
+                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--t)' }}>{it.name}</span>
+                    {it.category && <span className="tag tgr" style={{ fontSize: 10 }}>{it.category}</span>}
+                    <span style={{ fontSize: 12, color: it.connected ? 'var(--gn)' : 'var(--t3)' }}>
+                      {it.connected ? 'Connected' : 'Not connected'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </>
       ) : null}
     </div>

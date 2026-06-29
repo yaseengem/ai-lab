@@ -27,7 +27,7 @@ Every agent copied from `agentx_v2_0` ships, at minimum:
 - **Operations-aware chat** answering about runs, memory/rules, config, status, and outcomes.
 - **Scenario-based self-test** — `data/test_scenarios/*.json` + `/test` API + Test Runner page + `create_dummy_data.py`.
 - **Canonical API contract** — health/identity/chat/sessions/processing/HITL/memory/test/admin (contract-tested).
-- **Config edited at platform level** + `POST /admin/restart` to reload `agent.config.yaml`.
+- **Config edited at platform level** via GUI fields (model, HITL toggle, connected `integrations` — no raw JSON) + `POST /admin/restart` to reload `agent.config.yaml`.
 - **Per-agent `logs/` only**; `events.jsonl` + SSE resumable output; startup self-check via `/ping`.
 - **No pricing** anywhere.
 

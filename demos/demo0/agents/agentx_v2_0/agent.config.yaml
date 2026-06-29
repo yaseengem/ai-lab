@@ -33,6 +33,18 @@ defaults:
 features:
   hitl_approval: true
 
+integrations:           # external systems this agent can connect to
+  # The platform Config page renders a "Connect" button per entry. If auth_url is
+  # set, the button opens that URL in a new tab (functional OAuth); if blank, it is
+  # a mock toggle for the demo. category: cloud | data | productivity | business.
+  - id: aws_s3
+    name: "AWS S3"
+    category: data
+    description: "Object storage for case documents and data."
+    auth_type: oauth    # oauth | apikey | mock
+    auth_url: ""        # blank => mock connect; set a URL to make it functional
+    connected: false
+
 capabilities:           # rendered on the Architecture page so the agent self-documents
   tools:
     - list_runs

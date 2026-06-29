@@ -53,8 +53,27 @@ export async function fetchHealth(): Promise<{ status: string; agents_found: num
 
 // ── per-agent config + restart ──────────────────────────────────────────────
 
+/**
+ * An external system the agent can connect to, rendered as a Connect button on
+ * the Configuration tab. If `auth_url` is set the button opens it in a new tab
+ * (functional OAuth); if blank it's a mock toggle for the demo.
+ */
+export interface Integration {
+  id: string
+  name: string
+  category?: 'cloud' | 'data' | 'productivity' | 'business' | string
+  description?: string
+  auth_type?: 'oauth' | 'apikey' | 'mock' | string
+  auth_url?: string
+  connected?: boolean
+}
+
 /** Arbitrary YAML-ish config object; must contain a `personas` array to save. */
-export type AgentConfigDoc = Record<string, unknown>
+export type AgentConfigDoc = Record<string, unknown> & {
+  defaults?: Record<string, unknown>
+  features?: Record<string, unknown>
+  integrations?: Integration[]
+}
 
 /** GET the agent's agent.config.yaml as JSON. Throws on 404 (no config file). */
 export async function fetchAgentConfig(id: string): Promise<AgentConfigDoc> {

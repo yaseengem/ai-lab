@@ -57,11 +57,25 @@ export interface Capability {
   enabled?: boolean
   [k: string]: unknown
 }
+/**
+ * An external system the agent can connect to. The platform Config page renders
+ * a Connect button per entry; this agent UI shows connected status read-only.
+ */
+export interface Integration {
+  id: string
+  name: string
+  category?: string
+  description?: string
+  auth_type?: string
+  auth_url?: string
+  connected?: boolean
+}
 export interface AgentConfig {
   personas: Persona[]
   defaults: Record<string, unknown>
   features: Record<string, unknown>
   capabilities: Capability[] | Record<string, unknown>
+  integrations?: Integration[]
 }
 
 export interface ArchitectureResponse {

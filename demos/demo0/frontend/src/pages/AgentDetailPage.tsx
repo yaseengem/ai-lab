@@ -6,6 +6,8 @@ import {
   saveAgentConfig,
   restartAgent,
   type PlatformAgent,
+  type AgentConfigDoc,
+  type Integration,
 } from '@/api/platform'
 
 const DOMAIN_META: Record<string, { icon: string; bg: string }> = {
@@ -30,28 +32,63 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 /**
- * Configuration tab — loads the agent's agent.config.yaml as JSON, lets the user
- * edit it in a textarea, Save (PUT) it, and Restart the agent (POST).
+ * Configuration tab — loads the agent's agent.config.yaml and exposes the
+ * operator-relevant fields as a GUI form (no raw JSON): model, human-in-the-loop
+ * toggle, and connected systems. Untouched config keys (personas, capabilities)
+ * are preserved on save.
  *
  * Config editing works even when the agent is offline (the backend reads/writes
  * the file straight from disk); only the restart behaviour differs by live status.
  */
-// Starter config shown when an agent has no agent.config.yaml yet, so the user
-// has something editable to fill in and Save.
-const CONFIG_SCAFFOLD = JSON.stringify(
-  {
-    personas: [
-      { id: 'user', label: 'User', icon: '👤', description: '', visible_pages: ['chat'], default_landing: 'chat' },
-    ],
-  },
-  null,
-  2,
-)
+
+// Known Bedrock model ids offered in the Model dropdown. A blank value inherits
+// the platform default (BEDROCK_MODEL_ID, then the root config.yaml default).
+const MODEL_OPTIONS: { value: string; label: string }[] = [
+  { value: '', label: 'Inherit platform default' },
+  { value: 'us.anthropic.claude-sonnet-4-20250514-v1:0', label: 'Claude Sonnet 4 (Bedrock)' },
+]
+
+// Seed personas used when an agent has no agent.config.yaml yet — the backend
+// requires a personas array to save. Personas aren't edited here; this just lets
+// an unconfigured agent be saved from the form.
+const SCAFFOLD_DOC: AgentConfigDoc = {
+  personas: [
+    { id: 'admin', label: 'Administrator', icon: '⚙️', description: '', visible_pages: ['chat', 'config'], default_landing: 'chat' },
+  ],
+  defaults: { model_id: '' },
+  features: { hitl_approval: true },
+  integrations: [],
+}
+
+function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={on}
+      onClick={() => onChange(!on)}
+      style={{
+        width: 42, height: 24, borderRadius: 12, border: 'none', cursor: 'pointer',
+        background: on ? 'var(--ac)' : 'var(--b2)', position: 'relative', transition: 'background .15s', flexShrink: 0,
+      }}
+    >
+      <span style={{
+        position: 'absolute', top: 3, left: on ? 21 : 3, width: 18, height: 18, borderRadius: '50%',
+        background: '#fff', transition: 'left .15s', boxShadow: '0 1px 2px rgba(0,0,0,.2)',
+      }} />
+    </button>
+  )
+}
 
 function ConfigurationTab({ agent }: { agent: PlatformAgent }) {
-  const [text, setText] = useState('')
+  // The full config doc as loaded — source of truth for keys we don't edit here.
+  const [baseDoc, setBaseDoc] = useState<AgentConfigDoc | null>(null)
+  const [modelId, setModelId] = useState('')
+  const [hitl, setHitl] = useState(true)
+  const [integrations, setIntegrations] = useState<Integration[]>([])
+
   const [loading, setLoading] = useState(true)
-  // No agent.config.yaml on disk yet — show a friendly "configure" prompt + scaffold.
+  // No agent.config.yaml on disk yet — show a friendly "configure" prompt.
   const [notConfigured, setNotConfigured] = useState(false)
   const [saving, setSaving] = useState(false)
   const [restarting, setRestarting] = useState(false)
@@ -59,17 +96,25 @@ function ConfigurationTab({ agent }: { agent: PlatformAgent }) {
   // After a successful save, nudge the user to restart so changes take effect.
   const [needsRestart, setNeedsRestart] = useState(false)
 
+  // Pull the editable fields out of a loaded (or scaffold) config doc.
+  function hydrate(cfg: AgentConfigDoc) {
+    setBaseDoc(cfg)
+    setModelId(String((cfg.defaults as Record<string, unknown>)?.model_id ?? ''))
+    setHitl(Boolean((cfg.features as Record<string, unknown>)?.hitl_approval ?? false))
+    setIntegrations(Array.isArray(cfg.integrations) ? cfg.integrations : [])
+  }
+
   useEffect(() => {
     let cancelled = false
     setLoading(true)
     fetchAgentConfig(agent.id)
       .then((cfg) => {
-        if (!cancelled) { setText(JSON.stringify(cfg, null, 2)); setNotConfigured(false) }
+        if (!cancelled) { hydrate(cfg); setNotConfigured(false) }
       })
       .catch(() => {
-        // The expected failure is a missing config (404) — treat it as "not configured"
-        // and seed the editor with a scaffold rather than blocking with an error.
-        if (!cancelled) { setNotConfigured(true); setText(CONFIG_SCAFFOLD) }
+        // The expected failure is a missing config (404) — treat it as "not
+        // configured" and seed the form so it can be saved into existence.
+        if (!cancelled) { hydrate(SCAFFOLD_DOC); setNotConfigured(true) }
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
@@ -77,18 +122,39 @@ function ConfigurationTab({ agent }: { agent: PlatformAgent }) {
     return () => { cancelled = true }
   }, [agent.id])
 
-  async function handleSave() {
+  // A model id loaded from config that isn't in our known list still needs an option.
+  const modelOptions =
+    modelId && !MODEL_OPTIONS.some((o) => o.value === modelId)
+      ? [...MODEL_OPTIONS, { value: modelId, label: modelId }]
+      : MODEL_OPTIONS
+
+  function toggleConnection(id: string) {
     setMsg(null)
-    let parsed: Record<string, unknown>
-    try {
-      parsed = JSON.parse(text)
-    } catch {
-      setMsg({ kind: 'err', text: 'Config is not valid JSON. Fix it before saving.' })
-      return
+    setIntegrations((prev) =>
+      prev.map((it) => {
+        if (it.id !== id) return it
+        const next = !it.connected
+        // Functional path: a real auth_url opens the provider's OAuth page.
+        if (next && it.auth_url) window.open(it.auth_url, '_blank', 'noopener,noreferrer')
+        return { ...it, connected: next }
+      }),
+    )
+  }
+
+  async function handleSave() {
+    if (!baseDoc) return
+    setMsg(null)
+    // Merge edited fields back into the full doc so personas/capabilities survive.
+    const merged: AgentConfigDoc = {
+      ...baseDoc,
+      defaults: { ...(baseDoc.defaults ?? {}), model_id: modelId },
+      features: { ...(baseDoc.features ?? {}), hitl_approval: hitl },
+      integrations,
     }
     setSaving(true)
     try {
-      await saveAgentConfig(agent.id, parsed)
+      await saveAgentConfig(agent.id, merged)
+      setBaseDoc(merged)
       setNeedsRestart(true)
       setNotConfigured(false)
       setMsg({ kind: 'ok', text: 'Configuration saved. Restart the agent to apply changes.' })
@@ -118,38 +184,86 @@ function ConfigurationTab({ agent }: { agent: PlatformAgent }) {
     }
   }
 
+  const labelStyle = { fontSize: 13, fontWeight: 600, color: 'var(--t)', marginBottom: 6, display: 'block' } as const
+  const helpStyle = { fontSize: 12, color: 'var(--t3)', marginTop: 6 } as const
+  const cardStyle = { background: 'var(--s)', border: '1px solid var(--b)', borderRadius: 12, padding: '18px 20px', marginBottom: 16 } as const
+
   return (
     <div>
       <h2 style={{ fontSize: 20, fontWeight: 600, color: 'var(--t)', marginBottom: 8 }}>Configuration</h2>
       <p style={{ fontSize: 13, color: 'var(--t2)', lineHeight: 1.6, marginBottom: 20, maxWidth: 620 }}>
-        Edit this agent's <code>agent.config.yaml</code> (shown as JSON). Saving works
-        whether or not the agent is running; restart the agent to apply the changes.
+        Edit this agent's settings. Saving works whether or not the agent is running;
+        restart the agent to apply the changes.
       </p>
 
       {loading && <div style={{ color: 'var(--t2)', padding: 20 }}>Loading configuration...</div>}
 
       {!loading && notConfigured && (
         <div style={{ background: 'var(--acd)', border: '1px solid var(--ac)', borderRadius: 10, padding: '14px 18px', color: 'var(--ac)', marginBottom: 16 }}>
-          <strong>Click to configure Agent</strong>
+          <strong>Configure this agent</strong>
           <div style={{ fontSize: 12, marginTop: 6, color: 'var(--t2)' }}>
-            This agent isn't configured yet. Add its personas below and Save to configure it, then restart the agent.
+            This agent isn't configured yet. Set the fields below and Save to configure it, then restart the agent.
           </div>
         </div>
       )}
 
-      {!loading && (
+      {!loading && baseDoc && (
         <>
-          <textarea
-            value={text}
-            onChange={(e) => { setText(e.target.value); setMsg(null) }}
-            spellCheck={false}
-            style={{
-              width: '100%', minHeight: 360, padding: '14px 16px', borderRadius: 10,
-              border: '1px solid var(--b2)', background: 'var(--s)', color: 'var(--t)',
-              fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: 12.5,
-              lineHeight: 1.6, outline: 'none', resize: 'vertical',
-            }}
-          />
+          {/* Model */}
+          <div style={cardStyle}>
+            <label style={labelStyle}>Model</label>
+            <select
+              value={modelId}
+              onChange={(e) => { setModelId(e.target.value); setMsg(null) }}
+              style={{ width: '100%', maxWidth: 420, padding: '9px 12px', borderRadius: 8, border: '1px solid var(--b2)', fontSize: 13, background: 'var(--s)', color: 'var(--t)' }}
+            >
+              {modelOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+            <div style={helpStyle}>The Bedrock model this agent runs on. Inherit uses the platform default.</div>
+          </div>
+
+          {/* Human-in-the-loop */}
+          <div style={cardStyle}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+              <div>
+                <label style={labelStyle}>Human-in-the-loop approval</label>
+                <div style={{ fontSize: 12, color: 'var(--t3)' }}>Pause runs at an approval gate before any irreversible action.</div>
+              </div>
+              <Toggle on={hitl} onChange={(v) => { setHitl(v); setMsg(null) }} />
+            </div>
+          </div>
+
+          {/* Connected systems */}
+          <div style={cardStyle}>
+            <label style={labelStyle}>Connected systems</label>
+            <div style={{ fontSize: 12, color: 'var(--t3)', marginBottom: 14 }}>
+              External systems this agent connects to. Connecting an OAuth system opens its sign-in page.
+            </div>
+            {integrations.length === 0 ? (
+              <div style={{ fontSize: 13, color: 'var(--t3)' }}>No systems declared for this agent.</div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {integrations.map((it) => (
+                  <div key={it.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '12px 14px', border: `1px solid ${it.connected ? 'var(--gn)' : 'var(--b)'}`, borderRadius: 10, background: it.connected ? 'var(--gnd)' : 'var(--s2)' }}>
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--t)' }}>
+                        {it.name}
+                        {it.category && <span style={{ fontSize: 10, color: 'var(--t3)', marginLeft: 8, textTransform: 'uppercase', letterSpacing: '.06em' }}>{it.category}</span>}
+                      </div>
+                      {it.description && <div style={{ fontSize: 12, color: 'var(--t2)' }}>{it.description}</div>}
+                    </div>
+                    <button
+                      className={`btn btn-sm ${it.connected ? '' : 'btn-p'}`}
+                      style={it.connected ? { color: 'var(--gn)', borderColor: 'var(--gn)', background: 'transparent' } : {}}
+                      onClick={() => toggleConnection(it.id)}
+                    >
+                      {it.connected ? '✓ Connected' : 'Connect'}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
           {msg && (
             <div style={{
@@ -294,10 +408,11 @@ export function AgentDetailPage() {
           <div>
             <h2 style={{ fontSize: 20, fontWeight: 600, color: 'var(--t)', marginBottom: 20 }}>Integrations</h2>
             {[
-              ['Core systems', ['Guidewire ClaimCenter', 'Epic EHR', 'Salesforce', 'SAP']],
-              ['Document processing', ['Amazon S3', 'SharePoint', 'DocuSign', 'Adobe PDF']],
-              ['Notifications', ['Slack', 'Microsoft Teams', 'Email (SMTP)', 'PagerDuty']],
-              ['Compliance', ['HIPAA', 'SOC 2', 'ISO 27001', 'State DOI reporting']],
+              ['Productivity & collaboration', ['M365', 'Outlook', 'Teams', 'SharePoint', 'Email', 'Slack']],
+              ['Business platforms', ['Salesforce', 'ServiceNow', 'SAP', 'Oracle HRMS', 'Workday']],
+              ['Cloud', ['AWS', 'Azure', 'GCP']],
+              ['AWS services', ['AWS SES', 'AWS SNS']],
+              ['Data & documents', ['AWS S3', 'SQL Database', 'PDF', 'REST API / Webhooks']],
             ].map(([cat, items]) => (
               <div key={cat as string} style={{ marginBottom: 24 }}>
                 <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 10 }}>{cat}</div>
