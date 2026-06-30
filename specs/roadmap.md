@@ -19,7 +19,6 @@ live inside each spec; this file is the overview only. Process: see [README.md](
 | Spec | Status |
 |------|--------|
 | [ui-professional-polish.md](active/ui-professional-polish.md) — copy, emoji, capitalization pass | in-progress |
-| [demo0-agent5-trianz-voice-concierge.md](active/demo0-agent5-trianz-voice-concierge.md) — agent5: Nova Sonic voice/text Trianz front-door, SES OTP auth, sales + scheduling sub-agents | approved |
 
 ---
 
@@ -34,6 +33,7 @@ live inside each spec; this file is the overview only. Process: see [README.md](
 | [marketplace-nav-and-filters.md](done/marketplace-nav-and-filters.md) — marketplace nav + advanced filters | done |
 | [runs-subsystem-and-template-versioning.md](done/runs-subsystem-and-template-versioning.md) — runs subsystem, HITL wiring, template versioning | done |
 | [agentx-v2-template.md](done/agentx-v2-template.md) — Agent Template v2.0: must-have pages, ribbon, personas, self-test, API contract, config + restart | done |
+| [demo0-agent5-trianz-voice-concierge.md](done/demo0-agent5-trianz-voice-concierge.md) — agent5: Nova Sonic voice/text Trianz front-door, SES OTP auth, sales + scheduling sub-agents | done |
 
 ---
 
