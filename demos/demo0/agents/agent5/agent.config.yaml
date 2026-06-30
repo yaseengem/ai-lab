@@ -28,7 +28,7 @@ personas:
   default_landing: chat
 defaults:
   model_id: us.anthropic.claude-sonnet-4-20250514-v1:0
-  sonic_model_id: amazon.nova-sonic-v1:0
+  sonic_model_id: amazon.nova-2-sonic-v1:0
   ses_sender: ''
   sales_contact_email: ''
   allowlist_domains:
@@ -55,7 +55,10 @@ setup_fields:
     group: Models
   - key: sonic_model_id
     label: Nova Sonic model
-    type: string
+    type: select
+    options:
+      - amazon.nova-2-sonic-v1:0
+      - amazon.nova-sonic-v1:0
     help: "Bedrock speech-to-speech model id powering the voice front door."
     group: Models
   - key: ses_sender

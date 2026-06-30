@@ -35,7 +35,7 @@ _DEFAULT_REGION = _config["defaults"]["aws_region"]
 
 # Built-in fallbacks specific to this agent (used only if nothing else resolves).
 _FALLBACK_TEXT_MODEL = "us.amazon.nova-pro-v1:0"
-_FALLBACK_SONIC_MODEL = "amazon.nova-sonic-v1:0"
+_FALLBACK_SONIC_MODEL = "amazon.nova-2-sonic-v1:0"
 
 
 def _yaml_or_empty(path) -> dict:
