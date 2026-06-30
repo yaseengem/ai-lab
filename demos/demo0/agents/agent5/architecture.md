@@ -1,116 +1,121 @@
-# DemoX v2.0 — Agent Architecture
+# Trianz Concierge (agent5) — Architecture
 
-> The v2.0 agent template. A persona-aware, operations-aware assistant with a
-> generic processing pipeline, resumable live output, human-in-the-loop
-> approval, and a self-test harness. This page is served verbatim by
-> `GET /architecture` and rendered on the Architecture page.
+> A cross-modal (voice + text) front door for Trianz. A verified business visitor
+> talks to it by **voice (Amazon Nova Sonic)** or **text (SSE)**; it explains Trianz's
+> offerings grounded in a knowledge base, qualifies interest, and books a human
+> conversation by email. Served verbatim by `GET /architecture`.
 
 ## Overview
 
-A new agent copied from this template ships a standalone Vite frontend and a
-FastAPI backend. The frontend opens on a **persona gate**: the user picks
-*Customer*, *Support*, or *Administrator*, and that choice drives which ribbon
-pages are visible and lands them on **Chat**. Every page talks to the backend
-over the canonical API contract.
+The frontend opens on a **real access gate** — SES email-OTP — *before* the persona
+gate. A visitor enters a work email; the backend checks it against a wildcard allowlist
+and a public-domain blocklist, then sends a 6-digit code via **AWS SES** (or returns a
+dev code when SES isn't configured). After verifying, the visitor picks a persona
+(*Prospect*, *Trianz Sales*, *Administrator*) and lands on **Chat**.
 
-Two flows dominate:
+Three flows dominate:
 
-1. **Chat** — `POST /chat/{session_id}` streams an SSE response. The Strands
-   agent is persona-aware and **operations-aware**: it carries read-only tools
-   (`list_runs`, `get_run`, `list_cases`, `get_case`, `get_memory`, `get_config`,
-   `get_health`, `list_pending_approvals`) so it can answer questions about the
-   agent's own runs, cases, memory, configuration, health, and pending approvals
-   by reading on-disk state.
-2. **Processing** — `POST /run` mints a `run_id`, persists session metadata, and
-   launches a generic pipeline coroutine as a detached `asyncio` task. The
-   pipeline emits `pipeline-step` events, optionally pauses at a HITL approval
-   gate, then emits `done`. `GET /monitor/{id}` is an SSE stream that **replays
-   `events.jsonl` past a `Last-Event-ID` cursor, then attaches to the live
-   in-memory queue** — so the page survives a refresh.
+1. **Voice (Nova Sonic)** — the browser captures mic audio (16 kHz PCM) and streams it
+   over a **WebSocket** (`/voice/{id}`) to `SonicSession`, which drives the Bedrock
+   **bidirectional** stream. Sonic is the *supervisor*: on a `toolUse` event it calls the
+   shared tool layer (knowledge / sales / scheduling), returns the result, and streams
+   24 kHz speech + transcripts back to the browser, which plays the audio and animates a
+   reactive snowflake visualiser.
+2. **Text (SSE)** — `POST /chat/{id}` streams a Strands **Nova text** agent that carries
+   the *same* tools, so voice and text behave identically. Both require a verified session.
+3. **Processing** — `POST /run` launches the generic engine (Sales/Admin only) with a
+   durable HITL gate; `GET /monitor/{id}` replays `events.jsonl` past `Last-Event-ID` then
+   attaches to the live queue, surviving refreshes.
 
 ## Request flow
 
 ```mermaid
 flowchart TD
     subgraph FE["Frontend (Vite + React)"]
+        AUTH["Auth gate /auth — SES email-OTP"]
         GATE["Persona gate /"]
-        CHAT["Chat /chat"]
+        CHAT["Chat /chat — text + 🎙 voice + snowflake"]
         PROC["Processing /processing"]
-        TEST["Test Runner /test-runner"]
     end
 
     subgraph API["FastAPI (apis/)"]
-        ROUTES["routes.py — canonical contract"]
-        TROUTES["test_routes.py — /test/*"]
+        ROUTES["routes.py — contract + /auth/* + WS /voice"]
         SVC["service.py — run engine + events.jsonl + SSE queue"]
     end
 
     subgraph AGENTIC["agentic/"]
-        AGENT["agent.py — Strands Agent + run_chat()"]
-        TOOLS["tools/ops.py — list_runs / get_run / list_cases / get_case / get_memory / get_config / get_health / list_pending_approvals"]
-        HOOK["approval_hook.py — asyncio.Event pause/resume"]
-        MEM["memory_backend.py — LocalMemoryStore"]
-        MODEL["model.py — BedrockModel"]
+        SONIC["sonic_session.py — Nova Sonic bidi stream (supervisor)"]
+        AGENT["agent.py — Strands Nova text agent"]
+        KN["knowledge.py — content/ retrieval"]
+        SALES["sales_agent.py — recommend_offering / capture_lead"]
+        SCHED["scheduling_agent.py — request_human_meeting"]
+        AUTHT["tools/auth.py + tools/email_ses.py"]
     end
 
-    subgraph DISK["data/ (on disk)"]
-        SESS["sessions/{id}_meta.json + {id}.events.jsonl"]
-        MJSON["memory/agent_memory.json"]
-        CFG["agent.config.yaml"]
+    subgraph EXT["AWS"]
+        BR["Bedrock — Nova Sonic + Nova text"]
+        SES["SES — OTP + .ics invites"]
     end
 
+    AUTH -->|"POST /auth/request → /auth/verify"| ROUTES
     GATE --> CHAT
+    CHAT -->|"WS /voice/{id} (audio)"| ROUTES
     CHAT -->|"POST /chat/{id} (SSE)"| ROUTES
-    PROC -->|"POST /run"| ROUTES
-    PROC -->|"GET /monitor/{id} (SSE)"| ROUTES
-    TEST -->|"POST /test/run/{id}"| TROUTES
-
+    PROC -->|"POST /run · GET /monitor (SSE)"| ROUTES
     ROUTES --> SVC
-    TROUTES --> SVC
+    ROUTES --> SONIC
     ROUTES --> AGENT
-    AGENT --> MODEL
-    AGENT --> TOOLS
-    TOOLS --> SVC
-    TOOLS --> MEM
-    TOOLS --> CFG
-    SVC --> HOOK
-    SVC --> SESS
-    MEM --> MJSON
+    ROUTES --> AUTHT
+    SONIC -->|"toolUse"| KN & SALES & SCHED
+    AGENT --> KN & SALES & SCHED
+    SONIC --> BR
+    AGENT --> BR
+    AUTHT --> SES
+    SCHED --> AUTHT
 ```
 
-## Pipeline + HITL
+## Authentication (real SES email-OTP gate)
 
-`run_pipeline(session_id)` walks a small set of generic steps, emitting a
-`pipeline-step` event for each. When `features.hitl_approval` is true it raises a
-`human-approval-required` event, sets status `awaiting_approval`, and awaits an
-`asyncio.Future`. `POST /approve/{id}` or `POST /reject/{id}` resolves that
-future via the `ApprovalHook`; the run then finishes with a `done` event and
-status `complete`. When HITL is disabled the approve/reject endpoints return
-`{"status":"approvals-disabled"}` so the contract stays uniform.
+`tools/auth.py` validates the email (`fnmatch` allowlist like `*.trianz.com`; a
+public-provider blocklist), mints a 6-digit code with `secrets`, persists a durable
+challenge under `state/auth/`, and sends it via `tools/email_ses.py` (SESv2). Verifying
+issues a durable session token; the WS, `/chat`, and `/run` require it (401 otherwise).
+This is a deliberate departure from the template note that "personas are not auth" — here
+personas remain a view, and SES verification is the real gate. With no `ses_sender`
+configured the code is returned as `dev_code` so the flow runs with zero AWS setup.
 
-## State, events, and resumability
+## Voice loop (Nova Sonic)
 
-- **Session meta** (`{id}_meta.json`) holds status, `run_id`, timestamps, and a
-  monotonic `event_count`.
-- **`{id}.events.jsonl`** is an append-only log; each event is stamped with a
-  monotonic `id` and an ISO timestamp. SSE replay uses these ids as the
-  `Last-Event-ID` cursor.
-- On startup, `startup_sweep()` marks any non-terminal run as `interrupted`
-  (crash recovery), and `self_check()` validates the Bedrock config, resolved
-  model id, and that `agent.config.yaml` parses — feeding `GET /ping`'s
-  `ok | degraded` status and the Command Center readiness tile.
+`SonicSession` owns the event protocol: `sessionStart → promptStart` (advertising the
+tool specs + 24 kHz audio output) → a SYSTEM prompt → user `audioInput` frames → output
+`textOutput`/`audioOutput` and `toolUse`. Tool calls dispatch to the same functions the
+text path uses; results are returned as a `toolResult` content block. The bidirectional
+client lives in the experimental `aws-sdk-bedrock-runtime`; if it (or AWS creds) is
+absent, the WS sends one `error` with `fallback:true` and the UI stays on text.
 
-## Self-test harness
+## Knowledge
 
-`data/test_scenarios/*.json` each declare `id`, `name`, `description`, `tags`,
-`payload`, and an `expected` block of assertions (e.g. final status, minimum
-event count). `POST /test/run/{id}` injects the scenario, runs the real
-pipeline, evaluates `expected`, and emits a `test-result` event with pass/fail —
-making the agent self-demonstrable with zero external setup.
+`knowledge.py` ingests `content/` (`.md`/`.txt`/`.html`) on boot into a rebuildable
+keyword index at `state/index/knowledge.json`, and exposes `search_trianz_knowledge`.
+The agent grounds every Trianz claim in retrieved passages; `00-overview.*` also seeds
+the opening pitch.
+
+## Sub-agents (as tools)
+
+- **Sales** — `recommend_offering(need)` (knowledge-grounded) and `capture_lead(...)` →
+  durable JSON under `state/data/leads/`.
+- **Scheduling** — `request_human_meeting(...)` builds a hand-rolled `.ics` invite, emails
+  it via SES, and records the booking under `state/data/meetings/`. No CRM, no OAuth.
+
+## State, resumability, self-check
+
+All mutable data lives under `state/` (`auth/`, `data/leads`, `data/meetings`, `sessions/`,
+`runs/`, `index/`, `logs/`). `events.jsonl` + monotonic ids give resumable SSE; durable
+HITL gates in `state/runs/` survive restart. `GET /ping` self-check reports
+`awaiting_setup | ok | degraded` plus informative checks for the model, knowledge index,
+SES sender, and voice backend.
 
 ## Constraints
 
-Single uvicorn worker: HITL approval futures live in process memory, so the task
-awaiting approval and the route resolving it must be in the same process. All
-paths are agent-relative; the agent owns all of its own tools, prompts,
-scenarios, and memory — there are no shared/common tool modules.
+Single uvicorn worker (in-process HITL + Sonic sessions). The agent owns all of its own
+tools, prompts, scenarios, and memory — no shared modules. No pricing anywhere.

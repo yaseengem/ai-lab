@@ -61,12 +61,12 @@ def test_definition_present_without_setup():
 
 def test_effective_config_merge():
     save_setup({"model_id": "m1", "hitl_approval": True,
-                "integrations": {"aws_s3": {"connected": True}}})
+                "integrations": {"aws_ses": {"connected": True}}})
     eff = effective_config()
     assert eff["defaults"]["model_id"] == "m1"
     assert eff["features"]["hitl_approval"] is True
     assert eff["configured"] is True
-    assert any(i["id"] == "aws_s3" and i["connected"] for i in eff["integrations"])
+    assert any(i["id"] == "aws_ses" and i["connected"] for i in eff["integrations"])
 
 
 # ── memory layer ────────────────────────────────────────────────────────────────
