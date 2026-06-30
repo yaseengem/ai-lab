@@ -17,7 +17,11 @@
       "Bash(curl -s http://localhost:8041/test/scenarios)",
       "Bash(python -m uvicorn agents.agent4.apis.main:app --host 0.0.0.0 --port 8041)",
       "Bash(echo \"PID: $!\")",
-      "Bash(git mv *)"
+      "Bash(git mv *)",
+      "Bash(git add *)",
+      "Bash(git reset *)",
+      "Bash(git commit -q -m '@ *)",
+      "Bash(git push *)"
     ]
   }
 }
