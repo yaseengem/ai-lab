@@ -29,9 +29,25 @@ function useChatSessionId(): string {
   return ref.current
 }
 
+// True on narrow (mobile) viewports, kept live via matchMedia.
+function useIsMobile(): boolean {
+  const query = '(max-width: 768px)'
+  const [mobile, setMobile] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia(query).matches,
+  )
+  useEffect(() => {
+    const mq = window.matchMedia(query)
+    const onChange = () => setMobile(mq.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
+  return mobile
+}
+
 export function ChatPage() {
   const persona = getPersona() || 'visitor'
   const sessionId = useChatSessionId()
+  const isMobile = useIsMobile()
 
   const [messages, setMessages] = useState<Msg[]>([])
   const [input, setInput] = useState('')
@@ -154,8 +170,9 @@ export function ChatPage() {
     : '🎙 Start voice'
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative' }}>
       <div style={{ padding: '20px 32px 12px', borderBottom: '1px solid var(--b)', background: 'var(--s)',
+                    flexShrink: 0,
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
         <div>
           <h1 style={{ fontSize: 18, fontWeight: 700, color: 'var(--t)', margin: 0 }}>Trianz Concierge</h1>
@@ -163,59 +180,62 @@ export function ChatPage() {
             Ask about Trianz’s offerings by voice or text — acting as <strong>{persona}</strong>.
           </p>
         </div>
-        <button
-          className={voice === 'live' ? 'btn btn-p' : 'btn'}
-          onClick={voice === 'live' || voice === 'connecting' ? stopVoice : startVoice}
-          disabled={voice === 'connecting'}
-          style={voice === 'live' ? { background: 'var(--rd, #dc2626)', borderColor: 'transparent', color: '#fff' } : {}}
-        >
-          {voiceLabel}
-        </button>
       </div>
 
-      {voice !== 'off' && (
-        <div style={{
-          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
-          padding: '18px 32px 8px', background: 'var(--bg)', borderBottom: '1px solid var(--b)',
-        }}>
-          <SnowflakeVoice ref={snowRef} size={150} />
-          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--t2)', minHeight: 18 }}>
-            {voice === 'connecting' ? 'Connecting to Nova Sonic…'
-              : voiceTool ? <>🔧 Running <strong>{voiceTool}</strong>…</>
-              : 'Listening — speak naturally, or type to add a turn'}
-          </div>
-        </div>
-      )}
-
-      <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: '24px 32px' }}>
-        {messages.length === 0 ? (
-          <div style={{ maxWidth: 560, margin: '40px auto 0', textAlign: 'center', color: 'var(--t2)' }}>
-            <div style={{ fontSize: 32, marginBottom: 10 }}>🛎️</div>
-            <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--t)', marginBottom: 6 }}>
-              Welcome — how can Trianz help?
+      {/* Body. When voice is live it splits into two columns — the snowflake visualiser
+          on the LEFT and the chat transcript on the RIGHT. On mobile the transcript is
+          hidden while voice is on, so the snowflake takes the whole screen. When voice is
+          off it's a single full-width transcript column. */}
+      <div style={{ flex: 1, minHeight: 0, display: 'flex', overflow: 'hidden' }}>
+        {/* Left column — snowflake visualiser (only while voice is on) */}
+        {voice !== 'off' && (
+          <div style={{
+            flex: isMobile ? 1 : '0 0 42%', minWidth: 0,
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            gap: 8, padding: 24, borderRight: isMobile ? 'none' : '1px solid var(--b)',
+          }}>
+            <SnowflakeVoice ref={snowRef} size={280} />
+            <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--t2)', minHeight: 18, textAlign: 'center' }}>
+              {voice === 'connecting' ? 'Connecting to Nova Sonic…'
+                : voiceTool ? <>🔧 Running <strong>{voiceTool}</strong>…</>
+                : 'Listening — speak naturally, or type to add a turn'}
             </div>
-            <p style={{ fontSize: 13 }}>
-              Try: “What does Trianz do?”, “Tell me about Concierto”, “We want to cut our cloud spend”,
-              or “I’d like to talk to someone.” Tap <strong>Start voice</strong> to speak.
-            </p>
           </div>
-        ) : (
-          <div style={{ maxWidth: 760, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {messages.map((m, i) => (
-              <div key={i} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
-                <div style={{
-                  maxWidth: '78%', padding: '10px 14px', borderRadius: 12, fontSize: 14, lineHeight: 1.6,
-                  whiteSpace: 'pre-wrap', wordBreak: 'break-word',
-                  background: m.role === 'user' ? 'var(--ac)' : 'var(--s)',
-                  color: m.role === 'user' ? '#fff' : 'var(--t)',
-                  border: m.role === 'user' ? 'none' : '1px solid var(--b)',
-                }}>
-                  {m.text || (streaming && i === messages.length - 1
-                    ? <span className="cursor-blink" style={{ color: 'var(--t3)' }}>▋</span>
-                    : '')}
+        )}
+
+        {/* Right column — chat transcript. Hidden on mobile while voice is on. */}
+        {!(voice !== 'off' && isMobile) && (
+          <div ref={scrollRef} style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '24px 32px' }}>
+            {messages.length === 0 ? (
+              <div style={{ maxWidth: 560, margin: '40px auto 0', textAlign: 'center', color: 'var(--t2)' }}>
+                <div style={{ fontSize: 32, marginBottom: 10 }}>🛎️</div>
+                <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--t)', marginBottom: 6 }}>
+                  Welcome — how can Trianz help?
                 </div>
+                <p style={{ fontSize: 13 }}>
+                  Try: “What does Trianz do?”, “Tell me about Concierto”, “We want to cut our cloud spend”,
+                  or “I’d like to talk to someone.” Tap <strong>Start voice</strong> to speak.
+                </p>
               </div>
-            ))}
+            ) : (
+              <div style={{ maxWidth: 760, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 14 }}>
+                {messages.map((m, i) => (
+                  <div key={i} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
+                    <div style={{
+                      maxWidth: '78%', padding: '10px 14px', borderRadius: 12, fontSize: 14, lineHeight: 1.6,
+                      whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+                      background: m.role === 'user' ? 'var(--ac)' : 'var(--s)',
+                      color: m.role === 'user' ? '#fff' : 'var(--t)',
+                      border: m.role === 'user' ? 'none' : '1px solid var(--b)',
+                    }}>
+                      {m.text || (streaming && i === messages.length - 1
+                        ? <span className="cursor-blink" style={{ color: 'var(--t3)' }}>▋</span>
+                        : '')}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -224,7 +244,7 @@ export function ChatPage() {
         <div style={{ padding: '8px 32px', color: 'var(--rd)', fontSize: 12, background: 'var(--rdd)' }}>{error}</div>
       )}
 
-      <div style={{ padding: '14px 32px', borderTop: '1px solid var(--b)', background: 'var(--s)' }}>
+      <div style={{ padding: '14px 32px', borderTop: '1px solid var(--b)', background: 'var(--s)', flexShrink: 0 }}>
         <div style={{ maxWidth: 760, margin: '0 auto', display: 'flex', gap: 10, alignItems: 'flex-end' }}>
           <textarea
             value={input}
@@ -242,6 +262,14 @@ export function ChatPage() {
           />
           <button className="btn btn-p" onClick={send} disabled={(streaming && voice !== 'live') || !input.trim()}>
             {streaming && voice !== 'live' ? 'Sending…' : 'Send'}
+          </button>
+          <button
+            className={voice === 'live' ? 'btn btn-p' : 'btn'}
+            onClick={voice === 'live' || voice === 'connecting' ? stopVoice : startVoice}
+            disabled={voice === 'connecting'}
+            style={voice === 'live' ? { background: 'var(--rd, #dc2626)', borderColor: 'transparent', color: '#fff', whiteSpace: 'nowrap' } : { whiteSpace: 'nowrap' }}
+          >
+            {voiceLabel}
           </button>
         </div>
       </div>

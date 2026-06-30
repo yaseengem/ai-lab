@@ -88,6 +88,8 @@ export class VoiceClient {
   private meterRaf = 0
   private playHead = 0
   private active = false
+  // Every AI audio chunk we schedule, so a barge-in can stop them all at once.
+  private playing: AudioBufferSourceNode[] = []
 
   constructor(
     private sessionId: string,
@@ -117,7 +119,11 @@ export class VoiceClient {
   }
 
   private async startCapture(): Promise<void> {
-    this.stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+    // Echo cancellation keeps the AI's own playback from leaking into the mic and
+    // tripping the barge-in detector (false interruptions).
+    this.stream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+    })
     this.micCtx = audioContext()
     this.source = this.micCtx.createMediaStreamSource(this.stream)
 
@@ -146,11 +152,29 @@ export class VoiceClient {
     const playScratch = new Float32Array(256)
     const tick = () => {
       if (!this.active) return
-      if (this.micAnalyser) this.cb.onLevel?.('user', rms(this.micAnalyser, micScratch))
+      const userLevel = this.micAnalyser ? rms(this.micAnalyser, micScratch) : 0
+      if (this.micAnalyser) this.cb.onLevel?.('user', userLevel)
       if (this.playAnalyser) this.cb.onLevel?.('assistant', rms(this.playAnalyser, playScratch))
+
+      // Local barge-in: if the user speaks while AI audio is still queued ahead of the
+      // playback clock, cut the AI off immediately rather than waiting for the server
+      // round-trip. While the user keeps talking this fires every frame, so stale AI
+      // audio stays suppressed; the next AI turn (queued at the current time) plays normally.
+      if (userLevel > 0.22 && this.playCtx && this.playHead > this.playCtx.currentTime + 0.12) {
+        this.stopPlayback()
+      }
       this.meterRaf = requestAnimationFrame(tick)
     }
     this.meterRaf = requestAnimationFrame(tick)
+  }
+
+  /** Stop and discard every scheduled AI audio chunk; reset the playback clock. */
+  private stopPlayback(): void {
+    for (const s of this.playing) {
+      try { s.onended = null; s.stop() } catch { /* already finished */ }
+    }
+    this.playing = []
+    if (this.playCtx) this.playHead = this.playCtx.currentTime
   }
 
   private onMessage(ev: MessageEvent): void {
@@ -169,6 +193,10 @@ export class VoiceClient {
         break
       case 'audio':
         this.playPcm(String(msg.audio ?? ''))
+        break
+      case 'interrupted':
+        // Server-confirmed barge-in: drop any AI speech still queued for playback.
+        this.stopPlayback()
         break
       case 'tool':
         this.cb.onTool?.(String(msg.name ?? ''), (msg.status as 'running' | 'done') ?? 'running')
@@ -209,11 +237,15 @@ export class VoiceClient {
     if (this.playHead < now) this.playHead = now
     src.start(this.playHead)
     this.playHead += buffer.duration
+    // Track so a barge-in can stop it; drop it from the list once it finishes on its own.
+    this.playing.push(src)
+    src.onended = () => { this.playing = this.playing.filter(s => s !== src) }
   }
 
   async stop(): Promise<void> {
     this.active = false
     if (this.meterRaf) cancelAnimationFrame(this.meterRaf)
+    this.stopPlayback()
     try {
       if (this.ws?.readyState === WebSocket.OPEN) this.ws.send(JSON.stringify({ type: 'stop' }))
     } catch {

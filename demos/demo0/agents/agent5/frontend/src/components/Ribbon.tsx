@@ -74,6 +74,9 @@ export function Ribbon({ children }: { children: React.ReactNode }) {
   const persona = personas.find(p => p.id === personaId)
   const visiblePages = persona?.visible_pages ?? PAGE_META.map(p => p.id)
   const navItems = visiblePages.map(id => META_BY_ID[id] ?? { id, path: `/${id}`, label: id })
+  // Chat-only personas (Prospect / Sales) get a single page — drop the sidebar entirely
+  // so they see just the conversation, nothing else.
+  const showSidebar = navItems.length > 1
 
   const agentName = health?.agent ?? 'AI Agent'
   const version = health?.version
@@ -84,7 +87,7 @@ export function Ribbon({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ height: '100vh', overflow: 'hidden', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
       {/* Top bar */}
       <nav style={{
         height: 56, padding: '0 24px', display: 'flex', alignItems: 'center',
@@ -121,6 +124,7 @@ export function Ribbon({ children }: { children: React.ReactNode }) {
 
       {/* Body: sidebar + main */}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+        {showSidebar && (
         <aside style={{
           width: 220, flexShrink: 0, background: 'var(--s)', borderRight: '1px solid var(--b)',
           overflowY: 'auto', padding: '16px 0',
@@ -164,6 +168,7 @@ export function Ribbon({ children }: { children: React.ReactNode }) {
             </div>
           )}
         </aside>
+        )}
 
         <main style={{ flex: 1, overflowY: 'auto' }}>
           {children}

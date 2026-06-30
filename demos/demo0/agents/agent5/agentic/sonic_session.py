@@ -300,8 +300,15 @@ class SonicSession:
                 if "textOutput" in event:
                     to = event["textOutput"]
                     role = (to.get("role") or "ASSISTANT").lower()
-                    await self._out.put({"type": "transcript", "role": role,
-                                         "text": to.get("content", "")})
+                    content = to.get("content", "")
+                    # Nova Sonic signals a barge-in by emitting a textOutput whose content
+                    # is the marker {"interrupted": true}. Forward it as an interruption so
+                    # the browser flushes any AI audio still queued for playback — instead
+                    # of letting the (now-stale) turn play out to the end.
+                    if '"interrupted"' in content and "true" in content:
+                        await self._out.put({"type": "interrupted"})
+                    else:
+                        await self._out.put({"type": "transcript", "role": role, "text": content})
                 elif "audioOutput" in event:
                     await self._out.put({"type": "audio", "audio": event["audioOutput"].get("content", "")})
                 elif "toolUse" in event:
@@ -310,9 +317,14 @@ class SonicSession:
                         "name": event["toolUse"].get("toolName"),
                         "input": event["toolUse"].get("content"),
                     }
-                elif "contentEnd" in event and event["contentEnd"].get("type") == "TOOL" and pending_tool:
-                    await self._handle_tool(pending_tool)
-                    pending_tool = None
+                elif "contentEnd" in event:
+                    ce = event["contentEnd"]
+                    # A turn cut short by the user (barge-in) ends with stopReason INTERRUPTED.
+                    if ce.get("stopReason") == "INTERRUPTED":
+                        await self._out.put({"type": "interrupted"})
+                    elif ce.get("type") == "TOOL" and pending_tool:
+                        await self._handle_tool(pending_tool)
+                        pending_tool = None
                 elif "completionEnd" in event:
                     await self._out.put({"type": "done"})
         except Exception as exc:  # pragma: no cover - depends on live AWS

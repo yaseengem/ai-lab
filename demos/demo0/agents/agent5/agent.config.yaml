@@ -4,19 +4,14 @@ personas:
   icon: 🧑‍💼
   description: Explore Trianz's offerings by voice or text and book a conversation.
   visible_pages:
-  - home
   - chat
   default_landing: chat
 - id: sales
   label: Trianz Sales
   icon: 📈
-  description: Review captured leads and booked meetings; everything a prospect sees.
+  description: Talk to the Concierge by voice or text — chat only.
   visible_pages:
-  - home
   - chat
-  - processing
-  - memory
-  - test-runner
   default_landing: chat
 - id: admin
   label: Administrator
