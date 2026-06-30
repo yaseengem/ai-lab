@@ -16,6 +16,9 @@ import { voiceWsUrl } from '../api/client'
 
 const INPUT_RATE = 16000
 const OUTPUT_RATE = 24000
+// After a barge-in, drop AI audio chunks still arriving from the (faster-than-real-time)
+// model for this long, so trailing buffered speech doesn't resume after the cut-off.
+const BARGE_IN_SUPPRESS_SEC = 0.5
 
 export interface VoiceCallbacks {
   onReady?: () => void
@@ -90,6 +93,10 @@ export class VoiceClient {
   private active = false
   // Every AI audio chunk we schedule, so a barge-in can stop them all at once.
   private playing: AudioBufferSourceNode[] = []
+  // While a barge-in is active, AI audio chunks that are still arriving (Nova 2 generates
+  // faster than real-time and streams ahead) are dropped instead of played. In playCtx
+  // seconds; 0 = not suppressing. Re-armed every frame the user keeps talking.
+  private suppressUntil = 0
 
   constructor(
     private sessionId: string,
@@ -158,10 +165,11 @@ export class VoiceClient {
 
       // Local barge-in: if the user speaks while AI audio is still queued ahead of the
       // playback clock, cut the AI off immediately rather than waiting for the server
-      // round-trip. While the user keeps talking this fires every frame, so stale AI
-      // audio stays suppressed; the next AI turn (queued at the current time) plays normally.
-      if (userLevel > 0.22 && this.playCtx && this.playHead > this.playCtx.currentTime + 0.12) {
-        this.stopPlayback()
+      // round-trip. While the user keeps talking this fires every frame, re-arming the
+      // suppression window so chunks the model is still streaming get dropped — the next
+      // AI turn (after the window lapses) plays normally.
+      if (userLevel > 0.14 && this.playCtx && this.playHead > this.playCtx.currentTime + 0.12) {
+        this.bargeIn()
       }
       this.meterRaf = requestAnimationFrame(tick)
     }
@@ -175,6 +183,16 @@ export class VoiceClient {
     }
     this.playing = []
     if (this.playCtx) this.playHead = this.playCtx.currentTime
+  }
+
+  /**
+   * Handle a barge-in: flush scheduled AI audio AND open a suppression window so chunks the
+   * model is still streaming (it runs faster than real-time) are dropped rather than played.
+   * Safe to call repeatedly — each call re-arms the window.
+   */
+  private bargeIn(): void {
+    this.stopPlayback()
+    if (this.playCtx) this.suppressUntil = this.playCtx.currentTime + BARGE_IN_SUPPRESS_SEC
   }
 
   private onMessage(ev: MessageEvent): void {
@@ -195,8 +213,8 @@ export class VoiceClient {
         this.playPcm(String(msg.audio ?? ''))
         break
       case 'interrupted':
-        // Server-confirmed barge-in: drop any AI speech still queued for playback.
-        this.stopPlayback()
+        // Server-confirmed barge-in: flush queued AI speech and drop trailing chunks.
+        this.bargeIn()
         break
       case 'tool':
         this.cb.onTool?.(String(msg.name ?? ''), (msg.status as 'running' | 'done') ?? 'running')
@@ -225,6 +243,9 @@ export class VoiceClient {
       this.playAnalyser.fftSize = 512
       this.playAnalyser.connect(this.playCtx.destination)
     }
+    // Inside a barge-in window, discard chunks the model is still streaming from the
+    // interrupted turn so the AI doesn't talk over the user.
+    if (this.playCtx.currentTime < this.suppressUntil) return
     const int16 = base64ToInt16(b64)
     const f32 = new Float32Array(int16.length)
     for (let i = 0; i < int16.length; i++) f32[i] = int16[i] / 0x8000

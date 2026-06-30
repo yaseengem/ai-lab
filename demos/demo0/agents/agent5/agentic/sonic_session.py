@@ -214,8 +214,15 @@ class SonicSession:
         )
         self._active = True
 
-        await self._send_event({"event": {"sessionStart": {"inferenceConfiguration": {
-            "maxTokens": 1024, "topP": 0.9, "temperature": 0.7}}}})
+        session_start: dict = {"inferenceConfiguration": {
+            "maxTokens": 1024, "topP": 0.9, "temperature": 0.7}}
+        # Turn-taking control is a Nova 2 Sonic feature. HIGH makes the model switch to
+        # listening (and emit the barge-in interruption signal) as soon as the user speaks
+        # over it. Only send it for Nova 2 — v1 has no such field — so switching the model
+        # id in config stays seamless in both directions.
+        if "nova-2-sonic" in model_id:
+            session_start["turnDetectionConfiguration"] = {"endpointingSensitivity": "HIGH"}
+        await self._send_event({"event": {"sessionStart": session_start}})
         await self._send_event({"event": {"promptStart": {
             "promptName": self.prompt_name,
             "textOutputConfiguration": {"mediaType": "text/plain"},
@@ -306,6 +313,7 @@ class SonicSession:
                     # the browser flushes any AI audio still queued for playback — instead
                     # of letting the (now-stale) turn play out to the end.
                     if '"interrupted"' in content and "true" in content:
+                        logger.info("[SONIC] barge_in_detected  via=textOutput_marker")
                         await self._out.put({"type": "interrupted"})
                     else:
                         await self._out.put({"type": "transcript", "role": role, "text": content})
@@ -321,6 +329,8 @@ class SonicSession:
                     ce = event["contentEnd"]
                     # A turn cut short by the user (barge-in) ends with stopReason INTERRUPTED.
                     if ce.get("stopReason") == "INTERRUPTED":
+                        logger.info("[SONIC] barge_in_detected  via=contentEnd_INTERRUPTED type=%s",
+                                    ce.get("type"))
                         await self._out.put({"type": "interrupted"})
                     elif ce.get("type") == "TOOL" and pending_tool:
                         await self._handle_tool(pending_tool)
