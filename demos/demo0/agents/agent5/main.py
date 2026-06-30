@@ -36,9 +36,13 @@ def main() -> None:
     procs: list[subprocess.Popen] = []
 
     print(f"[{name}] Starting API on :{api_port}")
+    # No --reload: agents self-restart via POST /admin/restart (os.execv on the
+    # single uvicorn process). --reload would run the app in a multiprocessing
+    # worker that can't cleanly re-exec or rebind the socket. Run an agent with
+    # --reload manually if you want auto-reload-on-save while editing it.
     procs.append(subprocess.Popen(
         [sys.executable, "-m", "uvicorn", entry_point,
-         "--host", "0.0.0.0", "--port", str(api_port), "--reload"],
+         "--host", "0.0.0.0", "--port", str(api_port)],
         cwd=_REPO_ROOT,
     ))
 

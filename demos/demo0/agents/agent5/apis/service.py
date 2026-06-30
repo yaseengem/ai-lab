@@ -129,7 +129,19 @@ def effective_config() -> dict:
 
     defaults = dict(defn.get("defaults") or {})
     features = dict(defn.get("features") or {})
-    cfg["defaults"] = {**defaults, "model_id": setup.get("model_id", defaults.get("model_id", ""))}
+
+    # Operator overrides: any setup key that names a known default overrides that
+    # default (generic, so setup_fields like ses_sender / allowlist_domains take
+    # effect — not just model_id). `integrations` and `hitl_approval` are handled
+    # separately below, so they never leak into defaults.
+    merged_defaults = dict(defaults)
+    for key, value in setup.items():
+        if key in ("integrations", "hitl_approval"):
+            continue
+        if key in defaults:
+            merged_defaults[key] = value
+    cfg["defaults"] = merged_defaults
+
     hitl_default = features.get("hitl_approval", defaults.get("hitl_approval", False))
     cfg["features"] = {**features, "hitl_approval": bool(setup.get("hitl_approval", hitl_default))}
 

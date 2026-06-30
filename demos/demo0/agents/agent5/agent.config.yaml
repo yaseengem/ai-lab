@@ -1,92 +1,140 @@
-# agent.config.yaml — agent5 (Trianz Concierge) DEFINITION + DEFAULTS (git-tracked).
-#
-# This file ships in git and is never written at runtime. It declares the fixed
-# parts (personas, integration catalog, capabilities) plus DEFAULT values for the
-# operator-editable settings. Operator OVERRIDES live in state/config/setup.yaml,
-# written from the marketplace Config page. The agent runs the EFFECTIVE config =
-# these defaults ⊕ setup.yaml. Until setup.yaml exists the agent is `awaiting_setup`
-# (up, but refuses to process). Apply setup changes with POST /admin/restart.
-#
-# Page keys used in visible_pages / default_landing:
-#   home | chat | processing | memory | architecture | test-runner | config
-
 personas:
-  - id: visitor
-    label: Prospect
-    icon: "🧑‍💼"
-    description: "Explore Trianz's offerings by voice or text and book a conversation."
-    visible_pages: [home, chat]
-    default_landing: chat
-  - id: sales
-    label: Trianz Sales
-    icon: "📈"
-    description: "Review captured leads and booked meetings; everything a prospect sees."
-    visible_pages: [home, chat, processing, memory, test-runner]
-    default_landing: chat
-  - id: admin
-    label: Administrator
-    icon: "⚙️"
-    description: "Everything Sales can do, plus architecture and configuration."
-    visible_pages: [home, chat, processing, memory, architecture, test-runner, config]
-    default_landing: chat
-
+- id: visitor
+  label: Prospect
+  icon: 🧑‍💼
+  description: Explore Trianz's offerings by voice or text and book a conversation.
+  visible_pages:
+  - home
+  - chat
+  default_landing: chat
+- id: sales
+  label: Trianz Sales
+  icon: 📈
+  description: Review captured leads and booked meetings; everything a prospect sees.
+  visible_pages:
+  - home
+  - chat
+  - processing
+  - memory
+  - test-runner
+  default_landing: chat
+- id: admin
+  label: Administrator
+  icon: ⚙️
+  description: Everything Sales can do, plus architecture and configuration.
+  visible_pages:
+  - home
+  - chat
+  - processing
+  - memory
+  - architecture
+  - test-runner
+  - config
+  default_landing: chat
 defaults:
-  # TEXT model for the SSE /chat path + sales/scheduling sub-agents (blank = squad default).
-  model_id: "us.amazon.nova-pro-v1:0"
-  # Amazon Nova Sonic model id for the real-time voice path.
-  sonic_model_id: "amazon.nova-sonic-v1:0"
-
-  # ── Authentication (real AWS SES email-OTP gate) ──
-  ses_sender: ""                       # verified SES sender, e.g. "concierge@trianz.com" (REQUIRED to send)
-  sales_contact_email: ""              # organizer on meeting invites (defaults to ses_sender if blank)
-  allowlist_domains:                   # business-email allowlist (empty ⇒ any non-public domain)
-    - "trianz.com"
-    - "*.trianz.com"
-  blocked_public_domains: []           # empty ⇒ use the built-in public-provider blocklist
-  otp_ttl_seconds: 600                 # one-time-code lifetime
-
+  model_id: us.anthropic.claude-sonnet-4-20250514-v1:0
+  sonic_model_id: amazon.nova-sonic-v1:0
+  ses_sender: ''
+  sales_contact_email: ''
+  allowlist_domains:
+  - trianz.com
+  - '*.trianz.com'
+  blocked_public_domains: []
+  otp_ttl_seconds: 600
 features:
-  # Chat & voice are never gated. This gates the generic Processing run (Sales/Admin
-  # only) so the durable human-in-the-loop machinery is demonstrable; flip off for a
-  # fully unattended front door.
   hitl_approval: true
 
-integrations:           # external systems this agent can connect to
-  # The platform Config page renders a "Connect" button per entry. These are IAM-based
-  # (no OAuth): they render as mock toggles confirming the operator has wired AWS access.
-  - id: aws_ses
-    name: "AWS SES"
-    category: productivity
-    description: "Sends OTP codes and calendar invites. Needs a verified sender + sandbox exit."
-    auth_type: mock
-    auth_url: ""
-    connected: false
-  - id: nova_sonic
-    name: "Amazon Nova Sonic"
-    category: cloud
-    description: "Bedrock speech-to-speech model powering the voice front door."
-    auth_type: mock
-    auth_url: ""
-    connected: false
+# setup_fields — declares the operator-editable settings the marketplace Config page
+# renders as a generated form. Each field maps to a key in `defaults` (or the
+# `hitl_approval` feature). Operator values are saved to state/config/setup.yaml and
+# merged over the defaults above. type: string | email | number | boolean | select | list.
+setup_fields:
+  - key: model_id
+    label: Text model (Bedrock)
+    type: select
+    options:
+      - ''
+      - us.amazon.nova-pro-v1:0
+      - us.anthropic.claude-sonnet-4-20250514-v1:0
+    help: "Bedrock model for text chat + sub-agents. Blank inherits the platform default."
+    group: Models
+  - key: sonic_model_id
+    label: Nova Sonic model
+    type: string
+    help: "Bedrock speech-to-speech model id powering the voice front door."
+    group: Models
+  - key: ses_sender
+    label: SES sender address
+    type: email
+    help: "Verified AWS SES sender. Required to actually send OTP codes and invites (else dev mode)."
+    group: Email (AWS SES)
+  - key: sales_contact_email
+    label: Sales contact (meeting organizer)
+    type: email
+    help: "Organizer on calendar invites. Defaults to the SES sender if left blank."
+    group: Email (AWS SES)
+  - key: allowlist_domains
+    label: Allowed email domains
+    type: list
+    help: "One per line. Wildcards allowed (e.g. *.trianz.com). Empty allows any non-public domain."
+    group: Access control
+  - key: blocked_public_domains
+    label: Blocked public domains (override)
+    type: list
+    help: "One per line. Leave empty to use the built-in public-provider blocklist."
+    group: Access control
+  - key: otp_ttl_seconds
+    label: One-time-code lifetime (seconds)
+    type: number
+    help: "How long an OTP stays valid."
+    group: Access control
+  - key: hitl_approval
+    label: Human-in-the-loop approval
+    type: boolean
+    help: "Pause the generic Processing run at an approval gate (chat & voice are never gated)."
+    group: Behaviour
 
-capabilities:           # rendered on the Architecture page so the agent self-documents
+integrations:
+- id: aws_ses
+  name: AWS SES
+  category: productivity
+  description: Sends OTP codes and calendar invites. Needs a verified sender + sandbox
+    exit.
+  auth_type: mock
+  auth_url: ''
+  connected: false
+- id: nova_sonic
+  name: Amazon Nova Sonic
+  category: cloud
+  description: Bedrock speech-to-speech model powering the voice front door.
+  auth_type: mock
+  auth_url: ''
+  connected: false
+capabilities:
   tools:
-    - search_trianz_knowledge
-    - recommend_offering
-    - capture_lead
-    - request_human_meeting
-    - list_runs
-    - get_memory
-    - get_config
-    - get_health
+  - search_trianz_knowledge
+  - recommend_offering
+  - capture_lead
+  - request_human_meeting
+  - list_meetings
+  - list_leads
+  - list_runs
+  - get_memory
+  - get_config
+  - get_health
   can:
-    - "Hold a real-time voice conversation (Amazon Nova Sonic) and a text chat, cross-modal."
-    - "Explain Trianz offerings, Concierto, services and SI work, grounded in the content/ knowledge base."
-    - "Qualify a visitor's need and recommend the right Trianz offering."
-    - "Capture a qualified lead and email a calendar invite to book a human conversation (AWS SES)."
-    - "Gate access to verified business emails via an SES one-time-code (allowlist + public-domain block)."
+  - Hold a real-time voice conversation (Amazon Nova Sonic) and a text chat, cross-modal.
+  - Explain Trianz offerings, Concierto, services and SI work, grounded in the content/
+    knowledge base.
+  - Qualify a visitor's need and recommend the right Trianz offering.
+  - Capture a qualified lead and book a human conversation, emailing a calendar invite
+    when AWS SES is configured (the booking is recorded either way — email is optional).
+  - Gate access to verified business emails via an SES one-time-code (allowlist +
+    public-domain block).
   cannot:
-    - "Talk to visitors using public/free email domains (gmail, yahoo, …) — they are blocked at the gate."
-    - "Write to a CRM or a real calendar system (scheduling is by emailed .ics invite only)."
-    - "Make irreversible external changes without human approval when HITL is enabled."
-    - "Access another agent's state (each agent is fully self-contained)."
+  - Talk to visitors using public/free email domains (gmail, yahoo, …) — they are
+    blocked at the gate.
+  - Write to a CRM or a real calendar system (scheduling is by emailed .ics invite
+    only).
+  - Make irreversible external changes without human approval when HITL is enabled.
+  - Access another agent's state (each agent is fully self-contained).

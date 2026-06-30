@@ -61,9 +61,13 @@ def request_human_meeting(
     notes: str = "",
 ) -> str:
     """
-    Book a conversation with a Trianz human: record the request and email the visitor a
-    calendar invite (.ics) via SES. Call this when a visitor asks to speak with someone,
-    request a demo, or escalate to a person.
+    Book a conversation with a Trianz human: record the request and, if AWS SES is
+    configured, email the visitor a calendar invite (.ics). Call this when a visitor asks
+    to speak with someone, requests a demo, or should be escalated to a person.
+
+    The booking always succeeds. Emailing the invite is OPTIONAL: when SES isn't configured
+    the meeting is still recorded and `delivery` is "skipped" (not an error) — tell the
+    visitor a Trianz contact will follow up.
 
     Args:
         email: The visitor's (verified) work email — required; the invite is sent here.
@@ -74,7 +78,8 @@ def request_human_meeting(
         notes: Any extra context to include for the Trianz contact.
 
     Returns:
-        JSON string: {"ok", "meeting_id", "scheduled_for", "email_sent", "delivery"|"error"}.
+        JSON string: {"ok", "meeting_id", "scheduled_for", "email_sent",
+        "delivery": "skipped"|"ses"|"failed", and "note" or "error" as applicable}.
     """
     if not email or "@" not in email:
         return json.dumps({"ok": False, "error": "a valid email is required to book a meeting"})
@@ -104,7 +109,8 @@ def request_human_meeting(
         "notes": notes.strip(),
         "created_at": now.isoformat(),
         "email_sent": False,
-        "delivery": None,
+        # "skipped" = SES not configured (email is optional); "ses" = sent; "failed" = send error.
+        "delivery": "skipped",
     }
 
     send: dict = {"sent": False, "error": "no_organizer_or_sender_configured"}
@@ -144,14 +150,19 @@ def request_human_meeting(
 
     logger.info("[SCHED] meeting_booked  meeting_id=%s email=%s sent=%s",
                 meeting_id, record["email"], record["email_sent"])
+    # The booking always succeeds. Email delivery is best-effort:
+    #   • "skipped" — SES not configured: meeting recorded, no invite sent (not an error).
+    #   • "ses"     — invite emailed.
+    #   • "failed"  — SES configured but the send errored (surface why).
     result = {
         "ok": True,
         "meeting_id": meeting_id,
         "scheduled_for": start.isoformat(),
         "email_sent": record["email_sent"],
+        "delivery": record["delivery"],
     }
-    if record["email_sent"]:
-        result["delivery"] = "ses"
-    else:
+    if record["delivery"] == "skipped":
+        result["note"] = "Meeting recorded. Email invite skipped — AWS SES is not configured (optional)."
+    elif record["delivery"] == "failed":
         result["error"] = send.get("error", "email_not_sent")
     return json.dumps(result, ensure_ascii=False)

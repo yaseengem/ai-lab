@@ -29,6 +29,8 @@ _PING_TIMEOUT_SECS = 2
 _RESTART_POST_TIMEOUT_SECS = 5
 _CONFIG_FILENAME = "agent.config.yaml"
 _METADATA_FILENAME = "metadata.yaml"
+# Operator overrides live under the agent's gitignored state/ tree.
+_SETUP_RELPATH = ("state", "config", "setup.yaml")
 
 
 def _agent_dir(agent_id: str) -> Path:
@@ -37,6 +39,10 @@ def _agent_dir(agent_id: str) -> Path:
 
 def _config_path(agent_id: str) -> Path:
     return _agent_dir(agent_id) / _CONFIG_FILENAME
+
+
+def _setup_path(agent_id: str) -> Path:
+    return _agent_dir(agent_id).joinpath(*_SETUP_RELPATH)
 
 
 def _load_metadata(agent_id: str) -> dict[str, Any] | None:
@@ -91,6 +97,49 @@ def write_config(agent_id: str, data: Any) -> None:
     with lock:
         path.write_text(serialized, encoding="utf-8")
     _log.info("Wrote config for agent %s (%d bytes)", agent_id, len(serialized))
+
+
+def read_setup(agent_id: str) -> dict:
+    """Return the agent's operator overrides (state/config/setup.yaml) as a dict.
+
+    Returns an empty dict when no setup file exists yet (the agent is
+    `awaiting_setup`) — distinct from agent.config.yaml, which is the definition.
+    """
+    if not _agent_dir(agent_id).is_dir():
+        raise FileNotFoundError(f"agent '{agent_id}' not found")
+    path = _setup_path(agent_id)
+    if not path.exists():
+        return {}
+    raw = yaml.safe_load(path.read_text(encoding="utf-8"))
+    return raw if isinstance(raw, dict) else {}
+
+
+def write_setup(agent_id: str, data: Any) -> None:
+    """Validate and persist the operator overrides to state/config/setup.yaml.
+
+    The payload is a flat mapping of operator-editable keys (e.g. model_id,
+    ses_sender, hitl_approval, integrations). Creates state/config/ if needed so a
+    fresh agent can be configured from the marketplace; saving it clears the agent's
+    `awaiting_setup` state on its next start/restart.
+    """
+    if not isinstance(data, dict):
+        raise ValueError("setup must be a JSON/YAML object")
+
+    agent_dir = _agent_dir(agent_id)
+    if not agent_dir.is_dir():
+        raise FileNotFoundError(f"agent '{agent_id}' not found")
+
+    try:
+        serialized = yaml.safe_dump(data, sort_keys=False, allow_unicode=True)
+    except yaml.YAMLError as exc:
+        raise ValueError(f"setup is not YAML-serializable: {exc}") from exc
+
+    path = _setup_path(agent_id)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    lock = FileLock(str(path) + ".lock")
+    with lock:
+        path.write_text(serialized, encoding="utf-8")
+    _log.info("Wrote setup for agent %s (%d bytes)", agent_id, len(serialized))
 
 
 def _ping_online(port: int) -> bool:

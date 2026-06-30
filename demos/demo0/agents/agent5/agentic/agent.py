@@ -35,15 +35,17 @@ from .paths import SESSIONS_DIR as _HISTORY_DIR  # noqa: E402
 from .prompts import SYSTEM_PROMPT, persona_instruction  # noqa: E402
 from .tools.ops import (  # noqa: E402
     list_runs, get_run, list_cases, get_case, get_memory,
-    get_config, get_health, list_pending_approvals,
+    get_config, get_health, list_pending_approvals, list_meetings, list_leads,
 )
 
 logger = get_logger(__name__)
 
 # Trianz front-door tools (also surfaced to the Nova Sonic voice supervisor) +
-# operations-awareness tools (read-only access to the agent's own state).
+# operations-awareness tools (read-only access to the agent's own state, including
+# the durable record of booked meetings and captured leads).
 _ALL_TOOLS = [
     search_trianz_knowledge, recommend_offering, capture_lead, request_human_meeting,
+    list_meetings, list_leads,
     list_runs, get_run, list_cases, get_case, get_memory,
     get_config, get_health, list_pending_approvals,
 ]

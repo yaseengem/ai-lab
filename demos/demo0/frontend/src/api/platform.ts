@@ -68,12 +68,26 @@ export interface Integration {
   connected?: boolean
 }
 
+/** A declared operator-editable setting, rendered as one input on the Config form. */
+export interface SetupField {
+  key: string
+  label: string
+  type: 'string' | 'email' | 'number' | 'boolean' | 'select' | 'list' | string
+  help?: string
+  group?: string
+  options?: string[]
+}
+
 /** Arbitrary YAML-ish config object; must contain a `personas` array to save. */
 export type AgentConfigDoc = Record<string, unknown> & {
   defaults?: Record<string, unknown>
   features?: Record<string, unknown>
   integrations?: Integration[]
+  setup_fields?: SetupField[]
 }
+
+/** Operator overrides (state/config/setup.yaml) — a flat map of editable keys. */
+export type AgentSetup = Record<string, unknown>
 
 /** GET the agent's agent.config.yaml as JSON. Throws on 404 (no config file). */
 export async function fetchAgentConfig(id: string): Promise<AgentConfigDoc> {
@@ -92,6 +106,26 @@ export async function saveAgentConfig(id: string, config: AgentConfigDoc): Promi
   if (!res.ok) {
     const text = await res.text().catch(() => '')
     throw new Error(`Failed to save config (${res.status}): ${text}`)
+  }
+}
+
+/** GET the agent's operator overrides (state/config/setup.yaml). {} when unconfigured. */
+export async function fetchAgentSetup(id: string): Promise<AgentSetup> {
+  const res = await fetch(`${PLATFORM_API}/api/agents/${id}/setup`)
+  if (!res.ok) throw new Error(`No setup for agent: ${id} (${res.status})`)
+  return res.json()
+}
+
+/** PUT operator overrides to state/config/setup.yaml. Works even when offline. */
+export async function saveAgentSetup(id: string, setup: AgentSetup): Promise<void> {
+  const res = await fetch(`${PLATFORM_API}/api/agents/${id}/setup`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(setup),
+  })
+  if (!res.ok) {
+    const text = await res.text().catch(() => '')
+    throw new Error(`Failed to save setup (${res.status}): ${text}`)
   }
 }
 

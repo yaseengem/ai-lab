@@ -111,4 +111,25 @@ def test_request_meeting_records_even_without_ses():
         email="jane@trianz.com", topic="cloud migration"))
     assert out["ok"] is True
     assert out["email_sent"] is False  # no ses_sender configured in the test
+    # Email is optional: skipped (not failed), and there's an explanatory note, no error.
+    assert out["delivery"] == "skipped"
+    assert "error" not in out and "note" in out
     assert (paths.MEETINGS_DIR / f"{out['meeting_id']}.json").exists()
+
+
+def test_list_meetings_and_leads_records():
+    from agents.agent5.agentic.tools import ops
+    sales_agent.capture_lead(email="jane@trianz.com", interest="FinOps", company="Acme")
+    booking = json.loads(scheduling_agent.request_human_meeting(
+        email="jane@trianz.com", topic="cloud migration"))
+
+    meetings = json.loads(ops.list_meetings())
+    assert meetings["count"] == 1
+    rec = meetings["meetings"][0]
+    assert rec["meeting_id"] == booking["meeting_id"]
+    assert rec["email"] == "jane@trianz.com"
+    assert rec["delivery"] == "skipped" and rec["email_sent"] is False
+
+    leads = json.loads(ops.list_leads())
+    assert leads["count"] == 1
+    assert leads["leads"][0]["interest"] == "FinOps"

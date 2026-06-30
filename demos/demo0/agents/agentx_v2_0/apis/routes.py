@@ -281,16 +281,18 @@ async def admin_restart():
     """
     Gracefully self-restart the agent so it re-reads its definition + setup.yaml.
 
-    Re-execs the current process (sys.executable + sys.argv) after returning the
-    response. Guarded so it only ever restarts — no other side effects.
+    Re-execs the current process via sys.orig_argv after returning the response.
+    orig_argv preserves the original `-m uvicorn …` invocation, so sys.path[0] stays
+    the cwd and stdlib `logging` isn't shadowed by uvicorn's logging.py (which a
+    by-path re-exec would put on sys.path). Guarded so it only ever restarts.
     """
-    logger.warning("[ROUTE] admin_restart  re-exec scheduled  argv=%s", sys.argv)
+    logger.warning("[ROUTE] admin_restart  re-exec scheduled  orig_argv=%s", sys.orig_argv)
 
     async def _reexec_after_response():
         # Give the HTTP response a moment to flush before the process is replaced.
         await asyncio.sleep(0.5)
         logger.warning("[ROUTE] admin_restart  executing os.execv now")
-        os.execv(sys.executable, [sys.executable, *sys.argv])
+        os.execv(sys.executable, sys.orig_argv)
 
     asyncio.create_task(_reexec_after_response())
     return {"status": "restarting"}

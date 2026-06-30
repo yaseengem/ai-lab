@@ -21,6 +21,8 @@ from strands import tool
 
 from ..paths import (
     DATA_DIR as _DATA_DIR,
+    LEADS_DIR as _LEADS_DIR,
+    MEETINGS_DIR as _MEETINGS_DIR,
     RUNS_DIR as _RUNS_DIR,
     SESSIONS_DIR as _SESSIONS_DIR,
 )
@@ -235,6 +237,55 @@ def get_case(case_id: str) -> str:
     if case_dir.parent != _DATA_DIR or not case_dir.is_dir():
         return json.dumps({"error": f"No case found for '{case_id}'"})
     return json.dumps(_read_case(case_dir))
+
+
+def _read_records(directory: Path, limit: int) -> list[dict]:
+    """Read every *.json record in a state/data subfolder, most recent first."""
+    if not directory.exists():
+        return []
+    records: list[dict] = []
+    for f in sorted(directory.glob("*.json"),
+                    key=lambda p: p.stat().st_mtime, reverse=True):
+        data = _read_json(f)
+        if data:
+            records.append(data)
+    return records[: max(1, limit)] if limit else records
+
+
+@tool
+def list_meetings(limit: int = 50) -> str:
+    """
+    List booked human-meeting requests (appointment bookings) the agent has recorded,
+    most recent first. Each record shows whether a calendar invite was emailed via AWS
+    SES — `delivery` is "ses" (sent), "skipped" (SES not configured — booking still kept),
+    or "failed" (SES configured but the send errored).
+
+    Use for "what meetings were booked?", "did we email the invite?", "show appointments".
+
+    Returns:
+        JSON string: {"count": N, "meetings": [{meeting_id, email, name, topic,
+        scheduled_for, email_sent, delivery, created_at}, ...]}.
+    """
+    fields = ("meeting_id", "email", "name", "topic", "scheduled_for",
+              "email_sent", "delivery", "created_at")
+    meetings = [{k: m.get(k) for k in fields} for m in _read_records(_MEETINGS_DIR, limit)]
+    return json.dumps({"count": len(meetings), "meetings": meetings})
+
+
+@tool
+def list_leads(limit: int = 50) -> str:
+    """
+    List captured sales leads, most recent first.
+
+    Use for "what leads do we have?", "recent prospects", "who's interested?".
+
+    Returns:
+        JSON string: {"count": N, "leads": [{lead_id, email, name, company, interest,
+        created_at}, ...]}.
+    """
+    fields = ("lead_id", "email", "name", "company", "interest", "created_at")
+    leads = [{k: m.get(k) for k in fields} for m in _read_records(_LEADS_DIR, limit)]
+    return json.dumps({"count": len(leads), "leads": leads})
 
 
 @tool
