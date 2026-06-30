@@ -19,6 +19,7 @@ live inside each spec; this file is the overview only. Process: see [README.md](
 | Spec | Status |
 |------|--------|
 | [ui-professional-polish.md](active/ui-professional-polish.md) — copy, emoji, capitalization pass | in-progress |
+| [demo0-agent5-trianz-voice-concierge.md](active/demo0-agent5-trianz-voice-concierge.md) — agent5: Nova Sonic voice/text Trianz front-door, SES OTP auth, sales + scheduling sub-agents | approved |
 
 ---
 

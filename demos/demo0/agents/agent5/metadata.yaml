@@ -1,0 +1,14 @@
+# yaml-language-server: $schema=../../schemas/agent-metadata.schema.json
+name: Trianz Concierge
+description: "Voice-and-text front door for Trianz — explains offerings and SI work, qualifies interest, and emails a calendar invite to book a human conversation."
+card_description: "Voice + text front door for Trianz — explains offerings, qualifies interest, and books a human meeting by email."
+icon: "🛎️"
+use_case: sales_front_door
+domain: consulting
+api_port: 8051
+frontend_port: 8050
+entry_point: "agents.agent5.apis.main:app"
+api_version: "2.0.0"
+status: stub
+version: "0.1.0"
+template_version: "2.0"

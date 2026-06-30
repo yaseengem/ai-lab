@@ -1,0 +1,18 @@
+{
+  "id": "sc01-happy-path",
+  "name": "Happy path — approved run",
+  "description": "Runs the full generic pipeline and approves at the human-in-the-loop gate. Validates that all pipeline steps execute, the approval gate is hit, and the run completes with an approved outcome.",
+  "tags": ["happy-path", "hitl", "approve", "smoke"],
+  "auto_decision": "approve",
+  "payload": {
+    "subject": "Sample approved request",
+    "priority": "medium",
+    "amount": 4570
+  },
+  "expected": {
+    "status": "complete",
+    "outcome": "approved",
+    "min_events": 6,
+    "must_emit": ["run-started", "human-approval-required", "done"]
+  }
+}

@@ -8,3 +8,8 @@ pypdf>=4.0.0
 Pillow>=10.0.0
 filelock>=3.12.0
 python-dotenv>=1.0.0
+
+# agent5 (Trianz Concierge) voice front door — Amazon Nova Sonic bidirectional
+# streaming. Optional: text chat + the rest of the platform run without it; the
+# voice WebSocket reports a graceful fallback when it (or AWS creds) is absent.
+aws-sdk-bedrock-runtime>=0.0.2 ; python_version >= "3.12"

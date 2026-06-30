@@ -29,7 +29,8 @@ Scheme: agent frontend = `80N0`, agent backend = `80N1` (N = agent number).
 | agent2 | Underwriting Agent | 8020 | 8021 | stub |
 | agent3 | Loan Processing Agent | 8030 | 8031 | stub |
 | agent4 | Settlement Failure Prevention Agent | 8040 | 8041 | active |
-| **next free** | — | **8050** | **8051** | — |
+| agent5 | Trianz Concierge | 8050 | 8051 | stub |
+| **next free** | — | **8060** | **8061** | — |
 
 Agent ports are declared in each agent's `metadata.yaml` (`frontend_port`, `api_port`). The 80x0/80x1 band runs 8010–8099.
 
@@ -56,7 +57,7 @@ Scheme: `9N00` (demo1 → 9100, demo2 → 9200, …).
 
 ## Adding a new agent — port checklist
 
-1. Pick the next free agent number N (next is **agent5 → 8050 / 8051**).
+1. Pick the next free agent number N (next is **agent6 → 8060 / 8061**).
 2. Set `frontend_port: 80N0` and `api_port: 80N1` in the new agent's `metadata.yaml`.
 3. Add the agent's row to the *demo0 agents* table above and advance the **next free** row.
 4. `scripts/run.sh` validates for port conflicts at launch — confirm a clean start.

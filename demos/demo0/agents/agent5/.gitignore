@@ -1,0 +1,14 @@
+# All mutable per-agent state (config/setup, memory, sessions, data, runs,
+# secrets, index, logs, events) lives under state/ and is backup-eligible —
+# never committed. The agent recreates the tree on boot; restore drops it back.
+state/
+
+# Frontend
+frontend/.env
+frontend/node_modules/
+frontend/dist/
+frontend/*.tsbuildinfo
+
+# Python
+__pycache__/
+*.pyc
