@@ -163,6 +163,8 @@ class SonicSession:
     `events()` is an async generator of normalised dicts the WS forwards to the browser:
         {"type": "ready"}
         {"type": "transcript", "role": "user"|"assistant", "text": "..."}
+        {"type": "speech_start"}   # boundary: a new ASSISTANT spoken turn is about to play
+        {"type": "interrupted"}    # barge-in detected: flush + drop trailing AI audio
         {"type": "audio", "audio": "<base64 24kHz pcm>"}
         {"type": "tool", "name": "...", "status": "running"|"done"}
         {"type": "error", "message": "..."}
@@ -253,6 +255,28 @@ class SonicSession:
         await self._send_event({"event": {"contentEnd": {
             "promptName": self.prompt_name, "contentName": cname}}})
 
+    # -- greeting (assistant speaks first) --------------------------------------
+
+    async def greet(self) -> None:
+        """
+        Make the assistant speak first. Nova Sonic only generates after a USER turn, so we send a
+        short contextual cue as a USER *text* turn (closed immediately); the system prompt's GREETING
+        directive turns that into a spoken welcome. Sent before begin_audio() so only one USER content
+        block is open at a time (this TEXT turn opens and closes before the mic AUDIO block opens).
+        """
+        cname = uuid.uuid4().hex
+        await self._send_event({"event": {"contentStart": {
+            "promptName": self.prompt_name, "contentName": cname, "type": "TEXT",
+            "interactive": True, "role": "USER",
+            "textInputConfiguration": {"mediaType": "text/plain"},
+        }}})
+        await self._send_event({"event": {"textInput": {
+            "promptName": self.prompt_name, "contentName": cname,
+            "content": "(The visitor just joined the voice call and is waiting to be greeted.)"}}})
+        await self._send_event({"event": {"contentEnd": {
+            "promptName": self.prompt_name, "contentName": cname}}})
+        logger.info("[SONIC] greeting_kickoff_sent")
+
     # -- audio input ------------------------------------------------------------
 
     async def begin_audio(self) -> None:
@@ -304,7 +328,16 @@ class SonicSession:
                     continue
                 event = json.loads(result.value.bytes_.decode("utf-8")).get("event", {})
 
-                if "textOutput" in event:
+                if "contentStart" in event:
+                    cs = event["contentStart"]
+                    # The model starting a fresh ASSISTANT AUDIO block is the real boundary of a new
+                    # spoken turn. After a barge-in the browser drops ALL trailing audio of the
+                    # interrupted turn until it sees this, then plays the new turn from its first word
+                    # (a fixed timer can't separate trailing audio from the next turn's opening).
+                    if (cs.get("role") or "").upper() == "ASSISTANT" and cs.get("type") == "AUDIO":
+                        logger.info("[SONIC] assistant_audio_start  (new spoken turn boundary)")
+                        await self._out.put({"type": "speech_start"})
+                elif "textOutput" in event:
                     to = event["textOutput"]
                     role = (to.get("role") or "ASSISTANT").lower()
                     content = to.get("content", "")

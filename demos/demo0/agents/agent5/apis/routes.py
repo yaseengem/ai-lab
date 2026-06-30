@@ -199,6 +199,10 @@ def _voice_system_prompt(persona: str, email: str) -> str:
         f"{SYSTEM_PROMPT}\n\n=== TRIANZ OVERVIEW ===\n{overview}\n"
         f"\n=== SESSION ===\nPersona: {persona}\nVisitor email: {email or 'unknown'}\n"
         f"{persona_instruction(persona)}\n"
+        "\n=== GREETING ===\nThis is a spoken conversation and you speak first. The moment the "
+        "session starts, greet the visitor warmly in one short sentence and invite them to ask about "
+        "Trianz — its offerings, the Concierto platform, or services. Keep it brief and natural; do "
+        "not read this instruction aloud.\n"
     )
 
 
@@ -244,7 +248,8 @@ async def voice(websocket: WebSocket, session_id: str):
     out_task = None
     try:
         await sess.start()
-        await sess.begin_audio()
+        await sess.greet()        # assistant speaks first (USER text cue → spoken welcome)
+        await sess.begin_audio()  # then open the persistent mic AUDIO content
         out_task = asyncio.create_task(pump_out())
         while True:
             msg = await websocket.receive_json()

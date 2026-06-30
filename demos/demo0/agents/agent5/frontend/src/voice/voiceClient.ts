@@ -16,11 +16,12 @@ import { voiceWsUrl } from '../api/client'
 
 const INPUT_RATE = 16000
 const OUTPUT_RATE = 24000
-// After a *local* (speculative) barge-in, drop AI audio chunks still arriving from the
-// (faster-than-real-time) model for this long, so trailing buffered speech doesn't resume
-// after the cut-off. This only bridges the gap until the server confirms the barge-in —
-// that 'interrupted' event is the real turn boundary and clears the window (see onMessage).
-const BARGE_IN_SUPPRESS_SEC = 0.3
+// After a barge-in we drop ALL arriving AI audio until the backend signals the next spoken
+// turn ('speech_start' — the real boundary). This value is only a FALLBACK: if that signal
+// never arrives we release suppression after this long so the AI can't go permanently silent.
+// It is deliberately long because Nova 2 streams the interrupted turn's trailing audio faster
+// than real-time for an unknown duration; the boundary signal normally releases far sooner.
+const BARGE_IN_SUPPRESS_SEC = 1.5
 
 export interface VoiceCallbacks {
   onReady?: () => void
@@ -215,11 +216,15 @@ export class VoiceClient {
         this.playPcm(String(msg.audio ?? ''))
         break
       case 'interrupted':
-        // Server-confirmed barge-in — this event IS the turn boundary. By WS ordering every
-        // audio chunk after it belongs to the AI's *next* turn and must play, so flush the
-        // stale queued speech but CLEAR suppression (don't re-arm it, or we'd drop the opening
-        // words of the new turn). The local speculative window already covered the gap until now.
-        this.stopPlayback()
+        // Server-confirmed barge-in: flush queued AI speech AND start dropping all arriving audio
+        // (the interrupted turn's trailing chunks keep coming faster than real-time). Suppression
+        // is released by 'speech_start' (the next turn's boundary), not by a timer.
+        this.bargeIn()
+        break
+      case 'speech_start':
+        // Boundary of a new ASSISTANT spoken turn. Everything before it (trailing audio of the
+        // interrupted turn) was dropped; release suppression now so the new turn plays from its
+        // first word. No-op outside a barge-in (suppressUntil is already 0).
         this.suppressUntil = 0
         break
       case 'tool':
@@ -261,7 +266,10 @@ export class VoiceClient {
     src.buffer = buffer
     src.connect(this.playAnalyser!)
     const now = this.playCtx.currentTime
-    if (this.playHead < now) this.playHead = now
+    // Resuming from idle (first turn, or first chunk after a gap/barge-in): start a hair ahead so a
+    // cold or just-resumed AudioContext is actually outputting by the scheduled time. Scheduling at
+    // exactly currentTime on a not-yet-warm context can drop the first buffer and clip the opening.
+    if (this.playHead < now) this.playHead = now + 0.06
     src.start(this.playHead)
     this.playHead += buffer.duration
     // Track so a barge-in can stop it; drop it from the list once it finishes on its own.
