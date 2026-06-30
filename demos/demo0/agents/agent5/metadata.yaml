@@ -9,6 +9,6 @@ api_port: 8051
 frontend_port: 8050
 entry_point: "agents.agent5.apis.main:app"
 api_version: "2.0.0"
-status: stub
+status: active
 version: "0.1.0"
 template_version: "2.0"

@@ -1,6 +1,6 @@
 # Spec: demo0 / agent5 — Trianz Voice Concierge (Nova Sonic front-door)
 
-**Status:** approved
+**Status:** done
 **Version:** v1
 **Date:** 2026-06-30
 
@@ -102,17 +102,17 @@ All other v2.0 standards are kept: standard Ribbon + must-have pages, canonical 
 ## Implementation Checklist
 
 - [x] Save this spec to `specs/active/`
-- [ ] Scaffold `agents/agent5/` from `agentx_v2_0` (copy, rename imports, metadata.yaml, remove GUIDELINES)
-- [ ] `docs/ports.md` — add agent5 row, advance next-free to 8060/8061
-- [ ] `content/` folder + `agentic/knowledge.py` (`search_trianz_knowledge`) + Trianz prompt summary
-- [ ] `agentic/tools/auth.py` + `agentic/tools/email_ses.py` + auth endpoints + session enforcement
-- [ ] `agentic/sales_agent.py` + `agentic/scheduling_agent.py` (lead capture; SES + `.ics`)
-- [ ] `agentic/sonic_session.py` + `agentic/model.py` (sonic_model_id, get_text_model) + `WS /voice`
-- [ ] Wire text `/chat` through the shared tool layer (Nova text agent)
-- [ ] `agent.config.yaml` (personas, defaults, integrations, capabilities) + `awaiting_setup` checks
-- [ ] Frontend: Auth gate page + Voice UI in Chat; keep standard pages/Ribbon
-- [ ] `seeds/test_scenarios/*.json` + Test Runner wiring; `architecture.md`; `create_dummy_data.py`
-- [ ] End-to-end verification (below)
+- [x] Scaffold `agents/agent5/` from `agentx_v2_0` (copy, rename imports, metadata.yaml, remove GUIDELINES)
+- [x] `docs/ports.md` — add agent5 row, advance next-free to 8060/8061
+- [x] `content/` folder + `agentic/knowledge.py` (`search_trianz_knowledge`) + Trianz prompt summary
+- [x] `agentic/tools/auth.py` + `agentic/tools/email_ses.py` + auth endpoints + session enforcement
+- [x] `agentic/sales_agent.py` + `agentic/scheduling_agent.py` (lead capture; SES + `.ics`)
+- [x] `agentic/sonic_session.py` + `agentic/model.py` (sonic_model_id, get_text_model) + `WS /voice`
+- [x] Wire text `/chat` through the shared tool layer (Nova text agent)
+- [x] `agent.config.yaml` (personas, defaults, integrations, capabilities) + `awaiting_setup` checks
+- [x] Frontend: Auth gate page + Voice UI in Chat (reactive snowflake visualiser); standard pages/Ribbon kept
+- [x] `seeds/test_scenarios/*.json` + Test Runner wiring; `architecture.md`; `create_dummy_data.py`
+- [x] End-to-end verification (below) — 34 tests pass; TestClient gate/contract checks pass; frontend builds clean
 
 ---
 

@@ -29,7 +29,7 @@ Scheme: agent frontend = `80N0`, agent backend = `80N1` (N = agent number).
 | agent2 | Underwriting Agent | 8020 | 8021 | stub |
 | agent3 | Loan Processing Agent | 8030 | 8031 | stub |
 | agent4 | Settlement Failure Prevention Agent | 8040 | 8041 | active |
-| agent5 | Trianz Concierge | 8050 | 8051 | stub |
+| agent5 | Trianz Concierge | 8050 | 8051 | active |
 | **next free** | — | **8060** | **8061** | — |
 
 Agent ports are declared in each agent's `metadata.yaml` (`frontend_port`, `api_port`). The 80x0/80x1 band runs 8010–8099.
