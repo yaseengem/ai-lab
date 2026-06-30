@@ -199,7 +199,7 @@ class SonicSession:
             BedrockRuntimeClient, InvokeModelWithBidirectionalStreamOperationInput,
         )
         from aws_sdk_bedrock_runtime.config import Config as BRConfig
-        from smithy_aws_core.credentials_resolvers.environment import EnvironmentCredentialsResolver
+        from smithy_aws_core.identity.environment import EnvironmentCredentialsResolver
 
         region = resolve_region()
         model_id = resolve_sonic_model_id()

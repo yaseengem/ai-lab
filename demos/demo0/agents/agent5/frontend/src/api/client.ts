@@ -9,7 +9,7 @@
  *            Last-Event-ID).
  */
 import { API } from '../config'
-import { getToken } from '../auth'
+import { getToken, handleUnauthorized } from '../auth'
 
 // ── Auth header (SES email-OTP gate) ─────────────────────────────────────────
 
@@ -27,6 +27,7 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
     ...init,
   })
   if (!res.ok) {
+    if (res.status === 401) handleUnauthorized()
     const text = await res.text().catch(() => '')
     throw new Error(`API ${res.status}: ${text}`)
   }
@@ -236,7 +237,10 @@ export async function* streamChat(
     headers: { 'Content-Type': 'application/json', ...authHeaders() },
     body: JSON.stringify({ message, persona, user_id: userId }),
   })
-  if (!res.ok || !res.body) throw new Error(`Chat failed: ${res.status}`)
+  if (!res.ok || !res.body) {
+    if (res.status === 401) handleUnauthorized()
+    throw new Error(`Chat failed: ${res.status}`)
+  }
 
   const reader = res.body.getReader()
   const dec = new TextDecoder()

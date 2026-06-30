@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { requestOtp, verifyOtp } from '../api/client'
-import { setSession } from '../auth'
+import { setSession, consumeReauthNotice } from '../auth'
 
 /**
  * Route '/auth' — the access gate (before persona select).
@@ -29,6 +29,8 @@ export function AuthGatePage() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [devCode, setDevCode] = useState<string | null>(null)
+  // Set when a gated call 401'd and bounced the user here, so we can explain the jump.
+  const [reauth] = useState<boolean>(() => consumeReauthNotice())
 
   const sendCode = async () => {
     setError(null)
@@ -77,6 +79,14 @@ export function AuthGatePage() {
             Verify your work email to start a conversation about Trianz’s offerings.
           </p>
         </div>
+
+        {reauth && step === 'email' && (
+          <div style={{ marginBottom: 14, padding: '10px 14px', background: 'var(--bg)',
+                        border: '1px solid var(--b2)', borderLeft: '3px solid var(--rd)',
+                        borderRadius: 8, fontSize: 13, color: 'var(--t2)' }}>
+            Your session expired — please verify your work email again to continue.
+          </div>
+        )}
 
         <div style={{ background: 'var(--s)', border: '1px solid var(--b)', borderRadius: 12, padding: 24 }}>
           {step === 'email' ? (

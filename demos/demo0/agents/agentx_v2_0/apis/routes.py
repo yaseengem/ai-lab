@@ -113,7 +113,7 @@ async def chat(session_id: str, req: ChatRequest):
     if service.get_session(session_id) is None:
         # Lightweight chat session — reuse the meta shape via create_session is
         # heavier than needed, so persist a minimal chat meta directly.
-        service.update_session(session_id, session_id=session_id, persona=req.persona,
+        service.update_session(session_id, persona=req.persona,
                                trigger_mode="chat", status="chat", run_id=None,
                                created_at=datetime.now(timezone.utc).isoformat(),
                                event_count=0)

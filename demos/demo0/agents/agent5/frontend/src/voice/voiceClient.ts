@@ -23,7 +23,7 @@ export interface VoiceCallbacks {
   onTool?: (name: string, status: 'running' | 'done') => void
   /** Live amplitude (0..1) for the mic ('user') and the AI playback ('assistant'). */
   onLevel?: (kind: 'user' | 'assistant', level: number) => void
-  onError?: (message: string, fallback: boolean) => void
+  onError?: (message: string, fallback: boolean, code?: string) => void
   onClose?: () => void
 }
 
@@ -174,7 +174,8 @@ export class VoiceClient {
         this.cb.onTool?.(String(msg.name ?? ''), (msg.status as 'running' | 'done') ?? 'running')
         break
       case 'error':
-        this.cb.onError?.(String(msg.message ?? 'voice error'), Boolean(msg.fallback))
+        this.cb.onError?.(String(msg.message ?? 'voice error'), Boolean(msg.fallback),
+                          msg.code ? String(msg.code) : undefined)
         break
       case 'done':
         break

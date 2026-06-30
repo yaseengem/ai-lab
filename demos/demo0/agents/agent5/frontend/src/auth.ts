@@ -10,6 +10,7 @@ import { AGENT_ID } from './config'
 
 const TOKEN_KEY = `agent5:token:${AGENT_ID}`
 const EMAIL_KEY = `agent5:email:${AGENT_ID}`
+const REAUTH_KEY = `agent5:reauth:${AGENT_ID}`
 
 export function getToken(): string | null {
   try {
@@ -47,4 +48,35 @@ export function clearSession(): void {
 
 export function isVerified(): boolean {
   return !!getToken()
+}
+
+/**
+ * Called when the server rejects a gated call with 401 — the stored token is stale
+ * (TTL expired, or no server session for it). Clear it, flag that re-auth is needed so
+ * the gate can explain why, and bounce back through the SES gate — instead of leaving
+ * the UI stuck on a 401 error or jumping to login with no explanation.
+ */
+export function handleUnauthorized(): void {
+  clearSession()
+  try {
+    sessionStorage.setItem(REAUTH_KEY, '1')
+  } catch {
+    /* ignore */
+  }
+  if (typeof window !== 'undefined' && window.location.pathname !== '/auth') {
+    window.location.assign('/auth')
+  }
+}
+
+/** Read-and-clear the "session expired, please re-verify" flag set by handleUnauthorized. */
+export function consumeReauthNotice(): boolean {
+  try {
+    if (sessionStorage.getItem(REAUTH_KEY)) {
+      sessionStorage.removeItem(REAUTH_KEY)
+      return true
+    }
+  } catch {
+    /* ignore */
+  }
+  return false
 }

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { streamChat } from '../api/client'
 import { getPersona } from '../persona'
+import { handleUnauthorized } from '../auth'
 import { VoiceClient } from '../voice/voiceClient'
 import { SnowflakeVoice, type SnowflakeHandle } from '../voice/SnowflakeVoice'
 
@@ -11,7 +12,7 @@ interface Msg {
   text: string
 }
 
-type VoiceState = 'off' | 'connecting' | 'live' | 'error'
+type VoiceState = 'off' | 'connecting' | 'live'
 
 // One session per browser tab so chat history persists across page switches.
 function useChatSessionId(): string {
@@ -69,11 +70,18 @@ export function ChatPage() {
       },
       onLevel: (kind, level) => snowRef.current?.setLevel(kind, level),
       onTool: (name, status) => setVoiceTool(status === 'running' ? name : null),
-      onError: (message, fallback) => {
-        setVoice('error')
-        setError(fallback ? `Voice unavailable (${message}). You can keep chatting by text.` : message)
+      onError: (message, fallback, code) => {
         voiceRef.current?.stop()
         voiceRef.current = null
+        setVoice('off')
+        // Stale/missing session: clear it and bounce through the SES gate (same as HTTP 401).
+        if (code === 'unauthorized') {
+          handleUnauthorized()
+          return
+        }
+        // Revert to 'off' so the orb collapses and the button reads "Start voice";
+        // the reason stays visible in the error banner.
+        setError(fallback ? `Voice unavailable (${message}). You can keep chatting by text.` : message)
       },
       onClose: () => { if (voiceRef.current) setVoice('off') },
     })
@@ -81,7 +89,7 @@ export function ChatPage() {
     try {
       await client.start()
     } catch (e) {
-      setVoice('error')
+      setVoice('off')
       setError(`Could not start voice: ${String(e)}. You can keep chatting by text.`)
       voiceRef.current = null
     }
@@ -143,7 +151,6 @@ export function ChatPage() {
   const voiceLabel =
     voice === 'live' ? '● Listening — tap to stop'
     : voice === 'connecting' ? 'Connecting…'
-    : voice === 'error' ? 'Voice off'
     : '🎙 Start voice'
 
   return (

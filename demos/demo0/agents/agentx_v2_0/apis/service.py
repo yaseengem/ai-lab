@@ -226,6 +226,7 @@ class Service:
     def update_session(self, session_id: str, **kwargs) -> None:
         meta = self.get_session(session_id) or {}
         meta.update(kwargs)
+        meta["session_id"] = session_id  # always recorded; can't be double-passed
         self._sessions[session_id] = meta
         _write_json(SESSIONS_DIR / f"{session_id}_meta.json", meta)
 
