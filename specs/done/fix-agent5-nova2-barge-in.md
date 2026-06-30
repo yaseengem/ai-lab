@@ -1,7 +1,7 @@
 # Spec: agent5 — fix barge-in (AI not interrupted) on Nova 2 Sonic
 
-**Status:** approved
-**Version:** v1
+**Status:** done
+**Version:** v2
 **Date:** 2026-07-01
 
 ---
@@ -37,6 +37,42 @@ insufficient; in-flight chunks must be **dropped** for a short window after a ba
 
 Both interrupt-detection paths in the backend are kept (Nova 2 still emits the textOutput marker
 per the official sample, and also `contentEnd` `INTERRUPTED` on TEXT content).
+
+---
+
+## Follow-up (v2): opening words of the next AI turn cut off
+
+**Problem.** After the v1 fix, the first 1–2 words of the AI's *reply following a barge-in* are
+clipped. Cause: the suppression window bleeds into the next turn. When the user speaks over the AI,
+the local mic-RMS detector arms a 0.5 s window (`suppressUntil = currentTime + 0.5`). The server then
+confirms with `{type:'interrupted'}`, but the browser routes that **also** through `bargeIn()`, which
+**re-arms** the window to `currentTime + 0.5` — pushing it *past* the turn boundary. Nova 2 streams
+the new turn faster than real-time, so its opening `audio` chunks arrive while the (re-armed) window
+is still open and `playPcm()` drops them.
+
+The key insight: the server `interrupted` event **is** the turn boundary. By WS ordering, every audio
+chunk *after* it belongs to the new turn and must play. Only chunks *before* it (trailing
+interrupted-turn audio) should be dropped — and the local speculative window already covers the gap
+before the server confirms.
+
+**Fix (frontend only, `voiceClient.ts`).**
+
+1. The server `interrupted` handler no longer calls `bargeIn()`. Instead it **flushes** scheduled
+   audio (`stopPlayback()`) and **clears** suppression (`suppressUntil = 0`), so the next turn plays
+   from its first word. `bargeIn()` remains the local (speculative) path that arms the window.
+2. Lower `BARGE_IN_SUPPRESS_SEC` 0.5 → 0.3 s as a safety margin for the local-only path (when the
+   server never confirms, e.g. a quiet/false trigger, the window lapses sooner).
+
+### Checklist (v2)
+
+- [x] `voiceClient.ts`: server `interrupted` → `stopPlayback()` + `suppressUntil = 0` (no re-arm).
+- [x] `voiceClient.ts`: `BARGE_IN_SUPPRESS_SEC` 0.5 → 0.3.
+
+### Verification (v2)
+
+- Frontend-only — rebuild/refresh the agent5 frontend (no backend relaunch needed).
+- Let the AI talk, speak over it, then stop: the AI cuts off promptly **and** its next reply plays
+  from the first word (no clipped opening).
 
 ---
 

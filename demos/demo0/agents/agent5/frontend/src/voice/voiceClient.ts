@@ -16,9 +16,11 @@ import { voiceWsUrl } from '../api/client'
 
 const INPUT_RATE = 16000
 const OUTPUT_RATE = 24000
-// After a barge-in, drop AI audio chunks still arriving from the (faster-than-real-time)
-// model for this long, so trailing buffered speech doesn't resume after the cut-off.
-const BARGE_IN_SUPPRESS_SEC = 0.5
+// After a *local* (speculative) barge-in, drop AI audio chunks still arriving from the
+// (faster-than-real-time) model for this long, so trailing buffered speech doesn't resume
+// after the cut-off. This only bridges the gap until the server confirms the barge-in —
+// that 'interrupted' event is the real turn boundary and clears the window (see onMessage).
+const BARGE_IN_SUPPRESS_SEC = 0.3
 
 export interface VoiceCallbacks {
   onReady?: () => void
@@ -213,8 +215,12 @@ export class VoiceClient {
         this.playPcm(String(msg.audio ?? ''))
         break
       case 'interrupted':
-        // Server-confirmed barge-in: flush queued AI speech and drop trailing chunks.
-        this.bargeIn()
+        // Server-confirmed barge-in — this event IS the turn boundary. By WS ordering every
+        // audio chunk after it belongs to the AI's *next* turn and must play, so flush the
+        // stale queued speech but CLEAR suppression (don't re-arm it, or we'd drop the opening
+        // words of the new turn). The local speculative window already covered the gap until now.
+        this.stopPlayback()
+        this.suppressUntil = 0
         break
       case 'tool':
         this.cb.onTool?.(String(msg.name ?? ''), (msg.status as 'running' | 'done') ?? 'running')
